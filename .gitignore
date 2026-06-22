@@ -1,0 +1,8 @@
+.gradle/
+**/build/
+.idea/
+*.iml
+.env
+firebase.json
+infra/mysql/data/
+infra/redis/data/
