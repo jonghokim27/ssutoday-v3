@@ -7,16 +7,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @EnableScheduling
-@EntityScan("kr.ac.ssu.ssutoday.domain.article")
-@EnableJpaRepositories("kr.ac.ssu.ssutoday.domain.article")
-@SpringBootApplication(
-    scanBasePackages = [
-        "kr.ac.ssu.ssutoday.batch",
-        "kr.ac.ssu.ssutoday.application.article",
-        "kr.ac.ssu.ssutoday.domain.article",
-        "kr.ac.ssu.ssutoday.adapter.kafka",
-    ],
-)
+@EntityScan("kr.ac.ssu.ssutoday.domain")
+@EnableJpaRepositories("kr.ac.ssu.ssutoday.domain")
+@SpringBootApplication(scanBasePackages = ["kr.ac.ssu.ssutoday"])
 class BatchApplication
 
 fun main(args: Array<String>) {
