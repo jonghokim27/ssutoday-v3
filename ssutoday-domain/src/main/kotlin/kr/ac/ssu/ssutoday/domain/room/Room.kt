@@ -1,0 +1,38 @@
+package kr.ac.ssu.ssutoday.domain.room
+
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+
+@Entity
+class Room(
+    @Id
+    @Column(name = "no", length = 10)
+    var no: String,
+
+    @Column(nullable = false, length = 50)
+    var name: String,
+
+    @Column(nullable = false, columnDefinition = "json")
+    var major: String,
+
+    @Column(nullable = false)
+    var capacity: Int,
+
+    @Column(nullable = false, length = 50)
+    var location: String,
+
+    @Column(nullable = false, length = 50)
+    var tags: String,
+
+    @Column(nullable = false, length = 200)
+    var image: String,
+
+    @Column(name = "bigImage", nullable = false, length = 200)
+    var bigImage: String,
+
+    @Column(name = "isAvailable", nullable = false)
+    var availableValue: Int,
+) {
+    val isAvailable: Boolean get() = availableValue == 1
+}

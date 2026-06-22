@@ -1,0 +1,71 @@
+services:
+  mysql:
+    image: mysql:8.4
+    env_file: ../.env
+    ports: ["3307:3306"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  kafka:
+    image: apache/kafka:4.1.1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports: ["9092:9092"]
+
+  api:
+    build:
+      context: ..
+      args: { MODULE: ssutoday-api }
+    env_file: ../.env
+    ports: ["8080:80"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  batch:
+    build:
+      context: ..
+      args: { MODULE: ssutoday-batch }
+    env_file: ../.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  consumer:
+    build:
+      context: ..
+      args: { MODULE: ssutoday-consumer }
+    env_file: ../.env
+    volumes:
+      - ../firebase.json:/run/secrets/firebase.json:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+volumes:
+  mysql-data:
