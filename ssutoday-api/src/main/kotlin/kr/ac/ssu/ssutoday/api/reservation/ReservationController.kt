@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.reservation
 
 import jakarta.validation.Valid
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.CreateReservationRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.AdminReservationRequest
@@ -37,7 +37,7 @@ class ReservationController(
     @PostMapping("/request")
     @SsuResponse(SsuStatus.SSU2090)
     fun request(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: CreateReservationRequest,
     ): ReservationIdResponse {
         val id = reservationCommandApplicationService.request(
@@ -58,7 +58,7 @@ class ReservationController(
     @PostMapping("/status")
     @SsuResponse(SsuStatus.SSU2120)
     fun status(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: ReservationIdRequest,
     ): ReservationStatusResponse {
         val status = reservationQueryApplicationService.getRequestStatus(request.idx, student.id)
@@ -68,7 +68,7 @@ class ReservationController(
     @PostMapping("/list")
     @SsuResponse(SsuStatus.SSU2130)
     fun list(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: ReservationListRequest,
     ): ReservationListResponse {
         val result = reservationQueryApplicationService.list(student.id, request.page, request.type == 0)
@@ -78,7 +78,7 @@ class ReservationController(
     @PostMapping("/cancel")
     @SsuResponse(SsuStatus.SSU2140)
     fun cancel(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: ReservationIdRequest,
     ) {
         reservationCommandApplicationService.cancel(student.id, request.idx)
@@ -87,7 +87,7 @@ class ReservationController(
     @PostMapping("/verifyPhoto/upload")
     @SsuResponse(SsuStatus.SSU2200)
     fun upload(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @ModelAttribute request: VerifyPhotoRequest,
     ) {
         val file = request.file
@@ -106,7 +106,7 @@ class ReservationController(
     @PostMapping("/adminTools")
     @SsuResponse(SsuStatus.SSU2220)
     fun adminTools(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: AdminReservationRequest,
     ): Int {
         if (!student.isAdmin) throw BusinessException(SsuStatus.SSU4003)
@@ -128,7 +128,7 @@ class ReservationController(
     @PostMapping("/done")
     @SsuResponse(SsuStatus.SSU2230)
     fun done(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: ReservationIdRequest,
     ) {
         reservationCommandApplicationService.done(student.id, request.idx)

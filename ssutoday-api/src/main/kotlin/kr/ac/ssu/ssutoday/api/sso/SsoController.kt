@@ -3,7 +3,7 @@ package kr.ac.ssu.ssutoday.api.sso
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.sso.dto.SsoGenerateRequest
 import kr.ac.ssu.ssutoday.api.sso.dto.SsoGenerateResponse
 import kr.ac.ssu.ssutoday.api.sso.dto.SsoValidateRequest
@@ -25,7 +25,7 @@ class SsoController(
     @PostMapping("/generateToken")
     @SsuResponse(SsuStatus.SSU2150)
     fun generate(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: SsoGenerateRequest,
     ): SsoGenerateResponse {
         val result = ssoApplicationService.generate(student, request.clientId)

@@ -12,9 +12,9 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
 @Component
-class AuthenticatedStudentArgumentResolver : HandlerMethodArgumentResolver {
+class LoginStudentArgumentResolver : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter): Boolean =
-        parameter.hasParameterAnnotation(AuthenticatedStudent::class.java) &&
+        parameter.hasParameterAnnotation(LoginStudent::class.java) &&
             parameter.parameterType == StudentView::class.java
 
     override fun resolveArgument(

@@ -3,7 +3,7 @@ package kr.ac.ssu.ssutoday.api.student
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.student.dto.BiometricsKeyRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentLoginRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentProfileResponse
@@ -29,7 +29,7 @@ class StudentController(
 
     @PostMapping("/profile")
     @SsuResponse(SsuStatus.SSU2020)
-    fun profile(@AuthenticatedStudent student: StudentView) =
+    fun profile(@LoginStudent student: StudentView) =
         StudentProfileResponse(student.id, student.name, student.major, student.isAdmin)
 
     @PostMapping("/logout")
@@ -43,7 +43,7 @@ class StudentController(
     @PostMapping("/updateXnApiToken")
     @SsuResponse(SsuStatus.SSU2190)
     fun updateToken(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: StudentUpdateTokenRequest,
     ) {
         studentApplicationService.updateXnApiToken(student.id, request.xnApiToken)
@@ -52,7 +52,7 @@ class StudentController(
     @PostMapping("/enrollBiometricsKey")
     @SsuResponse(SsuStatus.SSU2210)
     fun biometrics(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: BiometricsKeyRequest,
     ) {
         studentApplicationService.enrollBiometricsKey(

@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":ssutoday-application"))
     implementation(project(":ssutoday-domain"))
     implementation(project(":ssutoday-common:ssutoday-core"))
+    runtimeOnly(project(":ssutoday-common:ssutoday-adapter"))
 
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
