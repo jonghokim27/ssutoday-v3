@@ -12,6 +12,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt:0.9.1")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
     implementation("org.jsoup:jsoup:1.16.1")
+    implementation("com.google.firebase:firebase-admin:9.2.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

@@ -2,6 +2,8 @@ package kr.ac.ssu.ssutoday.batch.crawler.base
 
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
 
 abstract class GnuBoardCrawler(
     provider: String,
@@ -23,4 +25,17 @@ abstract class GnuBoardCrawler(
     override fun title(document: Document) = document.requiredText(".bo_v_tit")
 
     override fun content(document: Document) = document.requiredText("#bo_v_con")
+
+    override fun createdAt(
+        link: Element,
+        document: Document,
+    ): Timestamp =
+        ArticleDateParser.parseDateTime(
+            document.requiredText("strong.if_date").removePrefix("작성일"),
+            DATE_FORMATTER,
+        )
+
+    private companion object {
+        val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm")
+    }
 }

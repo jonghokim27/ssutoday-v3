@@ -1,10 +1,13 @@
 package kr.ac.ssu.ssutoday.batch.crawler
 
+import kr.ac.ssu.ssutoday.batch.crawler.base.ArticleDateParser
 import kr.ac.ssu.ssutoday.batch.crawler.base.JsoupArticleCrawler
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
 
 @Component
 class SsuCatchCrawler(
@@ -19,4 +22,17 @@ class SsuCatchCrawler(
     override fun title(document: Document) = document.requiredText("h1.font-weight-light.mb-3")
 
     override fun content(document: Document) = document.requiredText("div.bg-white.p-4.mb-5 > div:not(.clearfix)")
+
+    override fun createdAt(
+        link: Element,
+        document: Document,
+    ): Timestamp =
+        ArticleDateParser.parseDate(
+            document.requiredText("div.bg-white.p-4.mb-5 > div.clearfix .float-left").removePrefix("작성일"),
+            DATE_FORMATTER,
+        )
+
+    private companion object {
+        val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
+    }
 }
