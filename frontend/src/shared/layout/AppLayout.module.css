@@ -1,0 +1,54 @@
+.viewport {
+  min-height: 100vh;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.device {
+  position: relative;
+  width: min(402px, 100vw);
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--color-surface-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.routeFrame {
+  height: 100%;
+  animation: routeIn 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes routeIn {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 460px) {
+  .viewport {
+    padding: 0;
+    background: var(--color-surface-base);
+  }
+
+  .device {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+  }
+}

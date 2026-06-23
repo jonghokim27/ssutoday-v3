@@ -1,0 +1,56 @@
+.screen {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: calc(var(--space-bottom-nav-height) + var(--space-8));
+  scrollbar-width: none;
+  animation: slideInR 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.screen::-webkit-scrollbar {
+  display: none;
+}
+
+.hero {
+  padding: var(--space-7) var(--space-screen-x) 2px;
+  animation: floatUp 0.5s ease both;
+}
+
+.hero h1 {
+  margin: 0 0 4px;
+  font-size: var(--font-size-home-title);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -1px;
+  line-height: 1.12;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-regular);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  padding: 6px var(--space-9) 0;
+}
+
+.list > * {
+  animation: floatUp 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.list > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+
+.list > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.list > *:nth-child(3) {
+  animation-delay: 0.14s;
+}

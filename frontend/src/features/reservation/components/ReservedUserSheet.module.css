@@ -1,0 +1,132 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: rgba(15, 18, 34, 0.38);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease both;
+}
+
+.sheet {
+  width: 100%;
+  border-radius: var(--radius-sheet);
+  background: var(--color-surface-base);
+  box-shadow: var(--shadow-bottom-sheet);
+  padding: var(--space-5) var(--space-12) var(--space-14);
+  animation: slideUpSheet 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.handle {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto var(--space-9);
+  border-radius: 3px;
+  background: var(--color-border-default);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-7);
+  color: var(--color-brand-purple);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-bold);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-7);
+}
+
+.initial {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: var(--color-brand-gradient);
+  color: var(--color-surface-base);
+  box-shadow: 0 10px 22px -8px rgba(106, 76, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.profile strong,
+.profile span {
+  display: block;
+}
+
+.profile strong {
+  font-size: 21px;
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.4px;
+}
+
+.profile span {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.sheet dl {
+  margin: var(--space-9) 0 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  background: var(--color-border-default);
+  overflow: hidden;
+}
+
+.sheet dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1px;
+  padding: 13px var(--space-8);
+  background: var(--color-surface-subtle);
+}
+
+.sheet dl div:first-child {
+  margin-top: 0;
+}
+
+.sheet dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.sheet dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.help {
+  margin: 13px 2px 0;
+  color: var(--color-text-disabled);
+  font-size: 11.5px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+}
+
+.sheet button {
+  width: 100%;
+  margin-top: var(--space-9);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+  }
+}

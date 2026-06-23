@@ -1,0 +1,199 @@
+.screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  padding: 120px var(--space-14) var(--space-14);
+  background: radial-gradient(120% 60% at 50% 18%, #eef2ff 0%, #ffffff 60%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.check {
+  position: relative;
+  width: 118px;
+  height: 118px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-gradient);
+  color: var(--color-surface-base);
+  box-shadow: 0 18px 40px -10px rgba(106, 76, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.4) both;
+}
+
+.check::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  z-index: -1;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-gradient);
+  animation: burst 0.8s ease-out forwards;
+}
+
+.confetti {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.confetti span {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--color-brand-blue);
+  animation: confetti 1s ease forwards;
+}
+
+.confetti span:nth-child(2n) {
+  border-radius: 50%;
+  background: var(--color-brand-purple);
+}
+
+.confetti span:nth-child(3n) {
+  background: var(--color-warning);
+}
+
+.confetti span:nth-child(4n) {
+  background: var(--color-success);
+}
+
+.confetti span:nth-child(1) { --x: -110px; --y: -30px; }
+.confetti span:nth-child(2) { --x: -75px; --y: -95px; }
+.confetti span:nth-child(3) { --x: -25px; --y: -120px; }
+.confetti span:nth-child(4) { --x: 32px; --y: -115px; }
+.confetti span:nth-child(5) { --x: 80px; --y: -80px; }
+.confetti span:nth-child(6) { --x: 120px; --y: -20px; }
+.confetti span:nth-child(7) { --x: 110px; --y: 55px; }
+.confetti span:nth-child(8) { --x: 58px; --y: 88px; }
+.confetti span:nth-child(9) { --x: 8px; --y: 98px; }
+.confetti span:nth-child(10) { --x: -52px; --y: 84px; }
+.confetti span:nth-child(11) { --x: -112px; --y: 38px; }
+.confetti span:nth-child(12) { --x: -135px; --y: -4px; }
+.confetti span:nth-child(13) { --x: 135px; --y: 18px; }
+.confetti span:nth-child(14) { --x: 18px; --y: -150px; }
+
+.eyebrow {
+  margin: var(--space-4) 0 6px;
+  color: var(--color-brand-blue);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.4px;
+}
+
+.screen h1 {
+  margin: 0;
+  font-size: var(--font-size-hero-title);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.7px;
+}
+
+.summary {
+  width: 100%;
+  margin-top: var(--space-11);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-card-lg);
+  background: var(--color-surface-base);
+  box-shadow: 0 20px 50px -28px rgba(40, 30, 90, 0.5);
+  padding: var(--space-10);
+  text-align: left;
+  animation: floatUp 0.5s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.room {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: var(--space-7);
+  border-bottom: 1px dashed #e7e8f0;
+}
+
+.room img {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-icon);
+  object-fit: cover;
+}
+
+.room strong,
+.room span {
+  display: block;
+}
+
+.room strong {
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.room span {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+}
+
+.summary dl {
+  margin: var(--space-7) 0 0;
+}
+
+.summary dl div {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 9px;
+  font-size: 13.5px;
+}
+
+.summary dt {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.summary dd {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+.summary dd:last-child {
+  color: var(--color-brand-blue);
+}
+
+.buttons {
+  width: 100%;
+  margin-top: var(--space-13);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: floatUp 0.5s 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.buttons a,
+.buttons button {
+  width: 100%;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes burst {
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes confetti {
+  to {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(260deg);
+  }
+}

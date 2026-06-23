@@ -1,0 +1,33 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.thumb {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-button);
+  object-fit: cover;
+}
+
+.body {
+  min-width: 0;
+  flex: 1;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.name {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.4px;
+}

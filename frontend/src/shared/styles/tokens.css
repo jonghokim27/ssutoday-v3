@@ -1,0 +1,114 @@
+:root {
+  --color-brand-blue: #4f7cff;
+  --color-brand-purple: #9b5cff;
+  --color-brand-cyan: #1e9bd1;
+  --color-brand-gradient: linear-gradient(135deg, #4f7cff, #9b5cff);
+  --color-logo-gradient: radial-gradient(circle at 30% 110%, #1e9bd1 0%, #4f7cff 48%, #9b5cff 100%);
+
+  --color-text-primary: #0f1222;
+  --color-text-heading-blue: #143a66;
+  --color-text-secondary: #4f5566;
+  --color-text-tertiary: #6b7180;
+  --color-text-muted: #8a8f9c;
+  --color-text-disabled: #b6bac6;
+  --color-text-placeholder: #a6abb8;
+
+  --color-surface-base: #ffffff;
+  --color-surface-subtle: #f8f9fc;
+  --color-surface-panel: #f7f8fb;
+  --color-surface-control: #f4f5fa;
+  --color-surface-control-strong: #f2f3f8;
+  --color-surface-disabled: #eff0f5;
+
+  --color-border-default: #edeef4;
+  --color-border-subtle: #f0f1f6;
+  --color-border-soft: #f1f2f7;
+  --color-border-timeline: #e7e9f1;
+
+  --color-success: #1fb97a;
+  --color-success-bg: #e8faf1;
+  --color-danger: #ff4d63;
+  --color-danger-soft: #ffecef;
+  --color-warning: #ffb020;
+  --color-warning-dark: #e8920e;
+  --color-warning-orange: #ff8a3d;
+  --color-info: #0ea5c4;
+  --color-notice: #7c5cff;
+
+  --color-timeline-available: #f2f3f8;
+  --color-timeline-available-border: #e7e9f1;
+  --color-timeline-booked: #ffe1e6;
+  --color-timeline-booked-border: #ffb3bf;
+  --color-timeline-booked-strong: #ffc2cd;
+  --color-timeline-selected-start: #5c84ff;
+  --color-timeline-selected-end: #9b5cff;
+  --color-timeline-now: #ff4d63;
+
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+  --space-10: 20px;
+  --space-11: 22px;
+  --space-12: 24px;
+  --space-13: 26px;
+  --space-14: 30px;
+  --space-screen-x: 22px;
+  --space-bottom-nav-height: 64px;
+  --space-status-top: 52px;
+
+  --font-family-base: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-weight-regular: 500;
+  --font-weight-medium: 600;
+  --font-weight-bold: 700;
+  --font-weight-extra-bold: 800;
+  --font-size-caption-2: 10px;
+  --font-size-caption: 11px;
+  --font-size-label-sm: 12px;
+  --font-size-label: 12.5px;
+  --font-size-body-sm: 13px;
+  --font-size-body: 14px;
+  --font-size-body-lg: 14.5px;
+  --font-size-button: 15px;
+  --font-size-button-lg: 16px;
+  --font-size-section-title: 18px;
+  --font-size-dialog-title: 20px;
+  --font-size-card-title: 17px;
+  --font-size-page-title-sm: 24px;
+  --font-size-profile-name: 26px;
+  --font-size-hero-title: 27px;
+  --font-size-home-title: 30px;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-badge: 9px;
+  --radius-chip: 10px;
+  --radius-control: 11px;
+  --radius-md: 12px;
+  --radius-icon: 14px;
+  --radius-button: 16px;
+  --radius-button-lg: 18px;
+  --radius-card: 20px;
+  --radius-card-lg: 22px;
+  --radius-dialog: 26px;
+  --radius-sheet: 28px 28px 0 0;
+  --radius-device: 46px;
+  --radius-full: 999px;
+
+  --shadow-logo: 0 8px 18px -6px rgba(106, 76, 255, 0.4);
+  --shadow-card: 0 10px 26px -20px rgba(40, 30, 90, 0.35);
+  --shadow-card-hover: 0 20px 38px -20px rgba(79, 124, 255, 0.45);
+  --shadow-sticky: 0 12px 18px -16px rgba(40, 30, 90, 0.55);
+  --shadow-primary-button: 0 16px 32px -12px rgba(106, 76, 255, 0.6);
+  --shadow-primary-small: 0 8px 16px -6px rgba(106, 76, 255, 0.55);
+  --shadow-bottom-sheet: 0 -16px 40px -12px rgba(40, 30, 90, 0.35);
+  --shadow-dialog: 0 30px 70px -20px rgba(40, 30, 90, 0.55);
+  --shadow-toast: 0 14px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-device: 0 30px 80px -20px rgba(40, 30, 90, 0.45), 0 0 0 11px #0c0c14, 0 0 0 13px #2a2a36;
+}

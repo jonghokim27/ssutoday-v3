@@ -1,0 +1,45 @@
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 9px;
+  border-radius: var(--radius-badge);
+  font-size: 11.5px;
+  font-weight: var(--font-weight-bold);
+}
+
+.blue {
+  color: var(--color-brand-blue);
+  background: var(--color-brand-blue-10, #eef2ff);
+}
+
+.purple {
+  color: var(--color-notice);
+  background: #f1ecff;
+}
+
+.gray {
+  color: var(--color-text-tertiary);
+  background: var(--color-surface-control-strong);
+}
+
+.green {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.orange {
+  color: #ff6b3d;
+  background: #fff0ea;
+}
+
+.red {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.yellow {
+  color: var(--color-warning-dark);
+  background: #fff6e6;
+}
