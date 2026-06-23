@@ -1,12 +1,12 @@
 package kr.ac.ssu.ssutoday.application.reservation.dto
 
-import java.sql.Date
 import java.sql.Timestamp
+import java.time.LocalDate
 
 data class ReservationDetail(
     val idx: Long,
     val roomNo: String,
-    val date: Date,
+    val date: LocalDate,
     val startBlock: Int,
     val endBlock: Int,
     val createdAt: Timestamp,

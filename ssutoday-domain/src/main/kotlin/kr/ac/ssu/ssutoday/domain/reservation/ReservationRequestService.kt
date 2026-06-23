@@ -5,7 +5,7 @@ import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.factory.toView
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.sql.Date
+import java.time.LocalDate
 
 @Service
 class ReservationRequestService(
@@ -14,7 +14,7 @@ class ReservationRequestService(
     fun create(
         studentId: Int,
         roomNo: String,
-        date: Date,
+        date: LocalDate,
         startBlock: Int,
         endBlock: Int,
     ): Long = repository.save(

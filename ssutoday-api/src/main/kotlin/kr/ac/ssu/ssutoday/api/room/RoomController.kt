@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.sql.Date
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/room")
@@ -35,7 +35,7 @@ class RoomController(
             room.toView(
                 reservationQueryApplicationService.room(
                     room.no,
-                    Date.valueOf(request.date),
+                    LocalDate.parse(request.date),
                     student.id,
                     student.isAdmin,
                 ),
@@ -49,7 +49,7 @@ class RoomController(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomListRequest,
     ): RoomListResponse {
-        val date = Date.valueOf(request.date)
+        val date = LocalDate.parse(request.date)
         val result = roomApplicationService.list(student.major, student.isAdmin)
             .map {
                 it.toView(

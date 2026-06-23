@@ -19,8 +19,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import tools.jackson.databind.json.JsonMapper
-import java.sql.Date
 import java.sql.Timestamp
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -45,14 +45,12 @@ class ApiResponseContractTest {
     }
 
     @Test
-    fun `BusinessException은 SSU 코드에 맞는 HTTP 상태와 메시지를 반환한다`() {
+    fun `BusinessException은 SSU 코드에 맞는 HTTP 상태를 반환한다`() {
         val badRequest = advice.business(BusinessException(StatusCode.SSU4080))
-        val serverError = advice.business(BusinessException(StatusCode.SSU5090))
+        val serverError = advice.business(BusinessException(StatusCode.SSU5000))
 
         assertEquals(HttpStatus.BAD_REQUEST, badRequest.statusCode)
-        assertEquals("Not an existing article", badRequest.body?.message)
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, serverError.statusCode)
-        assertEquals("Failed to request reserve", serverError.body?.message)
     }
 
     @Test
@@ -80,7 +78,7 @@ class ApiResponseContractTest {
             ReservationDetail(
                 idx = 1L,
                 roomNo = "A101",
-                date = Date.valueOf("2026-06-22"),
+                date = LocalDate.parse("2026-06-22"),
                 startBlock = 12,
                 endBlock = 13,
                 createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),

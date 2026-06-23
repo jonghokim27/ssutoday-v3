@@ -1,13 +1,13 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
-import java.sql.Date
 import java.sql.Timestamp
+import java.time.LocalDate
 
 data class ReservationView(
     val id: Long,
     val studentId: Int,
     val roomNo: String,
-    val date: Date,
+    val date: LocalDate,
     val startBlock: Int,
     val endBlock: Int,
     val createdAt: Timestamp,
