@@ -11,12 +11,12 @@ import java.sql.Timestamp
 class VerifyPhoto(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx")
+    @Column
     var id: Long = 0L,
-    @Column(name = "ReserveIdx", nullable = false)
+    @Column(nullable = false)
     var reservationId: Long,
     @Column(nullable = false)
     var url: String,
-    @Column(name = "createdAt", nullable = false)
+    @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
 )

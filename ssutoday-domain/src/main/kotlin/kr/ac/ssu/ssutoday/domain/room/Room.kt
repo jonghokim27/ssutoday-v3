@@ -7,7 +7,7 @@ import jakarta.persistence.Id
 @Entity
 class Room(
     @Id
-    @Column(name = "no", length = 10)
+    @Column(length = 10)
     var no: String,
     @Column(nullable = false, length = 50)
     var name: String,
@@ -21,9 +21,9 @@ class Room(
     var tags: String,
     @Column(nullable = false, length = 200)
     var image: String,
-    @Column(name = "bigImage", nullable = false, length = 200)
+    @Column(nullable = false, length = 200)
     var bigImage: String,
-    @Column(name = "isAvailable", nullable = false)
+    @Column(nullable = false)
     var availableValue: Int,
 ) {
     val isAvailable: Boolean get() = availableValue == 1

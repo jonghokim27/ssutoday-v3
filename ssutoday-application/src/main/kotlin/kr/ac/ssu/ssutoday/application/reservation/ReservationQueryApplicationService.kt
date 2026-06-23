@@ -15,8 +15,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 
 @Service
 class ReservationQueryApplicationService(
@@ -32,7 +31,7 @@ class ReservationQueryApplicationService(
         page: Int,
         previous: Boolean,
     ): ReservationPageResult {
-        val now = ZonedDateTime.now(SEOUL)
+        val now = LocalDateTime.now()
         val today = now.toLocalDate()
         val block = currentBlock(now)
         val result =
@@ -125,7 +124,7 @@ class ReservationQueryApplicationService(
         studentId: Int,
     ): Int = reservationRequestService.getStatus(requestId, studentId)
 
-    private fun currentBlock(now: ZonedDateTime): Int = (now.hour * 60 + now.minute) / 30
+    private fun currentBlock(now: LocalDateTime): Int = (now.hour * 60 + now.minute) / 30
 
     private fun maskName(name: String): String {
         if (name.length <= 1) return name
@@ -145,6 +144,5 @@ class ReservationQueryApplicationService(
 
     private companion object {
         const val PAGE_SIZE = 10
-        val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
     }
 }

@@ -9,7 +9,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Service
 class ReservationService(
@@ -102,7 +101,7 @@ class ReservationService(
         val reservation =
             repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
                 ?: throw BusinessException(StatusCode.SSU4140)
-        val now = LocalDateTime.now(SEOUL)
+        val now = LocalDateTime.now()
         val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
 
@@ -125,7 +124,7 @@ class ReservationService(
         val reservation =
             repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
                 ?: throw BusinessException(StatusCode.SSU4200)
-        val now = LocalDateTime.now(SEOUL)
+        val now = LocalDateTime.now()
         val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
         val createdAt = reservation.createdAt.toLocalDateTime()
@@ -180,8 +179,4 @@ class ReservationService(
         repository
             .findAllByStudentIdAndDateAndDeletedAtIsNull(studentId, date)
             .sumOf { it.endBlock - it.startBlock + 1 }
-
-    private companion object {
-        val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
-    }
 }

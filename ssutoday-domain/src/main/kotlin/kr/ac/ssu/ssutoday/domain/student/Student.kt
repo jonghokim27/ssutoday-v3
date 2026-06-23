@@ -8,19 +8,19 @@ import java.sql.Timestamp
 @Entity
 class Student(
     @Id
-    @Column(name = "id")
+    @Column
     var id: Int,
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     var name: String,
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     var major: String,
-    @Column(name = "xnApiToken", length = 500)
+    @Column(length = 500)
     var xnApiToken: String? = null,
-    @Column(name = "isAdmin", nullable = false)
+    @Column(nullable = false)
     var adminValue: Int = 0,
-    @Column(name = "createdAt", nullable = false)
+    @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
-    @Column(name = "updatedAt")
+    @Column
     var updatedAt: Timestamp? = null,
 ) {
     val isAdmin: Boolean get() = adminValue == 1

@@ -17,12 +17,7 @@ import kr.ac.ssu.ssutoday.domain.room.RoomService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.KeyFactory
-import java.security.Signature
-import java.security.spec.X509EncodedKeySpec
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Base64
 
 @Service
 class ReservationCommandApplicationService(
@@ -94,7 +89,7 @@ class ReservationCommandApplicationService(
                         request.startBlock,
                         request.endBlock,
                     ),
-                now = LocalDateTime.now(SEOUL),
+                now = LocalDateTime.now(),
             )
         if (rejectionStatus != null) {
             reservationRequestService.updateStatus(requestId, rejectionStatus)
@@ -123,7 +118,7 @@ class ReservationCommandApplicationService(
             reservationCompletionPolicy.completionBlock(
                 reservation,
                 verifyPhotoSatisfied,
-                LocalDateTime.now(SEOUL),
+                LocalDateTime.now(),
             )
         reservationService.finish(reservationId, completionBlock)
     }
@@ -137,15 +132,7 @@ class ReservationCommandApplicationService(
             reservation.date
                 .atStartOfDay()
                 .plusMinutes((reservation.endBlock + 1) * 30L)
-        if (endAt.isBefore(LocalDateTime.now(SEOUL))) return 2
-
-        val publicKey =
-            studentService.findBiometricsPublicKey(
-                command.administratorId,
-                command.osType,
-                command.uuid,
-            ) ?: return 99
-        if (!isValidSignature(command, publicKey)) return 99
+        if (endAt.isBefore(LocalDateTime.now())) return 2
 
         return when (command.type) {
             ADMIN_CANCEL -> {
@@ -169,24 +156,7 @@ class ReservationCommandApplicationService(
         }
     }
 
-    private fun isValidSignature(
-        command: AdminReservationCommand,
-        publicKey: String,
-    ): Boolean =
-        runCatching {
-            val key =
-                KeyFactory.getInstance("RSA").generatePublic(
-                    X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)),
-                )
-            Signature.getInstance("SHA256withRSA").run {
-                initVerify(key)
-                update("${command.type}:${command.reservationId}".toByteArray())
-                verify(Base64.getDecoder().decode(command.signature))
-            }
-        }.getOrDefault(false)
-
     private companion object {
-        val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
