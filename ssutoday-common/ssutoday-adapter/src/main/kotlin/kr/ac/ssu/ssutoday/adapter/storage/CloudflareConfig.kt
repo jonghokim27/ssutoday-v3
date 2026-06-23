@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class AwsConfig {
+class CloudflareConfig {
     @Bean
-    fun cloudflareR2(
+    fun cloudflareR2Bucket(
         @Value("\${cloud.aws.s3.endpoint}") endpoint: String,
         @Value("\${cloud.aws.s3.region}") region: String,
         @Value("\${cloud.aws.credentials.access-key}") accessKey: String,
