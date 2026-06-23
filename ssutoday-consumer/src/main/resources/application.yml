@@ -4,7 +4,6 @@ spring:
   kafka:
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP:ssutoday}
-      auto-offset-reset: earliest
 
 ssutoday:
   firebase:

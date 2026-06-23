@@ -22,7 +22,7 @@ class PushMessageConsumer(
 
     @KafkaListener(
         topics = ["\${ssutoday.kafka.topics.push-message:pushMessage}"],
-        groupId = "\${spring.kafka.consumer.group-id:ssutoday-push}",
+        groupId = "\${spring.kafka.consumer.group-id:ssutoday}",
     )
     fun consume(payload: String) {
         val push = objectMapper.readValue(payload, PushMessage::class.java)
