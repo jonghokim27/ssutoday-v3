@@ -67,16 +67,6 @@ class StudentApplicationService(
         studentService.updateXnApiToken(studentId, token)
     }
 
-    @Transactional
-    fun enrollBiometricsKey(
-        studentId: Int,
-        osType: String,
-        uuid: String,
-        publicKey: String,
-    ) {
-        studentService.enrollBiometricsKey(studentId, osType, uuid, publicKey)
-    }
-
     private fun issue(student: StudentView): LoginResult {
         val payload = TokenPayload(student.id, student.name, student.major)
         val access = tokenPort.createAccessToken(payload)
