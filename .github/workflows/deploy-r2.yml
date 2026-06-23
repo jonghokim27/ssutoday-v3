@@ -16,7 +16,7 @@ jobs:
     env:
       R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
       R2_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
-      BUILD_DIR: dist # CRA면 build 로 변경
+      BUILD_DIR: frontend/dist # CRA면 frontend/build
 
     steps:
       - name: Checkout
@@ -27,11 +27,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: cd frontend && npm ci
+        working-directory: frontend
+        run: npm ci
 
       - name: Build React app
+        working-directory: frontend
         run: npm run build
 
       - name: Configure AWS CLI credentials for R2
