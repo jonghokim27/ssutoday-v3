@@ -10,7 +10,7 @@ class ReservationRequestConsumer(
 ) {
     @KafkaListener(
         topics = ["\${ssutoday.kafka.topics.reservation-request:requestReserve}"],
-        groupId = "\${spring.kafka.consumer.reservation-group-id:ssutoday-reservation}",
+        groupId = "\${spring.kafka.consumer.group-id:ssutoday}",
     )
     fun consume(requestId: String) {
         reservationCommandApplicationService.processReservationRequest(requestId.toLong())

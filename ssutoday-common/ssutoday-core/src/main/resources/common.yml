@@ -29,6 +29,12 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+  jwt:
+    secret: ${JWT_SECRET_KEY}
+
+  discord:
+    webhook-url: ${DISCORD_WEBHOOK_URL}
+
 logging:
   level:
     kr.ac.ssu.ssutoday: info
@@ -45,7 +51,6 @@ cloud:
       auto: false
 
 ssutoday:
-  time-zone: ${TIME_ZONE:Asia/Seoul}
   kafka:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
