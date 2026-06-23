@@ -10,10 +10,15 @@ class RoomApplicationService(
     private val roomService: RoomService,
 ) {
     @Transactional(readOnly = true)
-    fun get(roomNo: String, major: String, admin: Boolean): RoomView =
-        roomService.get(roomNo, major, admin)
+    fun getRoom(
+        roomNo: String,
+        major: String,
+        admin: Boolean,
+    ): RoomView = roomService.get(roomNo, major, admin)
 
     @Transactional(readOnly = true)
-    fun list(major: String, admin: Boolean): List<RoomView> =
-        roomService.findAll(major, admin)
+    fun listRooms(
+        major: String,
+        admin: Boolean,
+    ): List<RoomView> = roomService.findAll(major, admin)
 }

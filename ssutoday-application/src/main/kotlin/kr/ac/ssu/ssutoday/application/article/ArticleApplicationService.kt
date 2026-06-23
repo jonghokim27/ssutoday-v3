@@ -21,17 +21,17 @@ class ArticleApplicationService(
     private val pushMessagePublisher: PushMessagePublisher,
 ) {
     @Transactional(readOnly = true)
-    fun list(query: ArticleQuery): ArticlePageResult {
+    fun listArticles(query: ArticleQuery): ArticlePageResult {
         val sort = Sort.by("createdAt", "id").let { if (query.ascending) it.ascending() else it.descending() }
         val page = articleService.search(query.providers, "%${query.search}%", PageRequest.of(query.page, 20, sort))
         return ArticlePageResult(page.content, page.totalPages)
     }
 
     @Transactional(readOnly = true)
-    fun get(id: Long): ArticleView = articleService.get(id)
+    fun getArticle(id: Long): ArticleView = articleService.get(id)
 
     @Transactional
-    fun upsert(
+    fun upsertArticle(
         provider: String,
         articleNo: String,
         title: String,

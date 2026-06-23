@@ -13,13 +13,17 @@ import java.sql.Timestamp
 class ArticleService(
     private val repository: ArticleRepository,
 ) {
-    fun search(providers: List<String>, search: String, pageable: Pageable): Page<ArticleView> =
-        repository.search(providers, search, pageable).map(Article::toView)
+    fun search(
+        providers: List<String>,
+        search: String,
+        pageable: Pageable,
+    ): Page<ArticleView> = repository.search(providers, search, pageable).map(Article::toView)
 
     fun get(id: Long): ArticleView =
-        (repository.findByIdOrNull(id)
-            ?: throw BusinessException(StatusCode.SSU4080, arrayOf(id)))
-            .toView()
+        (
+            repository.findByIdOrNull(id)
+                ?: throw BusinessException(StatusCode.SSU4080, arrayOf(id))
+        ).toView()
 
     fun upsert(
         provider: String,
@@ -35,16 +39,17 @@ class ArticleService(
             return ArticleUpsertResult(existing.toView(), false)
         }
 
-        val saved = repository.save(
-            Article(
-                provider = provider,
-                articleNo = articleNo,
-                title = title,
-                content = content,
-                url = url,
-                createdAt = createdAt,
-            ),
-        )
+        val saved =
+            repository.save(
+                Article(
+                    provider = provider,
+                    articleNo = articleNo,
+                    title = title,
+                    content = content,
+                    url = url,
+                    createdAt = createdAt,
+                ),
+            )
         return ArticleUpsertResult(saved.toView(), true)
     }
 }

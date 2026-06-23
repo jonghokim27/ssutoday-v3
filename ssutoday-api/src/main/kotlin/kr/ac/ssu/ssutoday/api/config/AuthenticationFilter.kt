@@ -13,10 +13,16 @@ import org.springframework.web.filter.OncePerRequestFilter
 class AuthenticationFilter(
     private val studentApplicationService: StudentApplicationService,
 ) : OncePerRequestFilter() {
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        val access = request.getHeader("Authorization")
-            ?.takeIf { it.startsWith(BEARER_PREFIX) }
-            ?.removePrefix(BEARER_PREFIX)
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        val access =
+            request
+                .getHeader("Authorization")
+                ?.takeIf { it.startsWith(BEARER_PREFIX) }
+                ?.removePrefix(BEARER_PREFIX)
         val refresh = request.getHeader("Refresh-Token")
         if (!access.isNullOrBlank() && !refresh.isNullOrBlank()) {
             runCatching { studentApplicationService.validate(access, refresh) }.onSuccess {

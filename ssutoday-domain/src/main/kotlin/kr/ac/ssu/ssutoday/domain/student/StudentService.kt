@@ -12,31 +12,51 @@ class StudentService(
     private val refreshTokens: RefreshTokenRepository,
     private val biometricsKeys: BiometricsKeyRepository,
 ) {
-    fun login(id: Int, name: String, major: String): StudentView {
-        val student = students.findByIdOrNull(id)
-            ?.apply { updateProfile(name, major) }
-            ?: Student(id, name, major)
+    fun login(
+        id: Int,
+        name: String,
+        major: String,
+    ): StudentView {
+        val student =
+            students
+                .findByIdOrNull(id)
+                ?.apply { updateProfile(name, major) }
+                ?: Student(id, name, major)
         return students.save(student).toView()
     }
 
     fun get(id: Int): StudentView =
-        (students.findByIdOrNull(id)
-            ?: throw BusinessException(StatusCode.SSU4001))
-            .toView()
+        (
+            students.findByIdOrNull(id)
+                ?: throw BusinessException(StatusCode.SSU4001)
+        ).toView()
 
-    fun updateXnApiToken(studentId: Int, token: String) {
+    fun updateXnApiToken(
+        studentId: Int,
+        token: String,
+    ) {
         students.getReferenceById(studentId).xnApiToken = token
     }
 
-    fun enrollBiometricsKey(studentId: Int, osType: String, uuid: String, publicKey: String) {
-        val key = biometricsKeys.findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)
-            ?.apply { this.publicKey = publicKey }
-            ?: BiometricsKey(studentId = studentId, osType = osType, uuid = uuid, publicKey = publicKey)
+    fun enrollBiometricsKey(
+        studentId: Int,
+        osType: String,
+        uuid: String,
+        publicKey: String,
+    ) {
+        val key =
+            biometricsKeys
+                .findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)
+                ?.apply { this.publicKey = publicKey }
+                ?: BiometricsKey(studentId = studentId, osType = osType, uuid = uuid, publicKey = publicKey)
         biometricsKeys.save(key)
     }
 
-    fun findBiometricsPublicKey(studentId: Int, osType: String, uuid: String): String? =
-        biometricsKeys.findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)?.publicKey
+    fun findBiometricsPublicKey(
+        studentId: Int,
+        osType: String,
+        uuid: String,
+    ): String? = biometricsKeys.findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)?.publicKey
 
     fun saveRefreshToken(
         refreshToken: String,
@@ -54,8 +74,7 @@ class StudentService(
         )
     }
 
-    fun findRefreshToken(refreshToken: String): RefreshTokenView? =
-        refreshTokens.findByIdOrNull(refreshToken)?.toView()
+    fun findRefreshToken(refreshToken: String): RefreshTokenView? = refreshTokens.findByIdOrNull(refreshToken)?.toView()
 
     fun deleteRefreshToken(refreshToken: String) {
         refreshTokens.deleteById(refreshToken)

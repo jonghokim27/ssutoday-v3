@@ -15,32 +15,33 @@ class SecurityConfig(
     private val apiResponseWriter: ApiResponseWriter,
 ) {
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
-        .httpBasic { it.disable() }
-        .formLogin { it.disable() }
-        .csrf { it.disable() }
-        .cors { }
-        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-        .authorizeHttpRequests {
-            it.requestMatchers(
-                "/student/login",
-                "/device/checkVersion",
-                "/sso/validateToken",
-                "/error",
-                "/actuator/health",
-            ).permitAll()
-                .anyRequest().authenticated()
-        }
-        .exceptionHandling {
-            it.authenticationEntryPoint { _, response, _ ->
-                writeFailure(response, StatusCode.SSU4001)
-            }
-            it.accessDeniedHandler { _, response, _ ->
-                writeFailure(response, StatusCode.SSU4003)
-            }
-        }
-        .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-        .build()
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .httpBasic { it.disable() }
+            .formLogin { it.disable() }
+            .csrf { it.disable() }
+            .cors { }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests {
+                it
+                    .requestMatchers(
+                        "/student/login",
+                        "/device/checkVersion",
+                        "/sso/validateToken",
+                        "/error",
+                        "/actuator/health",
+                    ).permitAll()
+                    .anyRequest()
+                    .authenticated()
+            }.exceptionHandling {
+                it.authenticationEntryPoint { _, response, _ ->
+                    writeFailure(response, StatusCode.SSU4001)
+                }
+                it.accessDeniedHandler { _, response, _ ->
+                    writeFailure(response, StatusCode.SSU4003)
+                }
+            }.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .build()
 
     private fun writeFailure(
         response: jakarta.servlet.http.HttpServletResponse,

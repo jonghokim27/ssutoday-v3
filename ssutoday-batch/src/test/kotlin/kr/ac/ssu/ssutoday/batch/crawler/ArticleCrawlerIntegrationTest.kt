@@ -23,12 +23,13 @@ class ArticleCrawlerIntegrationTest {
             }
         }
 
-    private fun crawlers(): List<ArticleCrawler> = listOf(
-        CseCrawler(1),
-        SsuCatchCrawler(1),
-        StudentCouncilCrawler(
-            pages = 1,
-            objectMapper = ObjectMapper(),
-        ),
-    )
+    private fun crawlers(): List<ArticleCrawler> =
+        listOf(
+            CseCrawler(1),
+            SsuCatchCrawler(1),
+            StudentCouncilCrawler(
+                pages = 1,
+                objectMapper = ObjectMapper(),
+            ),
+        )
 }

@@ -23,23 +23,25 @@ class ArticleController(
 ) {
     @PostMapping("/list")
     @ResponseStatus(StatusCode.SSU2060)
-    fun list(
+    fun listArticles(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: ArticleListRequest,
     ): ArticleListResponse {
-        val result = articleApplicationService.list(
-            ArticleQuery(
-                request.page,
-                request.orderBy == "ASC",
-                request.search,
-                request.provider.map { provider -> if (provider == "major") student.major else provider },
-            ),
-        )
+        val result =
+            articleApplicationService.listArticles(
+                ArticleQuery(
+                    request.page,
+                    request.orderBy == "ASC",
+                    request.search,
+                    request.provider.map { provider -> if (provider == "major") student.major else provider },
+                ),
+            )
         return ArticleListResponse(result.articles, result.totalPages)
     }
 
     @PostMapping("/get")
     @ResponseStatus(StatusCode.SSU2080)
-    fun get(@Valid @RequestBody request: ArticleIdRequest) =
-        ArticleResponse(articleApplicationService.get(request.idx))
+    fun getArticle(
+        @Valid @RequestBody request: ArticleIdRequest,
+    ) = ArticleResponse(articleApplicationService.getArticle(request.idx))
 }

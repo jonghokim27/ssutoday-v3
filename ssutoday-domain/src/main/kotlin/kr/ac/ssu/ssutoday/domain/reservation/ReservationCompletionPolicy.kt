@@ -23,11 +23,12 @@ class ReservationCompletionPolicy {
         if (!verifyPhotoSatisfied) throw BusinessException(StatusCode.SSU4235)
 
         val currentBlock = (now.hour * 60 + now.minute) / 30
-        val completionBlock = if (now.minute in 0..20 || now.minute in 30..50) {
-            currentBlock - 1
-        } else {
-            currentBlock
-        }
+        val completionBlock =
+            if (now.minute in 0..20 || now.minute in 30..50) {
+                currentBlock - 1
+            } else {
+                currentBlock
+            }
         if (reservation.endBlock == completionBlock) throw BusinessException(StatusCode.SSU4236)
         return completionBlock
     }

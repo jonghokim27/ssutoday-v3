@@ -3,8 +3,8 @@ package kr.ac.ssu.ssutoday.application.reservation
 import kr.ac.ssu.ssutoday.application.reservation.dto.AdminReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.port.RecaptchaVerificationPort
+import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
@@ -38,7 +38,7 @@ class ReservationCommandApplicationService(
     private val recaptchaVerificationPort: RecaptchaVerificationPort,
 ) {
     @Transactional
-    fun request(command: CreateReservationCommand): Long {
+    fun createReservationRequest(command: CreateReservationCommand): Long {
         if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
             throw BusinessException(StatusCode.SSU4003)
         }
@@ -50,13 +50,14 @@ class ReservationCommandApplicationService(
         if (configService.isReservationRequestDisabled()) {
             throw BusinessException(StatusCode.SSU4091)
         }
-        val requestId = reservationRequestService.create(
-            studentId = command.studentId,
-            roomNo = command.roomNo,
-            date = command.date,
-            startBlock = command.startBlock,
-            endBlock = command.endBlock,
-        )
+        val requestId =
+            reservationRequestService.create(
+                studentId = command.studentId,
+                roomNo = command.roomNo,
+                date = command.date,
+                startBlock = command.startBlock,
+                endBlock = command.endBlock,
+            )
         afterCommit {
             reservationRequestPublisher.publish(requestId)
         }
@@ -64,31 +65,37 @@ class ReservationCommandApplicationService(
     }
 
     @Transactional
-    fun cancel(studentId: Int, reservationId: Long, reason: String = "사용자 취소") =
-        reservationService.cancel(studentId, reservationId, reason)
+    fun cancel(
+        studentId: Int,
+        reservationId: Long,
+        reason: String = "사용자 취소",
+    ) = reservationService.cancel(studentId, reservationId, reason)
 
     @Transactional
-    fun process(requestId: Long) {
+    fun processReservationRequest(requestId: Long) {
         val request = reservationRequestService.get(requestId)
         val student = studentService.get(request.studentId)
-        val rejectionStatus = reservationRequestPolicy.rejectionStatus(
-            request = request,
-            admin = student.isAdmin,
-            roomConflict = reservationService.hasRoomConflict(
-                request.roomNo,
-                request.date,
-                request.startBlock,
-                request.endBlock,
-            ),
-            reservedBlocks = reservationService.totalReservedBlocks(request.studentId, request.date),
-            studentConflict = reservationService.hasStudentConflict(
-                request.studentId,
-                request.date,
-                request.startBlock,
-                request.endBlock,
-            ),
-            now = LocalDateTime.now(SEOUL),
-        )
+        val rejectionStatus =
+            reservationRequestPolicy.rejectionStatus(
+                request = request,
+                admin = student.isAdmin,
+                roomConflict =
+                    reservationService.hasRoomConflict(
+                        request.roomNo,
+                        request.date,
+                        request.startBlock,
+                        request.endBlock,
+                    ),
+                reservedBlocks = reservationService.totalReservedBlocks(request.studentId, request.date),
+                studentConflict =
+                    reservationService.hasStudentConflict(
+                        request.studentId,
+                        request.date,
+                        request.startBlock,
+                        request.endBlock,
+                    ),
+                now = LocalDateTime.now(SEOUL),
+            )
         if (rejectionStatus != null) {
             reservationRequestService.updateStatus(requestId, rejectionStatus)
             return
@@ -105,32 +112,39 @@ class ReservationCommandApplicationService(
     }
 
     @Transactional
-    fun done(studentId: Int, reservationId: Long) {
+    fun completeReservation(
+        studentId: Int,
+        reservationId: Long,
+    ) {
         val reservation = reservationService.getActive(studentId, reservationId, StatusCode.SSU4230)
         val verifyPhotoSatisfied =
             reservationService.isContinuous(reservation) || verifyPhotoService.find(reservationId) != null
-        val completionBlock = reservationCompletionPolicy.completionBlock(
-            reservation,
-            verifyPhotoSatisfied,
-            LocalDateTime.now(SEOUL),
-        )
+        val completionBlock =
+            reservationCompletionPolicy.completionBlock(
+                reservation,
+                verifyPhotoSatisfied,
+                LocalDateTime.now(SEOUL),
+            )
         reservationService.finish(reservationId, completionBlock)
     }
 
     @Transactional
-    fun admin(command: AdminReservationCommand): Int {
+    fun executeAdminAction(command: AdminReservationCommand): Int {
         val reservation = reservationService.find(command.reservationId) ?: return 0
         if (!reservation.active) return 1
 
-        val endAt = reservation.date.atStartOfDay()
-            .plusMinutes((reservation.endBlock + 1) * 30L)
+        val endAt =
+            reservation.date
+                .atStartOfDay()
+                .plusMinutes((reservation.endBlock + 1) * 30L)
         if (endAt.isBefore(LocalDateTime.now(SEOUL))) return 2
 
-        val publicKey = studentService.findBiometricsPublicKey(
-            command.administratorId,
-            command.osType,
-            command.uuid,
-        ) ?: return 99
+        val publicKey =
+            studentService.findBiometricsPublicKey(
+                command.administratorId,
+                command.osType,
+                command.uuid,
+            ) ?: return 99
         if (!isValidSignature(command, publicKey)) return 99
 
         return when (command.type) {
@@ -155,11 +169,15 @@ class ReservationCommandApplicationService(
         }
     }
 
-    private fun isValidSignature(command: AdminReservationCommand, publicKey: String): Boolean =
+    private fun isValidSignature(
+        command: AdminReservationCommand,
+        publicKey: String,
+    ): Boolean =
         runCatching {
-            val key = KeyFactory.getInstance("RSA").generatePublic(
-                X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)),
-            )
+            val key =
+                KeyFactory.getInstance("RSA").generatePublic(
+                    X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)),
+                )
             Signature.getInstance("SHA256withRSA").run {
                 initVerify(key)
                 update("${command.type}:${command.reservationId}".toByteArray())

@@ -24,25 +24,28 @@ class StudentController(
 ) {
     @PostMapping("/login")
     @ResponseStatus(StatusCode.SSU2010)
-    fun login(@Valid @RequestBody request: StudentLoginRequest) =
-        studentApplicationService.login(request.sToken, request.sIdno)
+    fun login(
+        @Valid @RequestBody request: StudentLoginRequest,
+    ) = studentApplicationService.login(request.sToken, request.sIdno)
 
     @PostMapping("/profile")
     @ResponseStatus(StatusCode.SSU2020)
-    fun profile(@LoginStudent student: StudentView) =
-        StudentProfileResponse(student.id, student.name, student.major, student.isAdmin)
+    fun getProfile(
+        @LoginStudent student: StudentView,
+    ) = StudentProfileResponse(student.id, student.name, student.major, student.isAdmin)
 
     @PostMapping("/logout")
     @ResponseStatus(StatusCode.SSU2030)
     fun logout(request: HttpServletRequest) {
-        val refreshToken = request.getHeader("Refresh-Token")
-            ?: throw BusinessException(StatusCode.SSU4000)
+        val refreshToken =
+            request.getHeader("Refresh-Token")
+                ?: throw BusinessException(StatusCode.SSU4000)
         studentApplicationService.logout(refreshToken)
     }
 
     @PostMapping("/updateXnApiToken")
     @ResponseStatus(StatusCode.SSU2190)
-    fun updateToken(
+    fun updateXnApiToken(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: StudentUpdateTokenRequest,
     ) {
@@ -51,7 +54,7 @@ class StudentController(
 
     @PostMapping("/enrollBiometricsKey")
     @ResponseStatus(StatusCode.SSU2210)
-    fun biometrics(
+    fun enrollBiometricsKey(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: BiometricsKeyRequest,
     ) {

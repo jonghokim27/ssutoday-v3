@@ -14,7 +14,12 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
           and r.startBlock <= :endBlock and r.endBlock >= :startBlock
         """,
     )
-    fun existsRoomConflict(date: LocalDate, roomNo: String, startBlock: Int, endBlock: Int): Boolean
+    fun existsRoomConflict(
+        date: LocalDate,
+        roomNo: String,
+        startBlock: Int,
+        endBlock: Int,
+    ): Boolean
 
     @Query(
         """
@@ -23,11 +28,28 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
           and r.startBlock <= :endBlock and r.endBlock >= :startBlock
         """,
     )
-    fun existsStudentConflict(studentId: Int, date: LocalDate, startBlock: Int, endBlock: Int): Boolean
+    fun existsStudentConflict(
+        studentId: Int,
+        date: LocalDate,
+        startBlock: Int,
+        endBlock: Int,
+    ): Boolean
 
-    fun findAllByStudentIdAndDateAndDeletedAtIsNull(studentId: Int, date: LocalDate): List<Reservation>
-    fun findAllByRoomNoAndDateAndDeletedAtIsNull(roomNo: String, date: LocalDate): List<Reservation>
-    fun findByIdAndStudentIdAndDeletedAtIsNull(id: Long, studentId: Int): Reservation?
+    fun findAllByStudentIdAndDateAndDeletedAtIsNull(
+        studentId: Int,
+        date: LocalDate,
+    ): List<Reservation>
+
+    fun findAllByRoomNoAndDateAndDeletedAtIsNull(
+        roomNo: String,
+        date: LocalDate,
+    ): List<Reservation>
+
+    fun findByIdAndStudentIdAndDeletedAtIsNull(
+        id: Long,
+        studentId: Int,
+    ): Reservation?
+
     fun countByStudentIdAndDateAndEndBlockAndRoomNoAndDeletedAtIsNull(
         studentId: Int,
         date: LocalDate,
@@ -42,7 +64,12 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
           and (r.date < :date or (r.date = :date and r.endBlock < :block))
         """,
     )
-    fun previous(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<Reservation>
+    fun previous(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+        pageable: Pageable,
+    ): Page<Reservation>
 
     @Query(
         """
@@ -51,5 +78,10 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
           and (r.date > :date or (r.date = :date and r.endBlock >= :block))
         """,
     )
-    fun waiting(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<Reservation>
+    fun waiting(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+        pageable: Pageable,
+    ): Page<Reservation>
 }

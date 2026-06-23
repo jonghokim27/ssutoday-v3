@@ -16,15 +16,26 @@ class ReservationService(
     private val repository: ReservationRepository,
     private val policy: ReservationPolicy,
 ) {
-    fun validate(startBlock: Int, endBlock: Int) {
+    fun validate(
+        startBlock: Int,
+        endBlock: Int,
+    ) {
         policy.validateBlocks(startBlock, endBlock)
     }
 
-    fun hasRoomConflict(roomNo: String, date: LocalDate, startBlock: Int, endBlock: Int): Boolean =
-        repository.existsRoomConflict(date, roomNo, startBlock, endBlock)
+    fun hasRoomConflict(
+        roomNo: String,
+        date: LocalDate,
+        startBlock: Int,
+        endBlock: Int,
+    ): Boolean = repository.existsRoomConflict(date, roomNo, startBlock, endBlock)
 
-    fun hasStudentConflict(studentId: Int, date: LocalDate, startBlock: Int, endBlock: Int): Boolean =
-        repository.existsStudentConflict(studentId, date, startBlock, endBlock)
+    fun hasStudentConflict(
+        studentId: Int,
+        date: LocalDate,
+        startBlock: Int,
+        endBlock: Int,
+    ): Boolean = repository.existsStudentConflict(studentId, date, startBlock, endBlock)
 
     fun create(
         studentId: Int,
@@ -32,45 +43,65 @@ class ReservationService(
         date: LocalDate,
         startBlock: Int,
         endBlock: Int,
-    ): ReservationView = repository.save(
-        Reservation(
-            studentId = studentId,
-            roomNo = roomNo,
-            date = date,
-            startBlock = startBlock,
-            endBlock = endBlock,
-        ),
-    ).toView()
+    ): ReservationView =
+        repository
+            .save(
+                Reservation(
+                    studentId = studentId,
+                    roomNo = roomNo,
+                    date = date,
+                    startBlock = startBlock,
+                    endBlock = endBlock,
+                ),
+            ).toView()
 
-    fun find(reservationId: Long): ReservationView? =
-        repository.findByIdOrNull(reservationId)?.toView()
+    fun find(reservationId: Long): ReservationView? = repository.findByIdOrNull(reservationId)?.toView()
 
-    fun getActive(studentId: Int, reservationId: Long, status: StatusCode): ReservationView =
-        repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
+    fun getActive(
+        studentId: Int,
+        reservationId: Long,
+        status: StatusCode,
+    ): ReservationView =
+        repository
+            .findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
             ?.toView()
             ?: throw BusinessException(status)
 
-    fun cancelByAdmin(reservationId: Long, reason: String) {
-        val reservation = repository.findByIdOrNull(reservationId)
-            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+    fun cancelByAdmin(
+        reservationId: Long,
+        reason: String,
+    ) {
+        val reservation =
+            repository.findByIdOrNull(reservationId)
+                ?: throw IllegalStateException("Reservation $reservationId disappeared")
         reservation.cancel(reason)
     }
 
     fun resetCreatedAt(reservationId: Long) {
-        val reservation = repository.findByIdOrNull(reservationId)
-            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+        val reservation =
+            repository.findByIdOrNull(reservationId)
+                ?: throw IllegalStateException("Reservation $reservationId disappeared")
         reservation.resetCreatedAt()
     }
 
-    fun finish(reservationId: Long, endBlock: Int) {
-        val reservation = repository.findByIdOrNull(reservationId)
-            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+    fun finish(
+        reservationId: Long,
+        endBlock: Int,
+    ) {
+        val reservation =
+            repository.findByIdOrNull(reservationId)
+                ?: throw IllegalStateException("Reservation $reservationId disappeared")
         reservation.finishAt(endBlock)
     }
 
-    fun cancel(studentId: Int, reservationId: Long, reason: String) {
-        val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
-            ?: throw BusinessException(StatusCode.SSU4140)
+    fun cancel(
+        studentId: Int,
+        reservationId: Long,
+        reason: String,
+    ) {
+        val reservation =
+            repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
+                ?: throw BusinessException(StatusCode.SSU4140)
         val now = LocalDateTime.now(SEOUL)
         val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
@@ -87,9 +118,13 @@ class ReservationService(
         reservation.cancel(reason)
     }
 
-    fun getForPhotoUpload(studentId: Int, reservationId: Long): ReservationView {
-        val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
-            ?: throw BusinessException(StatusCode.SSU4200)
+    fun getForPhotoUpload(
+        studentId: Int,
+        reservationId: Long,
+    ): ReservationView {
+        val reservation =
+            repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
+                ?: throw BusinessException(StatusCode.SSU4200)
         val now = LocalDateTime.now(SEOUL)
         val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
@@ -111,14 +146,24 @@ class ReservationService(
         return reservation.toView()
     }
 
-    fun findPrevious(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<ReservationView> =
-        repository.previous(studentId, date, block, pageable).map(Reservation::toView)
+    fun findPrevious(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+        pageable: Pageable,
+    ): Page<ReservationView> = repository.previous(studentId, date, block, pageable).map(Reservation::toView)
 
-    fun findWaiting(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<ReservationView> =
-        repository.waiting(studentId, date, block, pageable).map(Reservation::toView)
+    fun findWaiting(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+        pageable: Pageable,
+    ): Page<ReservationView> = repository.waiting(studentId, date, block, pageable).map(Reservation::toView)
 
-    fun findAll(roomNo: String, date: LocalDate): List<ReservationView> =
-        repository.findAllByRoomNoAndDateAndDeletedAtIsNull(roomNo, date).map(Reservation::toView)
+    fun findAll(
+        roomNo: String,
+        date: LocalDate,
+    ): List<ReservationView> = repository.findAllByRoomNoAndDateAndDeletedAtIsNull(roomNo, date).map(Reservation::toView)
 
     fun isContinuous(reservation: ReservationView): Boolean =
         repository.countByStudentIdAndDateAndEndBlockAndRoomNoAndDeletedAtIsNull(
@@ -128,8 +173,12 @@ class ReservationService(
             roomNo = reservation.roomNo,
         ) > 0
 
-    fun totalReservedBlocks(studentId: Int, date: LocalDate): Int =
-        repository.findAllByStudentIdAndDateAndDeletedAtIsNull(studentId, date)
+    fun totalReservedBlocks(
+        studentId: Int,
+        date: LocalDate,
+    ): Int =
+        repository
+            .findAllByStudentIdAndDateAndDeletedAtIsNull(studentId, date)
             .sumOf { it.endBlock - it.startBlock + 1 }
 
     private companion object {

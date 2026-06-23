@@ -9,7 +9,6 @@ class Config(
     @Id
     @Column(name = "`key`", length = 100)
     var key: String,
-
     @Column(nullable = false, length = 100)
     var value: String,
 )

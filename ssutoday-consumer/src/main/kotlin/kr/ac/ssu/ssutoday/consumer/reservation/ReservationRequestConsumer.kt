@@ -13,6 +13,6 @@ class ReservationRequestConsumer(
         groupId = "\${spring.kafka.consumer.reservation-group-id:ssutoday-reservation}",
     )
     fun consume(requestId: String) {
-        reservationCommandApplicationService.process(requestId.toLong())
+        reservationCommandApplicationService.processReservationRequest(requestId.toLong())
     }
 }

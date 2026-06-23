@@ -27,14 +27,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ApiResponseContractTest {
-    private val messageSource = ResourceBundleMessageSource().apply {
-        setBasename("messages")
-        setDefaultEncoding("UTF-8")
-    }
+    private val messageSource =
+        ResourceBundleMessageSource().apply {
+            setBasename("messages")
+            setDefaultEncoding("UTF-8")
+        }
     private val advice = GlobalControllerAdvice(messageSource)
-    private val objectMapper = JsonMapper.builder()
-        .also(JacksonConfig().kotlinJsonMapperCustomizer()::customize)
-        .build()
+    private val objectMapper =
+        JsonMapper
+            .builder()
+            .also(JacksonConfig().kotlinJsonMapperCustomizer()::customize)
+            .build()
 
     @Test
     fun `성공 응답은 기존 SSU 코드 메시지를 사용한다`() {
@@ -55,18 +58,19 @@ class ApiResponseContractTest {
 
     @Test
     fun `article 응답 PK는 id가 아니라 idx다`() {
-        val json = objectMapper.writeValueAsString(
-            ArticleView(
-                idx = 1L,
-                provider = "cse",
-                articleNo = "10",
-                title = "title",
-                content = "content",
-                url = "https://example.com",
-                createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),
-                updatedAt = null,
-            ),
-        )
+        val json =
+            objectMapper.writeValueAsString(
+                ArticleView(
+                    idx = 1L,
+                    provider = "cse",
+                    articleNo = "10",
+                    title = "title",
+                    content = "content",
+                    url = "https://example.com",
+                    createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),
+                    updatedAt = null,
+                ),
+            )
 
         assertTrue(json.contains("\"idx\":1"))
         assertFalse(json.contains("\"id\":"))
@@ -74,31 +78,33 @@ class ApiResponseContractTest {
 
     @Test
     fun `reservation 응답은 기존 필드명을 유지한다`() {
-        val json = objectMapper.writeValueAsString(
-            ReservationDetail(
-                idx = 1L,
-                roomNo = "A101",
-                date = LocalDate.parse("2026-06-22"),
-                startBlock = 12,
-                endBlock = 13,
-                createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),
-                deletedAt = null,
-                deletedReason = null,
-                roomByRoomNo = ReservationRoom(
-                    no = "A101",
-                    name = "room",
-                    major = "[\"cse\"]",
-                    capacity = 10,
-                    location = "location",
-                    tags = "tags",
-                    image = "image",
-                    bigImage = "bigImage",
-                    isAvailable = 1,
+        val json =
+            objectMapper.writeValueAsString(
+                ReservationDetail(
+                    idx = 1L,
+                    roomNo = "A101",
+                    date = LocalDate.parse("2026-06-22"),
+                    startBlock = 12,
+                    endBlock = 13,
+                    createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),
+                    deletedAt = null,
+                    deletedReason = null,
+                    roomByRoomNo =
+                        ReservationRoom(
+                            no = "A101",
+                            name = "room",
+                            major = "[\"cse\"]",
+                            capacity = 10,
+                            location = "location",
+                            tags = "tags",
+                            image = "image",
+                            bigImage = "bigImage",
+                            isAvailable = 1,
+                        ),
+                    verifyPhotosByIdx = emptyList(),
+                    isContinuous = false,
                 ),
-                verifyPhotosByIdx = emptyList(),
-                isContinuous = false,
-            ),
-        )
+            )
 
         assertTrue(json.contains("\"idx\":1"))
         assertTrue(json.contains("\"roomByRoomNo\""))
@@ -110,19 +116,24 @@ class ApiResponseContractTest {
 
     @Test
     fun `기존 서버의 API 경로를 모두 동일하게 제공한다`() {
-        val paths = listOf(
-            StudentController::class.java,
-            DeviceController::class.java,
-            ArticleController::class.java,
-            ReservationController::class.java,
-            RoomController::class.java,
-            SsoController::class.java,
-        ).flatMap { controller ->
-            val basePath = controller.getAnnotation(RequestMapping::class.java).value.single()
-            controller.declaredMethods.mapNotNull {
-                it.getAnnotation(PostMapping::class.java)?.value?.singleOrNull()?.let(basePath::plus)
-            }
-        }.toSet()
+        val paths =
+            listOf(
+                StudentController::class.java,
+                DeviceController::class.java,
+                ArticleController::class.java,
+                ReservationController::class.java,
+                RoomController::class.java,
+                SsoController::class.java,
+            ).flatMap { controller ->
+                val basePath = controller.getAnnotation(RequestMapping::class.java).value.single()
+                controller.declaredMethods.mapNotNull {
+                    it
+                        .getAnnotation(PostMapping::class.java)
+                        ?.value
+                        ?.singleOrNull()
+                        ?.let(basePath::plus)
+                }
+            }.toSet()
 
         assertEquals(
             setOf(
@@ -164,31 +175,34 @@ class ApiResponseContractTest {
 
     @Test
     fun `모든 API 성공 응답은 GlobalControllerAdvice가 처리한다`() {
-        val missing = listOf(
-            StudentController::class.java,
-            DeviceController::class.java,
-            ArticleController::class.java,
-            ReservationController::class.java,
-            RoomController::class.java,
-            SsoController::class.java,
-        ).flatMap { controller ->
-            controller.declaredMethods
-                .filter { it.getAnnotation(PostMapping::class.java) != null }
-                .filter { it.getAnnotation(ResponseStatus::class.java) == null }
-                .map { "${controller.simpleName}.${it.name}" }
-        }
+        val missing =
+            listOf(
+                StudentController::class.java,
+                DeviceController::class.java,
+                ArticleController::class.java,
+                ReservationController::class.java,
+                RoomController::class.java,
+                SsoController::class.java,
+            ).flatMap { controller ->
+                controller.declaredMethods
+                    .filter { it.getAnnotation(PostMapping::class.java) != null }
+                    .filter { it.getAnnotation(ResponseStatus::class.java) == null }
+                    .map { "${controller.simpleName}.${it.name}" }
+            }
 
         assertTrue(missing.isEmpty(), "SsuResponse가 없는 API: $missing")
     }
 
     @Test
     fun `Kotlin is 프로퍼티는 기존 JSON 필드명을 유지한다`() {
-        val loginJson = objectMapper.writeValueAsString(
-            LoginResult("access", "refresh", 20260000, "name", "cse", true),
-        )
-        val reservationJson = objectMapper.writeValueAsString(
-            RoomReservation(1L, "name", 12, 13, true),
-        )
+        val loginJson =
+            objectMapper.writeValueAsString(
+                LoginResult("access", "refresh", 20260000, "name", "cse", true),
+            )
+        val reservationJson =
+            objectMapper.writeValueAsString(
+                RoomReservation(1L, "name", 12, 13, true),
+            )
 
         assertTrue(loginJson.contains("\"isAdmin\":true"))
         assertTrue(reservationJson.contains("\"isMine\":true"))

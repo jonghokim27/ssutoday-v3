@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
 interface ArticleRepository : JpaRepository<Article, Long> {
-    fun findByArticleNoAndProvider(articleNo: String, provider: String): Article?
+    fun findByArticleNoAndProvider(
+        articleNo: String,
+        provider: String,
+    ): Article?
 
     @Query(
         """
@@ -15,5 +18,9 @@ interface ArticleRepository : JpaRepository<Article, Long> {
               and (a.title like :search or a.content like :search)
         """,
     )
-    fun search(providers: List<String>, search: String, pageable: Pageable): Page<Article>
+    fun search(
+        providers: List<String>,
+        search: String,
+        pageable: Pageable,
+    ): Page<Article>
 }

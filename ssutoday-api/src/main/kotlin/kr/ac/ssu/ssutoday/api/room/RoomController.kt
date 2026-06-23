@@ -1,8 +1,8 @@
 package kr.ac.ssu.ssutoday.api.room
 
 import jakarta.validation.Valid
-import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.common.ResponseStatus
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.room.dto.RoomGetRequest
 import kr.ac.ssu.ssutoday.api.room.dto.RoomListRequest
 import kr.ac.ssu.ssutoday.api.room.dto.RoomListResponse
@@ -26,14 +26,14 @@ class RoomController(
 ) {
     @PostMapping("/get")
     @ResponseStatus(StatusCode.SSU2100)
-    fun get(
+    fun getRoom(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomGetRequest,
     ): RoomResponse {
-        val room = roomApplicationService.get(request.roomNo, student.major, student.isAdmin)
+        val room = roomApplicationService.getRoom(request.roomNo, student.major, student.isAdmin)
         return RoomResponse(
             room.toView(
-                reservationQueryApplicationService.room(
+                reservationQueryApplicationService.getRoomReservations(
                     room.no,
                     LocalDate.parse(request.date),
                     student.id,
@@ -45,17 +45,24 @@ class RoomController(
 
     @PostMapping("/list")
     @ResponseStatus(StatusCode.SSU2110)
-    fun list(
+    fun listRooms(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomListRequest,
     ): RoomListResponse {
         val date = LocalDate.parse(request.date)
-        val result = roomApplicationService.list(student.major, student.isAdmin)
-            .map {
-                it.toView(
-                    reservationQueryApplicationService.room(it.no, date, student.id, student.isAdmin),
-                )
-            }
+        val result =
+            roomApplicationService
+                .listRooms(student.major, student.isAdmin)
+                .map {
+                    it.toView(
+                        reservationQueryApplicationService.getRoomReservations(
+                            it.no,
+                            date,
+                            student.id,
+                            student.isAdmin,
+                        ),
+                    )
+                }
         return RoomListResponse(result)
     }
 }

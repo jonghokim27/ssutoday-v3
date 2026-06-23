@@ -10,15 +10,22 @@ import org.springframework.stereotype.Service
 class RoomService(
     private val repository: RoomRepository,
 ) {
-    fun get(roomNo: String, major: String, admin: Boolean): RoomView {
-        val room = if (admin) {
-            repository.findByIdOrNull(roomNo)
-        } else {
-            repository.findAccessible(roomNo, major)
-        }
+    fun get(
+        roomNo: String,
+        major: String,
+        admin: Boolean,
+    ): RoomView {
+        val room =
+            if (admin) {
+                repository.findByIdOrNull(roomNo)
+            } else {
+                repository.findAccessible(roomNo, major)
+            }
         return room?.toView() ?: throw BusinessException(StatusCode.SSU4000)
     }
 
-    fun findAll(major: String, admin: Boolean): List<RoomView> =
-        (if (admin) repository.findAll() else repository.findAllAccessible(major)).map(Room::toView)
+    fun findAll(
+        major: String,
+        admin: Boolean,
+    ): List<RoomView> = (if (admin) repository.findAll() else repository.findAllAccessible(major)).map(Room::toView)
 }

@@ -9,11 +9,13 @@ import tools.jackson.module.kotlin.KotlinModule
 @Configuration
 class JacksonConfig {
     @Bean
-    fun kotlinJsonMapperCustomizer() = JsonMapperBuilderCustomizer { builder ->
-        builder.addModule(
-            KotlinModule.Builder()
-                .enable(KotlinFeature.KotlinPropertyNameAsImplicitName)
-                .build(),
-        )
-    }
+    fun kotlinJsonMapperCustomizer() =
+        JsonMapperBuilderCustomizer { builder ->
+            builder.addModule(
+                KotlinModule
+                    .Builder()
+                    .enable(KotlinFeature.KotlinPropertyNameAsImplicitName)
+                    .build(),
+            )
+        }
 }

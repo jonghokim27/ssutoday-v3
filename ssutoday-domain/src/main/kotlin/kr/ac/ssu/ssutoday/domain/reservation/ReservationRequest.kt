@@ -14,28 +14,20 @@ class ReservationRequest(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
     var id: Long = 0L,
-
     @Column(name = "StudentId", nullable = false)
     var studentId: Int,
-
     @Column(name = "roomNo", nullable = false, length = 10)
     var roomNo: String,
-
     @Column(nullable = false)
     var date: LocalDate,
-
     @Column(name = "startBlock", nullable = false)
     var startBlock: Int,
-
     @Column(name = "endBlock", nullable = false)
     var endBlock: Int,
-
     @Column(nullable = false)
     var status: Int = ReservationRequestStatus.PENDING.code,
-
     @Column(name = "createdAt", nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
-
     @Column(name = "updatedAt")
     var updatedAt: Timestamp? = null,
 ) {

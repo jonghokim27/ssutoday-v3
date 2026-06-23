@@ -12,7 +12,9 @@ import java.io.FileInputStream
 @Configuration
 class FirebaseConfig {
     @Bean
-    fun firebaseApp(@Value("\${ssutoday.firebase.credentials}") credentialsPath: String): FirebaseApp {
+    fun firebaseApp(
+        @Value("\${ssutoday.firebase.credentials}") credentialsPath: String,
+    ): FirebaseApp {
         FirebaseApp.getApps().firstOrNull()?.let { return it }
         FileInputStream(credentialsPath).use {
             return FirebaseApp.initializeApp(

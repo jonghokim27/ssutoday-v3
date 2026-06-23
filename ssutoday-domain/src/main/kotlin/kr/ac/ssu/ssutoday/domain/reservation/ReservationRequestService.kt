@@ -17,34 +17,45 @@ class ReservationRequestService(
         date: LocalDate,
         startBlock: Int,
         endBlock: Int,
-    ): Long = repository.save(
-        ReservationRequest(
-            studentId = studentId,
-            roomNo = roomNo,
-            date = date,
-            startBlock = startBlock,
-            endBlock = endBlock,
-        ),
-    ).id
+    ): Long =
+        repository
+            .save(
+                ReservationRequest(
+                    studentId = studentId,
+                    roomNo = roomNo,
+                    date = date,
+                    startBlock = startBlock,
+                    endBlock = endBlock,
+                ),
+            ).id
 
     fun get(requestId: Long): ReservationRequestView =
-        (repository.findByIdOrNull(requestId)
-            ?: throw BusinessException(StatusCode.SSU4120))
-            .toView()
+        (
+            repository.findByIdOrNull(requestId)
+                ?: throw BusinessException(StatusCode.SSU4120)
+        ).toView()
 
-    fun getStatus(requestId: Long, studentId: Int): Int =
+    fun getStatus(
+        requestId: Long,
+        studentId: Int,
+    ): Int =
         repository.findByIdAndStudentId(requestId, studentId)?.status
             ?: throw BusinessException(StatusCode.SSU4120)
 
     fun accept(requestId: Long) {
-        val request = repository.findByIdOrNull(requestId)
-            ?: throw BusinessException(StatusCode.SSU4120)
+        val request =
+            repository.findByIdOrNull(requestId)
+                ?: throw BusinessException(StatusCode.SSU4120)
         request.accept()
     }
 
-    fun updateStatus(requestId: Long, status: ReservationRequestStatus) {
-        val request = repository.findByIdOrNull(requestId)
-            ?: throw BusinessException(StatusCode.SSU4120)
+    fun updateStatus(
+        requestId: Long,
+        status: ReservationRequestStatus,
+    ) {
+        val request =
+            repository.findByIdOrNull(requestId)
+                ?: throw BusinessException(StatusCode.SSU4120)
         request.updateStatus(status)
     }
 }

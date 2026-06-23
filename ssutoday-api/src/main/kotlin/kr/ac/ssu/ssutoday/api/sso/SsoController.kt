@@ -24,27 +24,28 @@ class SsoController(
 ) {
     @PostMapping("/generateToken")
     @ResponseStatus(StatusCode.SSU2150)
-    fun generate(
+    fun generateToken(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: SsoGenerateRequest,
     ): SsoGenerateResponse {
-        val result = ssoApplicationService.generate(student, request.clientId)
+        val result = ssoApplicationService.generateToken(student, request.clientId)
         return SsoGenerateResponse(result.token, result.callbackUrl)
     }
 
     @PostMapping("/validateToken")
     @ResponseStatus(StatusCode.SSU2160)
-    fun validate(
+    fun validateToken(
         @Valid @RequestBody request: SsoValidateRequest,
         servletRequest: HttpServletRequest,
     ): SsoValidateResponse {
-        val result = ssoApplicationService.validate(
-            servletRequest.getHeader("X-SSUtoday-Client-Id")
-                ?: throw BusinessException(StatusCode.SSU4000),
-            servletRequest.getHeader("X-SSUtoday-Client-Secret")
-                ?: throw BusinessException(StatusCode.SSU4000),
-            request.ssoToken,
-        )
+        val result =
+            ssoApplicationService.validateToken(
+                servletRequest.getHeader("X-SSUtoday-Client-Id")
+                    ?: throw BusinessException(StatusCode.SSU4000),
+                servletRequest.getHeader("X-SSUtoday-Client-Secret")
+                    ?: throw BusinessException(StatusCode.SSU4000),
+                request.ssoToken,
+            )
         return SsoValidateResponse(result.studentId, result.name, result.major)
     }
 }

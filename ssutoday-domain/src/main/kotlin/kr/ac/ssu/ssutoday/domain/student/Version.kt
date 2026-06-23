@@ -12,10 +12,8 @@ class Version(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
     var id: Long = 0L,
-
     @Column(name = "osType", nullable = false, length = 10)
     var osType: String,
-
     @Column(name = "requiredVersion", nullable = false, length = 10)
     var requiredVersion: String,
 )

@@ -17,8 +17,10 @@ class CloudflareConfig {
         @Value("\${cloud.aws.s3.region}") region: String,
         @Value("\${cloud.aws.credentials.access-key}") accessKey: String,
         @Value("\${cloud.aws.credentials.secret-key}") secretKey: String,
-    ): AmazonS3 = AmazonS3ClientBuilder.standard()
-        .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(endpoint, region))
-        .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
-        .build()
+    ): AmazonS3 =
+        AmazonS3ClientBuilder
+            .standard()
+            .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(endpoint, region))
+            .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
+            .build()
 }

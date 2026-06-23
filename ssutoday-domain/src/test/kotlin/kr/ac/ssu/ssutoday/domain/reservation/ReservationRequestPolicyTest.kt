@@ -37,7 +37,11 @@ class ReservationRequestPolicyTest {
         )
     }
 
-    private fun request(date: String, startBlock: Int, endBlock: Int) = ReservationRequestView(
+    private fun request(
+        date: String,
+        startBlock: Int,
+        endBlock: Int,
+    ) = ReservationRequestView(
         id = 1L,
         studentId = 20260000,
         roomNo = "A101",
