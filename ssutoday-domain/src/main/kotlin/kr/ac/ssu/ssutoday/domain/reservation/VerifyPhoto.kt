@@ -13,10 +13,13 @@ class VerifyPhoto(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     var id: Long = 0L,
+
     @Column(nullable = false)
     var reservationId: Long,
+
     @Column(nullable = false)
     var url: String,
+
     @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
 )

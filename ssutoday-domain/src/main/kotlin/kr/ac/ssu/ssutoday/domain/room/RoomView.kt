@@ -9,6 +9,5 @@ data class RoomView(
     val tags: String,
     val image: String,
     val bigImage: String,
-    val availableValue: Int,
     val isAvailable: Boolean,
 )

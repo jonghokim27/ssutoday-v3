@@ -81,7 +81,7 @@ class ReservationQueryApplicationService(
                             tags = room.tags,
                             image = room.image,
                             bigImage = room.bigImage,
-                            isAvailable = room.availableValue,
+                            isAvailable = room.isAvailable,
                         ),
                     verifyPhotosByIdx =
                         listOfNotNull(
