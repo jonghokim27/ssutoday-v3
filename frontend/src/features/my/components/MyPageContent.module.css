@@ -167,10 +167,13 @@
 
 .dev p {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
   margin: 0;
-  padding: 7px 0;
+  padding: 8px 0;
   font-size: var(--font-size-body-sm);
+  text-align: left;
 }
 
 .dev span {
@@ -181,6 +184,9 @@
 .dev strong {
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-bold);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .footer {

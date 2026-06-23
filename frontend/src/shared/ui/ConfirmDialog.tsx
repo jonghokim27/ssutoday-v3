@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
 import styles from './ConfirmDialog.module.css';
@@ -25,7 +26,7 @@ export function ConfirmDialog({
   onCancel,
   onConfirm,
 }: ConfirmDialogProps) {
-  return (
+  const dialog = (
     <div className={styles.backdrop} onClick={onCancel}>
       <div className={styles.dialog} onClick={(event) => event.stopPropagation()}>
         <div className={[styles.icon, styles[tone]].join(' ')}>
@@ -52,4 +53,6 @@ export function ConfirmDialog({
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }

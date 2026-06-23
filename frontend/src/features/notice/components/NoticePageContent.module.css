@@ -244,11 +244,42 @@
 }
 
 .empty {
-  padding: 70px var(--space-10);
+  padding: 64px var(--space-10);
   color: #9aa0ad;
   text-align: center;
+}
+
+.emptyIcon {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto var(--space-5);
+  color: #c2c6d2;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  animation: scaleIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
+}
+
+.emptyIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.empty strong {
+  display: block;
+  color: #9aa0ad;
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-bold);
+}
+
+.empty p {
+  margin: 5px 0 0;
+  color: #c2c6d2;
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-regular);
 }
 
 @keyframes starPop {

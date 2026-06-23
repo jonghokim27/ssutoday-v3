@@ -5,6 +5,7 @@ import styles from './AppLayout.module.css';
 
 export function AppLayout() {
   const location = useLocation();
+  const showBottomNavigation = !location.pathname.match(/^\/reservations\/[^/]+$/);
 
   return (
     <div className={styles.viewport}>
@@ -14,7 +15,7 @@ export function AppLayout() {
             <Outlet />
           </div>
         </main>
-        <BottomNavigation />
+        {showBottomNavigation ? <BottomNavigation /> : null}
       </div>
     </div>
   );
