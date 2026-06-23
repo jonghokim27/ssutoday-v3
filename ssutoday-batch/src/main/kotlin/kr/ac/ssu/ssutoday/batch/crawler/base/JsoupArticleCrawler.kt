@@ -5,6 +5,7 @@ import kr.ac.ssu.ssutoday.batch.crawler.dto.CrawledArticle
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.sql.Timestamp
 
 abstract class JsoupArticleCrawler(
     final override val provider: String,
@@ -26,6 +27,11 @@ abstract class JsoupArticleCrawler(
     protected abstract fun title(document: Document): String
 
     protected abstract fun content(document: Document): String
+
+    protected abstract fun createdAt(
+        link: Element,
+        document: Document,
+    ): Timestamp
 
     final override fun crawl(): List<CrawledArticle> =
         (maxPages downTo 1)
@@ -60,6 +66,7 @@ abstract class JsoupArticleCrawler(
                 title = title(document).trim(),
                 content = content(document).replace('\u00a0', ' ').trim(),
                 url = url,
+                createdAt = createdAt(link, document),
             )
         }.onFailure {
             log.warn(it) { "Article crawl failed: provider=$provider, href=${link.attr("href")}" }
