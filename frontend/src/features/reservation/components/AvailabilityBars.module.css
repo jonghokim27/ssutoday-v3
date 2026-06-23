@@ -1,0 +1,143 @@
+.scroller {
+  margin-top: var(--space-6);
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.largeScroller {
+  margin: var(--space-7) calc(var(--space-screen-x) * -1) 0;
+  padding: 4px var(--space-screen-x) 2px;
+}
+
+.track {
+  position: relative;
+}
+
+.bars,
+.largeBars {
+  display: flex;
+  align-items: flex-end;
+}
+
+.bars {
+  height: 38px;
+  gap: 3px;
+}
+
+.largeBars {
+  height: 96px;
+  gap: 4px;
+}
+
+.bar,
+.largeBar {
+  flex: none;
+  border: 0;
+  padding: 0;
+  transform-origin: bottom;
+  animation: barRise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bar {
+  height: 14px;
+  border-radius: 5px;
+}
+
+.largeBar {
+  height: 40px;
+  border-radius: 9px;
+  border: 1.5px solid var(--color-timeline-available-border);
+  transition:
+    height 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.4),
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.18s ease;
+}
+
+.largeBar:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.available {
+  background: var(--color-timeline-available);
+}
+
+.booked {
+  height: 30px;
+  background: linear-gradient(180deg, #ffc2cd, #ff8da0);
+}
+
+.largeBar.booked {
+  height: 62px;
+  border-color: var(--color-timeline-booked-border);
+  background: repeating-linear-gradient(135deg, #ffe1e6 0 6px, #ffd2da 6px 12px);
+}
+
+.largeBar.selected {
+  height: 86px;
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--color-timeline-selected-start), var(--color-timeline-selected-end));
+  box-shadow: var(--shadow-primary-small);
+}
+
+.now {
+  position: absolute;
+  top: -3px;
+  bottom: 18px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-timeline-now);
+  animation: nowPulse 1.6s ease-in-out infinite;
+}
+
+.now::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -2.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-timeline-now);
+}
+
+.ticks {
+  display: flex;
+  margin-top: 5px;
+}
+
+.ticks span {
+  flex: none;
+  width: 40px;
+  color: var(--color-text-disabled);
+  font-size: var(--font-size-caption-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.largeScroller .ticks span {
+  width: 124px;
+  font-size: 10.5px;
+}
+
+@keyframes nowPulse {
+  50% {
+    opacity: 0.55;
+    transform: scaleY(0.92);
+  }
+}
+
+@keyframes barRise {
+  from {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}

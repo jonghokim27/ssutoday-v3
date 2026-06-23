@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net">
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <script src="image-slot.js"></script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; }
+    .scr-area::-webkit-scrollbar { display: none; }
+    .scr-area { scrollbar-width: none; }
+    @keyframes nowPulse { 0%,100% { opacity: 1; transform: scaleY(1); } 50% { opacity: .55; transform: scaleY(.92); } }
+    @keyframes dotPulse { 0% { box-shadow: 0 0 0 0 rgba(255,77,99,.55); } 70% { box-shadow: 0 0 0 7px rgba(255,77,99,0); } 100% { box-shadow: 0 0 0 0 rgba(255,77,99,0); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes floatUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+    @keyframes slideInR { from { opacity: 0; transform: translateX(34px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInL { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes ringDraw { from { stroke-dashoffset: 176; } to { stroke-dashoffset: 0; } }
+    @keyframes checkDraw { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
+    @keyframes burst { 0% { transform: scale(.2); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
+    @keyframes confetti { 0% { transform: translate(0,0) rotate(0); opacity: 1; } 100% { transform: translate(var(--cx), var(--cy)) rotate(var(--cr)); opacity: 0; } }
+    @keyframes gradMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes starPop { 0% { transform: scale(0); } 60% { transform: scale(1.4); } 100% { transform: scale(1); } }
+    @keyframes barRise { from { transform: scaleY(.2); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+    .stagger > * { animation: floatUp .5s cubic-bezier(.2,.7,.2,1) both; }
+    .stagger > *:nth-child(1){ animation-delay:.02s } .stagger > *:nth-child(2){ animation-delay:.08s }
+    .stagger > *:nth-child(3){ animation-delay:.14s } .stagger > *:nth-child(4){ animation-delay:.20s }
+    .stagger > *:nth-child(5){ animation-delay:.26s } .stagger > *:nth-child(6){ animation-delay:.32s }
+  </style>
+</helmet>
+<template id="__bundler_thumbnail" data-bg-color="#1C74C4">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#1C74C4"/>
+    <rect x="470" y="300" width="260" height="200" rx="48" fill="#ffffff"/>
+    <text x="600" y="438" font-family="Pretendard,Arial,sans-serif" font-size="120" font-weight="800" fill="#1C74C4" text-anchor="middle">SSU</text>
+  </svg>
+</template>
+
+<div style="position:relative;width:402px;height:874px;margin:0 auto;background:#FFFFFF;border-radius:46px;overflow:hidden;font-family:Pretendard,-apple-system,sans-serif;color:#0F1222;box-shadow:0 30px 80px -20px rgba(40,30,90,.45),0 0 0 11px #0c0c14,0 0 0 13px #2a2a36;display:flex;flex-direction:column;">
+
+  <div style="position:absolute;top:0;left:0;right:0;height:54px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:18px 34px 0;pointer-events:none;">
+    <span style="font-size:15px;font-weight:700;letter-spacing:.3px;">9:41</span>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <span style="font-size:12px;font-weight:800;letter-spacing:1px;">5G</span>
+      <span style="width:18px;height:11px;border:1.6px solid #0F1222;border-radius:3px;display:inline-block;position:relative;"><span style="position:absolute;inset:1.6px;width:11px;background:#0F1222;border-radius:1px;"></span></span>
+    </div>
+  </div>
+  <div style="position:absolute;top:13px;left:50%;transform:translateX(-50%);width:118px;height:33px;background:#0c0c14;border-radius:20px;z-index:41;"></div>
+
+  <!-- ===================== SCREEN: HOME ===================== -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 80px;">
+
+    <!-- sticky brand bar -->
+    <div style="position:sticky;top:0;z-index:25;background:#fff;padding:52px 22px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+            <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:1.4px;"><span style="color:#4F7CFF;">SSU</span><span style="color:#9B5CFF;">TODAY</span></span>
+            <span style="font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1;color:#143A66;">스터디룸 예약</span>
+          </div>
+        </div>
+        <button onClick="{{ onGoHistory }}" style="border:none;background:#F2F3F8;width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#4F5566;">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div style="padding:14px 22px 2px;animation:floatUp .5s ease both;">
+      <h1 style="margin:0 0 4px;font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.12;">종호님, 어디서 공부할까요?</h1>
+      <p style="margin:0;font-size:14.5px;color:#8A8F9C;font-weight:500;">실시간으로 빈 시간을 확인하고 바로 예약할 수 있어요</p>
+    </div>
+
+    <!-- sticky date region -->
+    <div style="position:sticky;top:108px;z-index:23;background:#fff;box-shadow:0 12px 18px -16px rgba(40,30,90,.55);">
+      <div class="scr-area" style="display:flex;gap:9px;overflow-x:auto;padding:12px 22px 8px;">
+        <sc-for list="{{ dates }}" as="d" hint-placeholder-count="7">
+          <button onClick="{{ d.onSelect }}" style="{{ d.style }}">
+            <span style="{{ d.dowStyle }}">{{ d.dow }}</span>
+            <span style="{{ d.dayStyle }}">{{ d.day }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 22px 12px;">
+        <button onClick="{{ onOpenPicker }}" style="display:inline-flex;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:0;font-size:13.5px;font-weight:700;color:#0F1222;font-family:inherit;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F7CFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>
+          {{ dateFull }}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B6BAC6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#8A8F9C;font-weight:600;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#FF4D63;animation:dotPulse 1.8s infinite;display:inline-block;"></span>
+          실시간 현황
+        </div>
+      </div>
+    </div>
+
+    <!-- room cards -->
+    <div class="stagger" style="display:flex;flex-direction:column;gap:14px;padding:6px 18px 0;">
+      <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="4">
+        <div onClick="{{ r.onOpen }}" style="background:#fff;border:1px solid #EDEEF4;border-radius:22px;padding:14px;box-shadow:0 10px 26px -18px rgba(40,30,90,.35);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease;" style-hover="transform:translateY(-3px);box-shadow:0 20px 38px -20px rgba(79,124,255,.45);border-color:#DCD9FB;">
+          <div style="display:flex;gap:13px;align-items:center;">
+            <img src="uploads/studyroom2a.jpeg" alt="{{ r.name }}" style="width:60px;height:60px;flex:none;border-radius:16px;object-fit:cover;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;gap:6px;margin-bottom:6px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:#4F7CFF;background:#EEF2FF;padding:4px 9px;border-radius:9px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="9" cy="8" r="3"></circle><path d="M15 8a3 3 0 0 1 0 6"></path><path d="M3 19a6 6 0 0 1 12 0"></path><path d="M16 13a6 6 0 0 1 5 6"></path></svg>{{ r.cap }}</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:#6B7180;background:#F2F3F8;padding:4px 9px;border-radius:9px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"></path><circle cx="12" cy="10" r="2.4"></circle></svg>{{ r.loc }}</span>
+              </div>
+              <div style="font-size:18px;font-weight:800;letter-spacing:-.4px;">{{ r.name }}</div>
+            </div>
+            <div style="{{ r.statusStyle }}">{{ r.statusText }}</div>
+          </div>
+
+          <!-- mini heatmap timebar -->
+          <div class="scr-area" style="margin-top:12px;overflow-x:auto;padding-bottom:2px;">
+            <div style="position:relative;width:521px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:38px;">
+                <sc-for list="{{ r.slots }}" as="s" hint-placeholder-count="26">
+                  <div style="{{ s.barStyle }}"></div>
+                </sc-for>
+              </div>
+              <div style="position:absolute;top:-3px;bottom:13px;left:{{ r.nowLeft }}px;width:2px;background:#FF4D63;border-radius:2px;animation:nowPulse 1.6s ease-in-out infinite;">
+                <span style="position:absolute;top:-4px;left:-2.5px;width:7px;height:7px;border-radius:50%;background:#FF4D63;"></span>
+              </div>
+              <div style="display:flex;margin-top:5px;">
+                <sc-for list="{{ r.hourTicks }}" as="h" hint-placeholder-count="7">
+                  <span style="width:40px;font-size:10px;color:#B6BAC6;font-weight:600;flex:none;">{{ h }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: DETAIL ===================== -->
+  <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:slideInR .34s cubic-bezier(.2,.7,.2,1) both;">
+    <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;">
+      <div style="position:relative;height:280px;">
+        <img src="uploads/studyroom2abig.jpeg" alt="{{ room.name }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,20,.35) 0%,rgba(8,8,20,0) 30%,rgba(8,8,20,0) 55%,rgba(255,255,255,.96) 100%);"></div>
+        <button onClick="{{ onBack }}" style="position:absolute;top:60px;left:20px;width:42px;height:42px;border-radius:14px;border:none;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px -6px rgba(0,0,0,.35);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+        <div style="position:absolute;left:22px;bottom:14px;">
+          <div style="font-size:27px;font-weight:800;letter-spacing:-.6px;">{{ room.name }}</div>
+        </div>
+      </div>
+
+      <div style="padding:6px 22px 0;">
+        <div class="scr-area" style="display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;">
+          <sc-for list="{{ room.amenities }}" as="a" hint-placeholder-count="4">
+            <span style="flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:#4F5566;background:#F2F3F8;padding:7px 12px;border-radius:11px;">{{ a }}</span>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 4px;">
+          <button onClick="{{ onOpenPicker }}" style="display:inline-flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;padding:0;font-size:17px;font-weight:800;letter-spacing:-.4px;color:#0F1222;font-family:inherit;">
+            {{ dateFull }}
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4F7CFF" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>
+          </button>
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8A8F9C;font-weight:600;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#FF4D63;animation:dotPulse 1.8s infinite;display:inline-block;"></span>지금 18:40
+          </div>
+        </div>
+        <p style="margin:2px 0 0;font-size:13px;color:#8A8F9C;font-weight:500;">한 칸을 누르면 30분, 칸을 한 번 더 누르면 시간 범위로 예약돼요.</p>
+
+        <!-- interactive timebar (full-bleed) -->
+        <div class="scr-area" style="margin:14px -22px 0;overflow-x:auto;padding:4px 22px 2px;" ref="{{ detailScrollRef }}">
+          <div style="position:relative;width:1612px;">
+            <div style="display:flex;gap:4px;align-items:flex-end;height:96px;">
+              <sc-for list="{{ detailSlots }}" as="s" hint-placeholder-count="26">
+                <button onClick="{{ s.onTap }}" style="{{ s.style }}"></button>
+              </sc-for>
+            </div>
+            <div style="position:absolute;top:0;bottom:18px;left:{{ nowLeftDetail }}px;width:2px;background:#FF4D63;border-radius:2px;animation:nowPulse 1.6s ease-in-out infinite;z-index:3;">
+              <span style="position:absolute;top:-5px;left:-3px;width:8px;height:8px;border-radius:50%;background:#FF4D63;"></span>
+            </div>
+            <div style="display:flex;margin-top:6px;">
+              <sc-for list="{{ room.hourTicks }}" as="h" hint-placeholder-count="7">
+                <span style="width:124px;font-size:10.5px;color:#B6BAC6;font-weight:600;flex:none;">{{ h }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <!-- legend -->
+        <div style="display:flex;gap:16px;margin-top:14px;">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8A8F9C;font-weight:600;"><span style="width:13px;height:13px;border-radius:4px;background:#FFE1E6;border:1.5px solid #FFB3BF;"></span>예약됨</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8A8F9C;font-weight:600;"><span style="width:13px;height:13px;border-radius:4px;background:#F2F3F8;border:1.5px solid #E4E6EE;"></span>빈 시간</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8A8F9C;font-weight:600;"><span style="width:13px;height:13px;border-radius:4px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);"></span>선택</span>
+        </div>
+
+        <!-- selection summary -->
+        <div style="margin-top:18px;display:flex;gap:12px;align-items:stretch;">
+          <div style="{{ summaryBoxStyle }}">
+            <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:{{ summaryAccent }};">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              {{ summaryLabel }}
+            </div>
+            <div style="margin-top:7px;font-size:21px;font-weight:800;letter-spacing:-.5px;">{{ summaryTime }}</div>
+          </div>
+          <button onClick="{{ onReset }}" style="flex:none;width:72px;border:1px solid #EDEEF4;background:#fff;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:#8A8F9C;font-weight:700;font-size:12px;">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+            초기화
+          </button>
+        </div>
+
+        <div style="margin-top:18px;border-radius:18px;background:#FFF6F2;border:1px solid #FFE2D6;padding:15px 16px;">
+          <div style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:#FF6B3D;margin-bottom:9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+            이용 규칙
+          </div>
+          <ul style="margin:0;padding-left:18px;color:#7A6A63;font-size:12.8px;line-height:1.7;font-weight:500;">
+            <li>최소 이용 인원은 3명입니다.</li>
+            <li>예약 취소는 이용 시작 전에만 가능합니다.</li>
+            <li>종료 5분 전부터 자리를 정리하고 퇴실해주세요.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- sticky CTA -->
+    <div style="padding:12px 22px 26px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 32%);border-top:1px solid #F1F2F7;">
+      <button onClick="{{ onReserve }}" style="{{ reserveBtnStyle }}">
+        <span>{{ reserveLabel }}</span>
+        <sc-if value="{{ canReserve }}" hint-placeholder-val="{{ false }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: SUCCESS ===================== -->
+  <sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px 30px;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 50% 18%,#EEF2FF 0%,#FFFFFF 60%);">
+    <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="14">
+      <span style="{{ c.style }}"></span>
+    </sc-for>
+    <div style="position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+      <span style="position:absolute;inset:14px;border-radius:50%;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);animation:burst .8s ease-out forwards;"></span>
+      <span style="position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);box-shadow:0 18px 40px -10px rgba(106,76,255,.6);animation:scaleIn .4s cubic-bezier(.2,.8,.2,1.4) both;"></span>
+      <svg width="118" height="118" viewBox="0 0 118 118" style="position:absolute;inset:0;">
+        <path d="M40 60 l13 13 l26 -28" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40" style="animation:checkDraw .45s .35s cubic-bezier(.6,.2,.2,1) forwards;"></path>
+      </svg>
+    </div>
+    <div style="animation:floatUp .5s .25s both;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:#4F7CFF;letter-spacing:.4px;margin-bottom:6px;">RESERVED</div>
+      <h2 style="margin:0;font-size:27px;font-weight:800;letter-spacing:-.7px;">예약이 완료됐어요</h2>
+    </div>
+    <div style="animation:floatUp .5s .35s both;margin-top:22px;width:100%;max-width:320px;background:#fff;border:1px solid #EDEEF4;border-radius:22px;padding:20px;box-shadow:0 20px 50px -28px rgba(40,30,90,.5);">
+      <div style="display:flex;align-items:center;gap:13px;padding-bottom:15px;border-bottom:1px dashed #E7E8F0;">
+        <img src="uploads/studyroom2a.jpeg" alt="{{ lastBooking.room }}" style="width:52px;height:52px;flex:none;border-radius:14px;object-fit:cover;">
+        <div>
+          <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;">{{ lastBooking.room }}</div>
+          <div style="font-size:12.5px;color:#8A8F9C;font-weight:600;margin-top:2px;">{{ lastBooking.loc }}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:14px;">
+        <span style="font-size:13px;color:#8A8F9C;font-weight:600;">날짜</span>
+        <span style="font-size:13.5px;font-weight:700;">{{ lastBooking.date }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:9px;">
+        <span style="font-size:13px;color:#8A8F9C;font-weight:600;">시간</span>
+        <span style="font-size:13.5px;font-weight:700;color:#4F7CFF;">{{ lastBooking.time }}</span>
+      </div>
+    </div>
+    <div style="animation:floatUp .5s .45s both;margin-top:26px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;">
+      <button onClick="{{ onGoHistory }}" style="width:100%;height:54px;border:none;border-radius:17px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);background-size:200% 200%;color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 14px 30px -10px rgba(106,76,255,.55);animation:gradMove 4s linear infinite alternate;">예약 내역 보기</button>
+      <button onClick="{{ onShowList }}" style="width:100%;height:50px;border:1px solid #EDEEF4;border-radius:17px;background:#fff;color:#4F5566;font-size:15px;font-weight:700;cursor:pointer;">예약 화면으로</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: HISTORY ===================== -->
+  <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+  <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:52px 0 40px;animation:slideInL .3s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="padding:8px 22px 0;display:flex;align-items:center;gap:12px;">
+      <button onClick="{{ onShowList }}" style="width:42px;height:42px;border-radius:14px;border:none;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.6px;">예약 내역</h1>
+    </div>
+
+    <!-- segmented tabs -->
+    <div style="display:flex;gap:4px;margin:18px 22px 0;background:#F2F3F8;border-radius:14px;padding:4px;">
+      <button onClick="{{ onTabActive }}" style="{{ tabActiveStyle }}">이용 중 · 대기 {{ activeCount }}</button>
+      <button onClick="{{ onTabDone }}" style="{{ tabDoneStyle }}">이용 완료 {{ doneCount }}</button>
+    </div>
+
+    <div class="stagger" style="display:flex;flex-direction:column;gap:13px;padding:16px 18px 0;">
+      <sc-for list="{{ shownBookings }}" as="b" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid #EDEEF4;border-radius:20px;box-shadow:0 10px 26px -20px rgba(40,30,90,.35);overflow:hidden;">
+          <div style="padding:16px 17px 14px;">
+            <div style="display:flex;align-items:center;gap:9px;">
+              <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#EEF2FF,#F4ECFF);display:flex;align-items:center;justify-content:center;flex:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>
+              </span>
+              <span style="font-size:17px;font-weight:800;letter-spacing:-.4px;">{{ b.date }}</span>
+            </div>
+            <div style="margin-top:13px;display:flex;flex-direction:column;gap:7px;">
+              <div style="display:flex;gap:12px;font-size:13.5px;">
+                <span style="color:#9aa0ad;font-weight:600;width:54px;flex:none;">시설명</span>
+                <span style="color:#2c3140;font-weight:700;">{{ b.room }}</span>
+              </div>
+              <div style="display:flex;gap:12px;font-size:13.5px;">
+                <span style="color:#9aa0ad;font-weight:600;width:54px;flex:none;">이용 시간</span>
+                <span style="color:#2c3140;font-weight:700;">{{ b.time }} <span style="color:#9aa0ad;font-weight:600;">({{ b.dur }})</span></span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;border-top:1px solid #F0F1F6;">
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px;">
+              <span style="{{ b.statusStyle }}">{{ b.status }}</span>
+            </div>
+            <sc-if value="{{ b.hasShot }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ b.onShot }}" style="flex:1;border:none;border-left:1px solid #F0F1F6;background:#fff;cursor:pointer;padding:11px 14px;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <span style="display:flex;align-items:center;gap:5px;font-size:14.5px;font-weight:800;color:#0F1222;">인증샷 촬영 <span style="width:6px;height:6px;border-radius:50%;background:#FF4D63;animation:dotPulse 1.6s infinite;display:inline-block;"></span></span>
+                <span style="font-size:11px;color:#9aa0ad;font-weight:600;">촬영 기한: {{ b.shotDeadline }} 까지</span>
+              </button>
+            </sc-if>
+            <sc-if value="{{ b.canCancel }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ b.onCancel }}" style="flex:1;border:none;border-left:1px solid #F0F1F6;background:#fff;cursor:pointer;padding:14px;font-size:14.5px;font-weight:800;color:#FF4D63;">예약 취소</button>
+            </sc-if>
+            <sc-if value="{{ b.isDone }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ b.onRebook }}" style="flex:1;border:none;border-left:1px solid #F0F1F6;background:#fff;cursor:pointer;padding:14px;font-size:14.5px;font-weight:800;color:#4F7CFF;">다시 예약</button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{ emptyShown }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:64px 20px;color:#C2C6D2;">
+          <div style="font-size:32px;margin-bottom:10px;opacity:.5;">🗓️</div>
+          <div style="font-size:14px;font-weight:600;">표시할 예약이 없어요</div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: NOTICES (HOME) ===================== -->
+  <sc-if value="{{ isNotices }}" hint-placeholder-val="{{ false }}">
+  <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 80px;">
+
+    <div style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);padding:52px 22px 10px;border-bottom:1px solid #F1F2F7;">
+      <!-- brand row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+            <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:1.4px;"><span style="color:#4F7CFF;">SSU</span><span style="color:#9B5CFF;">TODAY</span></span>
+            <span style="font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1;color:#143A66;">공지사항</span>
+          </div>
+        </div>
+        <button onClick="{{ onSortToggle }}" style="display:inline-flex;align-items:center;gap:5px;border:none;background:#F2F3F8;cursor:pointer;height:32px;padding:0 12px;border-radius:11px;font-size:12.5px;font-weight:700;color:#4F5566;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F7CFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="{{ sortArrowStyle }}"><path d="M12 5v14"></path><path d="m6 13 6 6 6-6"></path></svg>
+          {{ sortLabel }}
+        </button>
+      </div>
+
+      <!-- search + filters one tight block -->
+      <div style="margin-top:12px;display:flex;align-items:center;gap:9px;background:#F4F5FA;border-radius:13px;padding:0 13px;height:42px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A6ABB8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input value="{{ searchVal }}" onInput="{{ onSearch }}" placeholder="공지 검색" style="flex:1;border:none;background:none;outline:none;font-size:14.5px;font-weight:500;font-family:inherit;color:#0F1222;" />
+      </div>
+
+      <div class="scr-area" style="margin-top:10px;display:flex;gap:7px;overflow-x:auto;">
+        <button onClick="{{ onToggleStarred }}" style="{{ starChipStyle }}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="m12 3 2.7 5.5 6 .9-4.3 4.2 1 6L12 17l-5.4 2.6 1-6L3.3 9.4l6-.9z"></path></svg>
+          별표 {{ starCount }}
+        </button>
+        <span style="flex:none;width:1px;background:#EDEEF4;margin:4px 1px;"></span>
+        <button onClick="{{ onChipCatch }}" style="{{ chipCatch }}">SSU:Catch</button>
+        <button onClick="{{ onChipCouncil }}" style="{{ chipCouncil }}">총학생회</button>
+        <button onClick="{{ onChipCs }}" style="{{ chipCs }}">컴퓨터학부</button>
+      </div>
+    </div>
+
+    <!-- feed -->
+    <div style="display:flex;flex-direction:column;">
+      <sc-for list="{{ feedItems }}" as="n" hint-placeholder-count="4">
+        <div style="position:relative;overflow:hidden;border-bottom:1px solid #F1F2F7;touch-action:pan-y;">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:30px;background:linear-gradient(90deg,#FFB020,#FF8A3D);color:#fff;opacity:.45;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" style="transform:scale(.8);"><path d="m12 3 2.7 5.5 6 .9-4.3 4.2 1 6L12 17l-5.4 2.6 1-6L3.3 9.4l6-.9z"></path></svg>
+            <span style="font-size:14px;font-weight:800;">별표</span>
+          </div>
+          <button onClick="{{ n.onOpen }}" onPointerDown="{{ n.onDown }}" onPointerMove="{{ n.onMove }}" onPointerUp="{{ n.onUp }}" onPointerCancel="{{ n.onUp }}" style="position:relative;text-align:left;border:none;background:#fff;cursor:pointer;padding:14px 22px;display:flex;flex-direction:column;gap:6px;width:100%;will-change:transform;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <sc-if value="{{ n.starred }}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="#FFB020" stroke="#FFB020" stroke-width="1.5" stroke-linejoin="round" style="{{ n.starIconStyle }}"><path d="m12 3 2.7 5.5 6 .9-4.3 4.2 1 6L12 17l-5.4 2.6 1-6L3.3 9.4l6-.9z"></path></svg></sc-if>
+              <span style="{{ n.catStyle }}">{{ n.cat }}</span>
+              <sc-if value="{{ n.hot }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#FF4D63;background:#FFECEF;padding:3px 7px;border-radius:7px;">HOT</span></sc-if>
+              <sc-if value="{{ n.pinned }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#7C5CFF;background:#F1ECFF;padding:3px 7px;border-radius:7px;">고정</span></sc-if>
+            </div>
+            <div style="font-size:15px;font-weight:800;letter-spacing:-.4px;line-height:1.3;color:#0F1222;text-wrap:pretty;">{{ n.title }}</div>
+            <div style="font-size:12.5px;color:#8A8F9C;font-weight:500;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ n.body }}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1px;">
+              <span style="font-size:11px;color:#B6BAC6;font-weight:600;">{{ n.date }}</span>
+              <span style="font-size:11px;color:#9aa0ad;font-weight:700;">{{ n.src }}</span>
+            </div>
+          </button>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{ feedEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:70px 20px;color:#C2C6D2;">
+          <div style="font-size:30px;margin-bottom:10px;opacity:.5;">{{ emptyIcon }}</div>
+          <div style="font-size:14px;font-weight:700;color:#9aa0ad;">{{ emptyMsg }}</div>
+          <div style="font-size:12.5px;font-weight:500;margin-top:5px;">{{ emptySub }}</div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: MY ===================== -->
+  <sc-if value="{{ isMy }}" hint-placeholder-val="{{ false }}">
+  <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:52px 0 80px;animation:slideInR .3s cubic-bezier(.2,.7,.2,1) both;">
+
+    <div style="padding:0 22px 0;display:flex;align-items:center;gap:10px;">
+      <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+        <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:11px;font-weight:800;letter-spacing:1.4px;"><span style="color:#4F7CFF;">SSU</span><span style="color:#9B5CFF;">TODAY</span></span>
+        <span style="font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1;color:#143A66;">마이페이지</span>
+      </div>
+    </div>
+
+    <!-- profile -->
+    <div style="display:flex;align-items:center;gap:18px;padding:22px 24px 6px;animation:floatUp .5s .05s both;">
+      <div style="position:relative;flex:none;">
+        <div style="width:84px;height:84px;border-radius:27px;padding:2.5px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);box-shadow:0 14px 30px -10px rgba(106,76,255,.55);">
+          <div style="width:100%;height:100%;border-radius:25px;background:#EEF1F8;display:flex;align-items:center;justify-content:center;">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#B6BAC6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+          </div>
+        </div>
+      </div>
+      <div style="min-width:0;">
+        <span style="display:inline-block;font-size:12px;font-weight:800;color:#7C5CFF;background:#F1ECFF;padding:5px 11px;border-radius:9px;margin-bottom:7px;">컴퓨터학부</span>
+        <div style="font-size:26px;font-weight:800;letter-spacing:0px;line-height:1;">김종호<span style="font-size:18px;color:#8A8F9C;font-weight:700;letter-spacing:.5px;">님</span></div>
+        <div style="font-size:13px;color:#8A8F9C;font-weight:600;margin-top:7px;letter-spacing:.3px;">학번 <span style="color:#4F5566;font-weight:800;letter-spacing:1px;">20221488</span></div>
+      </div>
+    </div>
+
+    <!-- notification settings card -->
+    <div style="margin:24px 18px 0;background:#fff;border:1px solid #EDEEF4;border-radius:22px;padding:6px 18px;box-shadow:0 10px 26px -20px rgba(40,30,90,.35);animation:floatUp .5s .12s both;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 14px;">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#EEF2FF,#F4ECFF);display:flex;align-items:center;justify-content:center;flex:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+          </span>
+          <span style="font-size:16px;font-weight:800;letter-spacing:-.3px;">알림 설정</span>
+        </div>
+        <button onClick="{{ onTgAll }}" style="{{ tgAll }}"><span style="{{ knAll }}"></span></button>
+      </div>
+      <div style="height:1px;background:#F0F1F6;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 14px 39px;">
+        <span style="font-size:14.5px;font-weight:600;color:#4F5566;">공지사항</span>
+        <button onClick="{{ onTgNotice }}" style="{{ tgNotice }}"><span style="{{ knNotice }}"></span></button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 14px 39px;">
+        <span style="font-size:14.5px;font-weight:600;color:#4F5566;">예약</span>
+        <button onClick="{{ onTgReserve }}" style="{{ tgReserve }}"><span style="{{ knReserve }}"></span></button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 16px 39px;">
+        <span style="font-size:14.5px;font-weight:600;color:#4F5566;">LMS</span>
+        <button onClick="{{ onTgLms }}" style="{{ tgLms }}"><span style="{{ knLms }}"></span></button>
+      </div>
+    </div>
+
+    <!-- menu rows -->
+    <div style="margin:16px 18px 0;background:#fff;border:1px solid #EDEEF4;border-radius:22px;box-shadow:0 10px 26px -20px rgba(40,30,90,.35);overflow:hidden;animation:floatUp .5s .18s both;">
+      <button onClick="{{ onSupport }}" style="width:100%;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;">
+        <span style="display:flex;align-items:center;gap:11px;font-size:15.5px;font-weight:700;color:#0F1222;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9B5CFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>
+          지원
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2C6D2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+      <div style="height:1px;background:#F0F1F6;margin:0 20px;"></div>
+      <button onClick="{{ onToggleDev }}" style="width:100%;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;">
+        <span style="display:flex;align-items:center;gap:11px;font-size:15.5px;font-weight:700;color:#0F1222;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F7CFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg>
+          개발자 정보
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2C6D2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="{{ devChevStyle }}"><path d="m6 9 6 6 6-6"></path></svg>
+      </button>
+      <sc-if value="{{ devOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:2px 20px 16px 51px;animation:floatUp .3s both;">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;"><span style="color:#9aa0ad;font-weight:600;">개발</span><span style="color:#4F5566;font-weight:700;">슈투데이 팀</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;"><span style="color:#9aa0ad;font-weight:600;">문의</span><span style="color:#4F5566;font-weight:700;">help@ssutoday.com</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;"><span style="color:#9aa0ad;font-weight:600;">오픈소스 라이선스</span><span style="color:#4F7CFF;font-weight:700;">보기</span></div>
+        </div>
+      </sc-if>
+      <div style="height:1px;background:#F0F1F6;margin:0 20px;"></div>
+      <button onClick="{{ onLogout }}" style="width:100%;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;">
+        <span style="display:flex;align-items:center;gap:11px;font-size:15.5px;font-weight:700;color:#FF4D63;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF4D63" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path></svg>
+          로그아웃
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFC2CD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+    </div>
+
+    <div style="padding:26px 24px 0;animation:floatUp .5s .24s both;">
+      <div style="font-size:12px;color:#C2C6D2;font-weight:600;font-variant-numeric:tabular-nums;">v2.4.1_59_2024.03.03</div>
+      <div style="font-size:12px;color:#C2C6D2;font-weight:600;margin-top:3px;">© 슈투데이. 모든 권리 보유.</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: COMING ===================== -->
+  <sc-if value="{{ isComing }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 36px 84px;text-align:center;animation:scaleIn .35s cubic-bezier(.2,.8,.2,1.2) both;">
+    <div style="width:88px;height:88px;border-radius:28px;background:linear-gradient(135deg,#EEF2FF,#F4ECFF);display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 18px 40px -20px rgba(106,76,255,.5);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4l2.5 2.5"></path></svg>
+    </div>
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;">{{ comingTitle }}</div>
+    <p style="margin:11px 0 0;font-size:14px;color:#8A8F9C;font-weight:500;line-height:1.6;">곧 만나요.<br/>지금은 예약 화면을 이용해 주세요.</p>
+    <button onClick="{{ onShowList }}" style="margin-top:28px;height:50px;padding:0 26px;border:none;border-radius:16px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 16px 30px -12px rgba(106,76,255,.6);">예약하러 가기</button>
+  </div>
+  </sc-if>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-top:1px solid #F0F1F6;display:flex;align-items:center;justify-content:space-around;padding:0 42px 6px;z-index:30;">
+    <button onClick="{{ onComingHome }}" style="{{ navHomeStyle }}">
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"></path><path d="M5 9v11h14V9"></path></svg>
+    </button>
+    <button onClick="{{ onShowList }}" style="{{ navMainStyle }}">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path><path d="m8.5 15 2 2 4-4.5"></path></svg>
+    </button>
+    <button onClick="{{ onComingMy }}" style="{{ navMyStyle }}">
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+    </button>
+  </div>
+  </sc-if>
+
+  <!-- reserver peek sheet -->
+  <sc-if value="{{ peek }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onClosePeek }}" style="position:absolute;inset:0;z-index:70;background:rgba(15,18,34,.38);backdrop-filter:blur(2px);display:flex;align-items:flex-end;animation:floatUp .2s ease both;">
+    <div onClick="{{ stop }}" style="width:100%;background:#fff;border-radius:28px 28px 0 0;padding:10px 24px 30px;box-shadow:0 -16px 40px -12px rgba(40,30,90,.35);animation:slideUpSheet .34s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="width:42px;height:5px;border-radius:3px;background:#E4E6EE;margin:0 auto 18px;"></div>
+      <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#9B5CFF;margin-bottom:14px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        예약된 시간 · 개인정보 보호
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:54px;height:54px;border-radius:17px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex:none;box-shadow:0 10px 22px -8px rgba(106,76,255,.6);">{{ peekInitial }}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;">{{ peekName }}</div>
+          <div style="font-size:13px;color:#8A8F9C;font-weight:600;margin-top:2px;">{{ peekDept }}</div>
+        </div>
+      </div>
+      <div style="margin-top:18px;display:flex;flex-direction:column;gap:1px;background:#EDEEF4;border-radius:16px;overflow:hidden;border:1px solid #EDEEF4;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#F8F9FC;padding:13px 16px;">
+          <span style="font-size:13px;color:#8A8F9C;font-weight:600;">학번</span>
+          <span style="font-size:14px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums;">{{ peekSid }}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#F8F9FC;padding:13px 16px;">
+          <span style="font-size:13px;color:#8A8F9C;font-weight:600;">이용 시간</span>
+          <span style="font-size:14px;font-weight:800;color:#4F7CFF;">{{ peekTime }}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#F8F9FC;padding:13px 16px;">
+          <span style="font-size:13px;color:#8A8F9C;font-weight:600;">이용 인원</span>
+          <span style="font-size:14px;font-weight:800;">{{ peekN }}</span>
+        </div>
+      </div>
+      <p style="margin:13px 2px 0;font-size:11.5px;color:#B6BAC6;font-weight:500;line-height:1.5;">개인정보 보호를 위해 이름과 학번 일부는 마스킹되어 표시됩니다.</p>
+      <button onClick="{{ onClosePeek }}" style="margin-top:18px;width:100%;height:52px;border:none;border-radius:16px;background:#F2F3F8;color:#4F5566;font-size:15px;font-weight:800;cursor:pointer;">닫기</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- confirm modal -->
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onConfirmNo }}" style="position:absolute;inset:0;z-index:80;background:rgba(15,18,34,.42);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:30px;animation:floatUp .2s ease both;">
+    <div onClick="{{ stop }}" style="width:100%;max-width:320px;background:#fff;border-radius:26px;padding:26px 22px 20px;box-shadow:0 30px 70px -20px rgba(40,30,90,.55);animation:scaleIn .3s cubic-bezier(.2,.8,.2,1.3) both;">
+      <div style="width:60px;height:60px;border-radius:20px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;background:{{ confirmTone }}1A;">
+        <sc-if value="{{ confirmShowCheck }}" hint-placeholder-val="{{ true }}">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="{{ confirmTone }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12 2.5 2.5 4.5-5"></path></svg>
+        </sc-if>
+        <sc-if value="{{ confirmShowLogout }}" hint-placeholder-val="{{ false }}">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{ confirmTone }}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path></svg>
+        </sc-if>
+        <sc-if value="{{ confirmShowCancel }}" hint-placeholder-val="{{ false }}">
+          <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="{{ confirmTone }}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+        </sc-if>
+      </div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;text-align:center;color:#0F1222;">{{ confirmTitle }}</div>
+
+      <sc-if value="{{ confirmHasDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:16px;border-radius:16px;background:#F7F8FB;border:1px solid #EDEEF4;padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;color:#8A8F9C;font-weight:600;">스터디룸</span>
+            <span style="font-size:14px;font-weight:800;">{{ confirmRoom }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;">
+            <span style="font-size:13px;color:#8A8F9C;font-weight:600;">날짜</span>
+            <span style="font-size:13.5px;font-weight:700;">{{ confirmDate }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;">
+            <span style="font-size:13px;color:#8A8F9C;font-weight:600;">시간</span>
+            <span style="font-size:14px;font-weight:800;color:#4F7CFF;">{{ confirmTime }}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ confirmHasMsg }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:11px 4px 0;font-size:13.5px;color:#8A8F9C;font-weight:500;line-height:1.55;text-align:center;">{{ confirmMsg }}</p>
+      </sc-if>
+
+      <div style="display:flex;gap:10px;margin-top:22px;">
+        <button onClick="{{ onConfirmNo }}" style="flex:1;height:50px;border:1px solid #EDEEF4;border-radius:15px;background:#fff;color:#6B7180;font-size:15px;font-weight:800;cursor:pointer;">취소</button>
+        <button onClick="{{ onConfirmYes }}" style="{{ confirmYesStyle }}">{{ confirmYes }}</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- date picker modal -->
+  <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onClosePicker }}" style="position:absolute;inset:0;z-index:82;background:rgba(15,18,34,.42);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:30px;animation:floatUp .2s ease both;">
+    <div onClick="{{ stop }}" style="width:100%;max-width:330px;background:#fff;border-radius:26px;padding:22px 20px 18px;box-shadow:0 30px 70px -20px rgba(40,30,90,.55);animation:scaleIn .3s cubic-bezier(.2,.8,.2,1.3) both;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.4px;">{{ pickerMonth }}</div>
+        <button onClick="{{ onClosePicker }}" style="width:34px;height:34px;border:none;border-radius:11px;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7180" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:7px;">
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#E0436B;">일</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#9aa0ad;">월</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#9aa0ad;">화</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#9aa0ad;">수</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#9aa0ad;">목</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#9aa0ad;">금</span>
+        <span style="text-align:center;font-size:11.5px;font-weight:700;color:#4F7CFF;">토</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
+        <sc-for list="{{ pickerCells }}" as="c" hint-placeholder-count="35">
+          <button onClick="{{ c.onPick }}" style="{{ c.style }}">{{ c.day }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- toast -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:50%;bottom:104px;transform:translateX(-50%);background:#0F1222;color:#fff;font-size:13px;font-weight:600;padding:11px 18px;border-radius:13px;box-shadow:0 14px 30px -10px rgba(0,0,0,.5);z-index:60;animation:floatUp .3s ease both;white-space:nowrap;">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.START_H = 9; this.END_H = 22;
+    this.SLOTS = (this.END_H - this.START_H) * 2; // 26
+    this.NOW_MIN = 18 * 60 + 40;
+    this.detailScrollRef = React.createRef();
+    this.NOTICES = [
+      { id:1, ord:20260316, tag:'cs', src:'컴퓨터학부', cat:'모집', title:'신입생을 위한 중앙도서관 오리엔테이션 (3/18 ~ 3/20)', body:'2026-1 숭실대 신입생 여러분을 진심으로 환영합니다! 중앙도서관 오리엔테이션 일정을 안내드리오니, 참석을 희망하는 학생은 아래 내용을 참고하여 신청하시기 바랍니다. 1) 일시…', date:'2026년 3월 16일 09:57', pinned:true },
+      { id:2, ord:20260313, tag:'cs', src:'컴퓨터학부', cat:'장학', title:'2026학년도 1학기 국가장학금 신청자 가구원 동의 안내', body:'2026학년도 1학기 국가장학금 가구원 동의 관련하여 다음과 같이 안내합니다. ※ 2026학년도 1학기 국가장학금 가구원 동의 미완료자 대상 안내입니다. ※ 가구원 정보제공 동…', date:'2026년 3월 13일 14:11', hot:true },
+      { id:3, ord:20260306, tag:'catch', src:'SSU:Catch', cat:'공모전', title:'[스파르탄SW교육원] 2026 AI·SW중심대학 에세이 공모전 (~4/6까지)', body:'[2026 AI·SW중심대학 에세이 공모전] [개요] ○ (공모전명) 2026 SW중심대학 에세이 공모전 ○ (공모주제) SW중심대학 사용설명서 ○ (응모자격) SW중심대학 소속 재학생…', date:'2026년 3월 6일 09:17' },
+      { id:4, ord:20260304, tag:'cs', src:'컴퓨터학부', cat:'모임', title:'컴퓨터학부 신우회를 소개드립니다.', body:'컴퓨터학부 신우회 모임에 관심있는 학생들은 아래 이메일로 간단한 소개와 함께 연락해 주시기 바랍니다. 이영주 (컴퓨터학부 23학번, 컴퓨터학부 신우회 회장) youngju2629@na…', date:'2026년 3월 4일 18:02' },
+      { id:5, ord:20260228, tag:'council', src:'총학생회', cat:'행사', title:'2026 새내기 배움터 운영 및 학생 안전 수칙 안내', body:'총학생회입니다. 새내기 배움터 운영 일정과 함께 안전하게 즐길 수 있도록 학생 안전 수칙을 안내드립니다. 모든 참가 학생은 사전 등록 후 입장이 가능하며…', date:'2026년 2월 28일 11:30' },
+      { id:6, ord:20260225, tag:'catch', src:'SSU:Catch', cat:'채용', title:'[현장실습] 2026 하계 IT 직무 인턴십 사전 수요조사', body:'산학협력단에서 2026 하계 현장실습(인턴십) 참여를 위한 사전 수요조사를 실시합니다. IT·SW 직무 중심으로 다수 기업이 참여 예정이며, 학점 인정도 가능합니다…', date:'2026년 2월 25일 16:45' },
+    ];
+    this.state = {
+      screen: 'home',
+      windowStart: 6, // first day shown in date strip (Sep)
+      dateIdx: 2,
+      pickerOpen: false,
+      roomId: null,
+      selStart: null,   // slot index
+      selEnd: null,     // inclusive last slot index
+      selAnchor: null,  // first tapped slot
+      selRanged: false, // true once a multi-slot range is set
+      toast: '',
+      tab: 'active',
+      notif: { all:true, notice:false, reserve:true, lms:false },
+      devOpen: false,
+      noticeSort: 'latest',
+      noticeFilter: { catch:true, council:true, cs:true },
+      search: '',
+      starred: [],
+      showStarred: false,
+      confirm: null,
+      bookings: [
+        { id:1, room:'스터디룸 2A', loc:'2층 교수연구실 옆', date:'2023년 11월 14일(화)', time:'17:30 ~ 18:00', dur:'30분', status:'이용 중', kind:'active', shotDeadline:'17:40' },
+        { id:2, room:'스터디룸 2B', loc:'2층 중앙', date:'2023년 11월 14일(화)', time:'20:00 ~ 21:00', dur:'1시간', status:'이용 대기', kind:'active', cancelable:true },
+        { id:3, room:'스터디룸 2C', loc:'2층 계단 옆', date:'2023년 11월 10일(금)', time:'15:00 ~ 17:00', dur:'2시간', status:'이용 완료', kind:'done' },
+        { id:4, room:'스터디룸 2B', loc:'2층 중앙', date:'2023년 11월 6일(월)', time:'14:00 ~ 16:00', dur:'2시간', status:'이용 완료', kind:'done' },
+        { id:5, room:'스터디룸 2A', loc:'2층 교수연구실 옆', date:'2023년 11월 3일(금)', time:'13:00 ~ 14:00', dur:'1시간', status:'이용 완료', kind:'done' },
+      ],
+    };
+    this.ROOMS = [
+      { id:'2A', name:'스터디룸 2A', cap:'10인실', loc:'2층 교수연구실 옆', amenities:['10인실','2층 교수연구실 옆','콘센트 6구','칠판','TV 모니터'],
+        booked:[
+          {s:'10:00',e:'11:30',name:'김민준',sid:'20211043',dept:'컴퓨터학부',n:6},
+          {s:'13:00',e:'14:00',name:'이서연',sid:'20193387',dept:'경영학과',n:4},
+          {s:'17:00',e:'18:30',name:'박도윤',sid:'20221125',dept:'전자정보공학',n:8},
+          {s:'19:30',e:'20:30',name:'정하은',sid:'20204461',dept:'영어영문학',n:3},
+        ] },
+      { id:'2B', name:'스터디룸 2B', cap:'10인실', loc:'2층 중앙', amenities:['10인실','2층 중앙','콘센트 4구','화이트보드'],
+        booked:[
+          {s:'09:30',e:'11:00',name:'최지우',sid:'20198802',dept:'화학공학과',n:5},
+          {s:'11:30',e:'13:00',name:'강시우',sid:'20221760',dept:'기계공학부',n:7},
+          {s:'14:00',e:'15:30',name:'윤서아',sid:'20205534',dept:'미디어경영',n:4},
+          {s:'17:00',e:'19:00',name:'임준호',sid:'20193019',dept:'산업정보시스템',n:9},
+          {s:'21:00',e:'22:00',name:'한예린',sid:'20226628',dept:'건축학부',n:3},
+        ] },
+      { id:'2C', name:'스터디룸 2C', cap:'8인실', loc:'2층 계단 옆', amenities:['8인실','2층 계단 옆','콘센트 4구'],
+        booked:[
+          {s:'15:00',e:'16:00',name:'오수빈',sid:'20214455',dept:'통계학과',n:5},
+        ] },
+    ];
+  }
+
+  toSlot(t){ const [h,m]=t.split(':').map(Number); return ((h*60+m) - this.START_H*60)/30; }
+  slotLabel(i){ const total=this.START_H*60 + i*30; const h=Math.floor(total/60), m=total%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+  bookedSet(room){ const set={}; (room.booked||[]).forEach(b=>{ const a=Array.isArray(b)?b[0]:b.s, c=Array.isArray(b)?b[1]:b.e; for(let i=this.toSlot(a);i<this.toSlot(c);i++) set[i]=true; }); return set; }
+  bookedMap(room){ const m={}; (room.booked||[]).forEach(b=>{ if(Array.isArray(b))return; for(let i=this.toSlot(b.s);i<this.toSlot(b.e);i++) m[i]=b; }); return m; }
+  maskName(n){ if(!n) return ''; if(n.length<=2) return n[0]+'*'; return n[0]+'*'.repeat(n.length-2)+n[n.length-1]; }
+  maskSid(s){ return s ? s.slice(0,4)+'*'.repeat(Math.max(0,s.length-4)) : ''; }
+
+  componentDidUpdate(prevProps, prevState){
+    if(this.state && this.state.screen==='detail' && (!prevState || prevState.screen!=='detail') && this.detailScrollRef.current){
+      this.detailScrollRef.current.scrollLeft = 380;
+    }
+  }
+  flash(msg){ this.setState({toast:msg}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:''}),1700); }
+
+  toggleStar(id){
+    const set=new Set(this.state.starred);
+    const adding=!set.has(id);
+    if(adding) set.add(id); else set.delete(id);
+    this.setState({starred:[...set]});
+    this.flash(adding?'별표에 추가했어요':'별표를 해제했어요');
+  }
+  cardDown(e,id){
+    if(e.button!==undefined && e.button!==0) return;
+    this._drag={ el:e.currentTarget, bg:e.currentTarget.previousElementSibling, startX:e.clientX, id, dx:0, moved:false };
+    e.currentTarget.style.transition='none';
+    try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(_){}
+  }
+  cardMove(e){
+    const d=this._drag; if(!d) return;
+    let dx=e.clientX-d.startX; dx=Math.max(-150,Math.min(0,dx)); d.dx=dx;
+    if(Math.abs(dx)>5) d.moved=true;
+    d.el.style.transform=`translateX(${dx}px)`;
+    if(d.bg){ const t=Math.min(1,Math.abs(dx)/72); d.bg.style.opacity=String(0.45+0.55*t); const ic=d.bg.querySelector('svg'); if(ic) ic.style.transform=`scale(${0.8+0.45*t})`; }
+  }
+  cardUp(e){
+    const d=this._drag; if(!d) return; this._drag=null;
+    d.el.style.transition='transform .3s cubic-bezier(.2,.8,.2,1.4)';
+    d.el.style.transform='translateX(0)';
+    if(d.dx<=-72) this.toggleStar(d.id);
+    if(d.moved){ this._suppress=true; setTimeout(()=>{ this._suppress=false; },80); }
+  }
+
+  open(id){ this.setState({screen:'detail', roomId:id, selStart:null, selEnd:null, selAnchor:null, selRanged:false, peek:null}); }
+  back(){ this.setState({screen:'home', peek:null}); }
+  reset(){ this.setState({selStart:null, selEnd:null, selAnchor:null, selRanged:false}); }
+
+  tap(idx, bset, bmap){
+    if(bset[idx]) { this.setState({ peek: bmap[idx] || null }); return; }
+    const { selStart, selRanged, selAnchor } = this.state;
+    // nothing selected yet -> select a single 30-min slot (already reservable)
+    if(selStart===null){ this.setState({selStart:idx, selEnd:idx, selAnchor:idx, selRanged:false}); return; }
+    // a single slot is selected -> tapping it again clears, tapping another makes a range
+    if(!selRanged){
+      if(idx===selAnchor){ this.setState({selStart:null, selEnd:null, selAnchor:null, selRanged:false}); return; }
+      const a=Math.min(selAnchor,idx), b=Math.max(selAnchor,idx);
+      for(let i=a;i<=b;i++){ if(bset[i]){ this.flash('예약된 시간을 건너뛸 수 없어요'); this.setState({selStart:idx, selEnd:idx, selAnchor:idx, selRanged:false}); return; } }
+      this.setState({selStart:a, selEnd:b, selRanged:true});
+      return;
+    }
+    // a range is already set -> start over with a fresh single slot
+    this.setState({selStart:idx, selEnd:idx, selAnchor:idx, selRanged:false});
+  }
+
+  reserve(room){
+    const { selStart, selEnd } = this.state;
+    if(selStart===null || selEnd===null){ this.flash('시작과 끝 시간을 선택하세요'); return; }
+    const time = this.slotLabel(selStart)+' ~ '+this.slotLabel(selEnd+1);
+    const mins=(selEnd-selStart+1)*30, hh=Math.floor(mins/60), mm=mins%60;
+    const dur=((hh?hh+'시간':'')+(mm?(hh?' ':'')+mm+'분':'')).trim();
+    this._last = { room:room.name, loc:room.loc, date:this.dateFull(), time, slotId:'room-'+room.id };
+    const nb = { id:Date.now(), room:room.name, loc:room.loc, date:this.dateFull(), time, dur, status:'이용 대기', kind:'active', cancelable:true };
+    this.setState({ bookings:[nb, ...this.state.bookings], screen:'success', tab:'active' });
+  }
+
+  dateList(){
+    const dows=['일','월','화','수','목','금','토'];
+    const s=this.state.windowStart; // Sep 1 2023 is Friday -> dow = (4+day)%7
+    const out=[];
+    for(let i=0;i<7;i++){ const day=s+i; out.push({ day, dow:dows[(4+day)%7] }); }
+    return out;
+  }
+  dateFull(){ const d=this.dateList()[this.state.dateIdx]; return '2023년 9월 '+d.day+'일('+d.dow+')'; }
+
+  renderVals(){
+    const S=this.state;
+    const screen=S.screen;
+    const accent='linear-gradient(135deg,#4F7CFF,#9B5CFF)';
+
+    // ----- date picker (September 2023) -----
+    const selDay=this.dateList()[S.dateIdx].day;
+    const pickerCells=[];
+    for(let i=0;i<5;i++) pickerCells.push({ blank:true, day:'', onPick:null, style:'visibility:hidden;height:40px;' }); // Sep 1 is Friday
+    for(let d=1; d<=30; d++){
+      const on=d===selDay;
+      pickerCells.push({ blank:false, day:String(d),
+        onPick:()=>{ const s=Math.max(1,Math.min(24,d-2)); this.setState({windowStart:s, dateIdx:d-s, pickerOpen:false}); },
+        style:`height:40px;border:none;border-radius:12px;cursor:pointer;font-size:14.5px;font-family:inherit;transition:transform .15s;font-weight:${on?'800':'600'};`+(on?'background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;box-shadow:0 8px 16px -6px rgba(106,76,255,.55);':'background:#F4F5FA;color:#3a3f4c;'),
+      });
+    }
+
+    // dates
+    const dates=this.dateList().map((d,i)=>{
+      const active=i===S.dateIdx;
+      return {
+        dow:d.dow, day:String(d.day),
+        onSelect:()=>this.setState({dateIdx:i}),
+        style:`flex:none;width:54px;height:70px;border-radius:18px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .2s cubic-bezier(.2,.8,.2,1.4);`+(active?`background:${accent};box-shadow:0 12px 26px -10px rgba(106,76,255,.6);transform:translateY(-2px) scale(1.04);`:`background:#F4F5FA;`),
+        dowStyle:`font-size:11px;font-weight:700;`+(active?'color:rgba(255,255,255,.85);':'color:#9aa0ad;'),
+        dayStyle:`font-size:20px;font-weight:800;`+(active?'color:#fff;':'color:#3a3f4c;'),
+      };
+    });
+
+    // hour ticks (every 2 slots = 1h)
+    const hourTicks=[];
+    for(let h=this.START_H; h<this.END_H; h++) hourTicks.push(String(h).padStart(2,'0')+':00');
+
+    // room cards
+    const rooms=this.ROOMS.map(r=>{
+      const bset=this.bookedSet(r);
+      const slots=[];
+      for(let i=0;i<this.SLOTS;i++){
+        const bk=!!bset[i];
+        slots.push({ barStyle:`flex:none;width:17px;height:${bk?'30px':'14px'};border-radius:5px;transform-origin:bottom;animation:barRise .5s ${(i*0.012).toFixed(3)}s cubic-bezier(.2,.8,.2,1) both;`+(bk?`background:linear-gradient(180deg,#FFC2CD,#FF8DA0);`:`background:#EDEFF5;`) });
+      }
+      const freeCount=this.SLOTS-Object.keys(bset).length;
+      const busy=freeCount<this.SLOTS*0.45;
+      return {
+        slotId:'room-'+r.id, name:r.name, cap:r.cap, loc:r.loc,
+        slots, hourTicks, nowLeft:Math.round((this.NOW_MIN-this.START_H*60)/30*20),
+        onOpen:()=>this.open(r.id),
+        statusText:busy?'혼잡':'여유',
+        statusStyle:`flex:none;font-size:11px;font-weight:800;padding:5px 10px;border-radius:10px;`+(busy?'color:#FF6B3D;background:#FFF0EA;':'color:#1FB97A;background:#E8FAF1;'),
+      };
+    });
+
+    // -------- detail --------
+    const room=this.ROOMS.find(x=>x.id===S.roomId)||this.ROOMS[0];
+    const bset=this.bookedSet(room);
+    const bmap=this.bookedMap(room);
+    const detailSlots=[];
+    for(let i=0;i<this.SLOTS;i++){
+      const bk=!!bset[i];
+      let inRange=false, isStart=false, isEnd=false;
+      if(S.selStart!==null && S.selEnd!==null){ inRange = i>=S.selStart && i<=S.selEnd; isStart=i===S.selStart; isEnd=i===S.selEnd; }
+      else if(S.selStart!==null){ inRange=i===S.selStart; isStart=isEnd=i===S.selStart; }
+      let bg,h,extra='';
+      if(inRange){ bg='linear-gradient(180deg,#5C84FF,#9B5CFF)'; h='86px'; extra=`box-shadow:0 8px 18px -6px rgba(106,76,255,.55);`; }
+      else if(bk){ bg='repeating-linear-gradient(135deg,#FFE1E6 0 6px,#FFD2DA 6px 12px)'; h='62px'; extra='border:1.5px solid #FFB3BF;'; }
+      else { bg='#F2F3F8'; h='40px'; extra='border:1.5px solid #E7E9F1;'; }
+      const rad = inRange ? (isStart&&isEnd?'12px':isStart?'12px 4px 4px 12px':isEnd?'4px 12px 12px 4px':'4px') : '9px';
+      detailSlots.push({
+        onTap:()=>this.tap(i,bset,bmap),
+        style:`flex:none;width:58px;height:${h};border-radius:${rad};cursor:${bk?'not-allowed':'pointer'};background:${bg};${extra}transition:height .22s cubic-bezier(.2,.8,.2,1.4),background .2s;padding:0;`,
+      });
+    }
+
+    let summaryLabel='시간 선택', summaryTime='시간대를 탭하세요', summaryAccent='#8A8F9C';
+    let summaryBg='#F7F8FB', summaryBorder='#EDEEF4', canReserve=false;
+    if(S.selStart!==null && S.selEnd!==null){
+      const mins=(S.selEnd-S.selStart+1)*30; const hh=Math.floor(mins/60), mm=mins%60;
+      const dur=(hh?hh+'시간':'')+(mm?' '+mm+'분':'');
+      summaryLabel='선택됨 · '+dur.trim(); summaryAccent='#4F7CFF';
+      summaryTime=this.slotLabel(S.selStart)+' ~ '+this.slotLabel(S.selEnd+1);
+      summaryBg='#EEF2FF'; summaryBorder='#D8E0FF'; canReserve=true;
+    } else if(S.selStart!==null){
+      summaryLabel='시작 시간 선택됨'; summaryAccent='#9B5CFF';
+      summaryTime='끝 시간을 선택하세요'; summaryBg='#F6F1FF'; summaryBorder='#E6DAFF';
+    }
+
+    // confetti
+    const confetti=[];
+    const cols=['#4F7CFF','#9B5CFF','#FFB35C','#1FB97A','#FF6B8A'];
+    for(let i=0;i<14;i++){
+      const ang=(i/14)*Math.PI*2; const dist=120+Math.random()*70;
+      confetti.push({ style:`position:absolute;top:30%;left:50%;width:9px;height:9px;border-radius:${i%2?'50%':'2px'};background:${cols[i%cols.length]};--cx:${Math.round(Math.cos(ang)*dist)}px;--cy:${Math.round(Math.sin(ang)*dist-40)}px;--cr:${Math.round(Math.random()*540-270)}deg;animation:confetti ${(0.9+Math.random()*0.5).toFixed(2)}s ${(0.2+i*0.02).toFixed(2)}s cubic-bezier(.2,.7,.3,1) forwards;` });
+    }
+
+    // ---- history ----
+    const tab=S.tab||'active';
+    const tabPill='flex:1;height:40px;border:none;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:700;transition:all .2s;';
+    const decoBooking=(b)=>{
+      let col='#9aa0ad';
+      if(b.status==='이용 중') col='#4F7CFF';
+      else if(b.status==='이용 대기') col='#9B5CFF';
+      return {
+        ...b,
+        statusStyle:`font-size:15px;font-weight:800;letter-spacing:-.2px;color:${col};`,
+        hasShot: !!b.shotDeadline,
+        canCancel: !!b.cancelable && !b.shotDeadline,
+        isDone: b.kind==='done',
+        onShot:()=>this.flash('인증샷 촬영 화면은 준비 중이에요'),
+        onCancel:()=>this.setState({confirm:{
+          icon:'cancel', tone:'#FF4D63',
+          title:'예약을 취소할까요?',
+          room:b.room, date:b.date, time:b.time,
+          msg:'취소한 예약은 되돌릴 수 없어요.',
+          yes:'예약 취소',
+          action:()=>{ this.setState({bookings:this.state.bookings.filter(x=>x.id!==b.id)}); this.flash('예약을 취소했어요'); },
+        }}),
+        onRebook:()=>this.setState({screen:'home'}),
+      };
+    };
+    const allDeco=S.bookings.map(decoBooking);
+    const activeList=allDeco.filter(b=>b.kind==='active');
+    const doneList=allDeco.filter(b=>b.kind==='done');
+    const shownBookings = tab==='done' ? doneList : activeList;
+
+    const sideNav='border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px 16px;transition:color .2s;';
+    const isHome=screen==='home', isHist=screen==='history', isComing=screen==='coming', isMy=screen==='my', isNotices=screen==='notices';
+    const myHome=isNotices;
+    const myMy=isMy;
+
+    // ----- notices feed -----
+    const flt=S.noticeFilter, q=(S.search||'').trim();
+    const starSet=new Set(S.starred);
+    let feed=this.NOTICES.filter(n=>flt[n.tag]);
+    if(q) feed=feed.filter(n=>n.title.includes(q)||n.body.includes(q));
+    if(S.showStarred) feed=feed.filter(n=>starSet.has(n.id));
+    feed=feed.slice().sort((a,b)=> S.noticeSort==='latest' ? b.ord-a.ord : a.ord-b.ord);
+    const catColor={ '모집':'#4F7CFF','장학':'#9B5CFF','공모전':'#1FB97A','모임':'#FF8A3D','행사':'#E0436B','채용':'#0EA5C4' };
+    const feedItems=feed.map(n=>{
+      const c=catColor[n.cat]||'#4F7CFF';
+      const on=starSet.has(n.id);
+      return { ...n,
+        starred:on,
+        starIconStyle:`flex:none;animation:starPop .4s cubic-bezier(.2,.8,.2,1.4);`,
+        catStyle:`flex:none;font-size:11px;font-weight:800;color:${c};background:${c}1A;padding:4px 9px;border-radius:8px;`,
+        onDown:(e)=>this.cardDown(e,n.id),
+        onMove:(e)=>this.cardMove(e),
+        onUp:(e)=>this.cardUp(e),
+        onOpen:()=>{ if(this._suppress)return; this.flash('공지 상세는 준비 중이에요'); },
+      };
+    });
+    const chip=(on)=>`flex:none;border:none;cursor:pointer;font-size:12.5px;font-weight:700;height:30px;padding:0 11px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;transition:all .18s;`+(on?'background:#6A4CFF;color:#fff;box-shadow:0 5px 12px -5px rgba(106,76,255,.6);':'background:#F2F3F8;color:#9aa0ad;');
+    const tglFilter=(k)=>()=>this.setState({noticeFilter:{...this.state.noticeFilter,[k]:!this.state.noticeFilter[k]}});
+    const nf=S.notif;
+    const toggle=(on)=>`width:50px;height:30px;border-radius:16px;border:none;cursor:pointer;position:relative;transition:background .25s;flex:none;background:${on?'linear-gradient(135deg,#4F7CFF,#9B5CFF)':'#D9DCE5'};`;
+    const knob=(on)=>`position:absolute;top:3px;left:${on?'23px':'3px'};width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:left .25s cubic-bezier(.2,.8,.2,1.4);`;
+    const setNotif=(k)=>()=>{ const n={...this.state.notif, [k]:!this.state.notif[k]}; if(k==='all'&&!n.all){n.notice=false;n.reserve=false;n.lms=false;} if(k==='all'&&n.all){n.notice=true;n.reserve=true;n.lms=true;} this.setState({notif:n}); };
+
+    return {
+      isHome, isDetail:screen==='detail', isSuccess:screen==='success', isHistory:isHist, isComing, isMy, isNotices,
+      showNav: isHome || isComing || isMy || isNotices,
+      comingTitle: '홈 화면 준비 중',
+      feedItems, feedEmpty:feedItems.length===0,
+      emptyIcon: S.showStarred?'⭐':'🔍',
+      emptyMsg: S.showStarred?'별표한 공지가 없어요':'조건에 맞는 공지가 없어요',
+      emptySub: S.showStarred?'공지를 왼쪽으로 밀어 별표해 보세요':'',
+      sortLabel: S.noticeSort==='latest' ? '최신순' : '오래된순',
+      sortArrowStyle: `transition:transform .25s cubic-bezier(.2,.8,.2,1.4);transform:rotate(${S.noticeSort==='latest'?0:180}deg);`,
+      onSortToggle:()=>this.setState({noticeSort:S.noticeSort==='latest'?'oldest':'latest'}),
+      chipCatch:chip(flt.catch), chipCouncil:chip(flt.council), chipCs:chip(flt.cs),
+      onChipCatch:tglFilter('catch'), onChipCouncil:tglFilter('council'), onChipCs:tglFilter('cs'),
+      starChipStyle:`flex:none;border:none;cursor:pointer;font-size:12.5px;font-weight:800;height:30px;padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;transition:all .18s;`+(S.showStarred?'background:linear-gradient(135deg,#FFB020,#FF8A3D);color:#fff;box-shadow:0 5px 12px -5px rgba(255,138,61,.6);':'background:#FFF6E6;color:#E8920E;'),
+      onToggleStarred:()=>this.setState({showStarred:!this.state.showStarred}),
+      starCount:S.starred.length,
+      searchVal:S.search, onSearch:(e)=>this.setState({search:e.target.value}),
+      tgAll:toggle(nf.all), knAll:knob(nf.all), onTgAll:setNotif('all'),
+      tgNotice:toggle(nf.notice), knNotice:knob(nf.notice), onTgNotice:setNotif('notice'),
+      tgReserve:toggle(nf.reserve), knReserve:knob(nf.reserve), onTgReserve:setNotif('reserve'),
+      tgLms:toggle(nf.lms), knLms:knob(nf.lms), onTgLms:setNotif('lms'),
+      devOpen:S.devOpen, devChevStyle:`transition:transform .25s;transform:rotate(${S.devOpen?180:0}deg);`,
+      onToggleDev:()=>this.setState({devOpen:!this.state.devOpen}),
+      onSupport:()=>this.flash('지원 센터로 연결돼요'),
+      onLogout:()=>this.setState({confirm:{
+        icon:'logout', tone:'#FF4D63',
+        title:'로그아웃 할까요?',
+        msg:'로그아웃하면 다시 로그인해야 예약 내역을 확인할 수 있어요.',
+        yes:'로그아웃',
+        action:()=>this.flash('로그아웃되었습니다'),
+      }}),
+      dates, dateFull:this.dateFull(),
+      pickerOpen: !!S.pickerOpen,
+      pickerMonth: '2023년 9월',
+      pickerCells,
+      onOpenPicker:()=>this.setState({pickerOpen:true}),
+      onClosePicker:()=>this.setState({pickerOpen:false}),
+      rooms,
+      room:{ ...room, heroId:'hero-'+room.id, hourTicks },
+      detailSlots, nowLeftDetail:Math.round((this.NOW_MIN-this.START_H*60)/30*62),
+      peek: !!S.peek,
+      peekName: S.peek?this.maskName(S.peek.name):'',
+      peekSid: S.peek?this.maskSid(S.peek.sid):'',
+      peekDept: S.peek?S.peek.dept:'',
+      peekTime: S.peek?(S.peek.s+' ~ '+S.peek.e):'',
+      peekN: S.peek?(S.peek.n+'명'):'',
+      peekInitial: S.peek?S.peek.name[0]:'',
+      onClosePeek:()=>this.setState({peek:null}),
+      stop:(e)=>e.stopPropagation(),
+      summaryLabel, summaryTime, summaryAccent,
+      summaryBoxStyle:`flex:1;border-radius:18px;background:${summaryBg};border:1px solid ${summaryBorder};padding:14px 16px;transition:background .25s;`,
+      canReserve,
+      reserveLabel: canReserve?'이 시간으로 예약하기':'시간을 선택하세요',
+      reserveBtnStyle:`width:100%;height:56px;border:none;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:16.5px;font-weight:800;transition:all .25s;`+(canReserve?`background:linear-gradient(135deg,#4F7CFF,#9B5CFF);background-size:200% 200%;color:#fff;cursor:pointer;box-shadow:0 16px 32px -12px rgba(106,76,255,.6);animation:gradMove 4s linear infinite alternate;`:`background:#EFF0F5;color:#B6BAC6;cursor:default;`),
+      onReserve:()=>{ if(!canReserve){ this.flash('시간을 선택하세요'); return; } this.setState({confirm:{
+        icon:'check', tone:'#4F7CFF',
+        title:'이 시간으로 예약할까요?',
+        room:room.name, time:summaryTime, date:this.dateFull(),
+        msg:'',
+        yes:'예약 확정',
+        action:()=>this.reserve(room),
+      }}); },
+      onReset:()=>this.reset(), onBack:()=>this.back(),
+      confirmOpen: !!S.confirm,
+      confirmIcon: S.confirm?S.confirm.icon:'',
+      confirmShowCheck: S.confirm?S.confirm.icon==='check':false,
+      confirmShowLogout: S.confirm?S.confirm.icon==='logout':false,
+      confirmShowCancel: S.confirm?S.confirm.icon==='cancel':false,
+      confirmTone: S.confirm?S.confirm.tone:'#4F7CFF',
+      confirmTitle: S.confirm?S.confirm.title:'',
+      confirmMsg: S.confirm?(S.confirm.msg||''):'',
+      confirmHasMsg: S.confirm?!!S.confirm.msg:false,
+      confirmHasDetail: S.confirm?!!S.confirm.room:false,
+      confirmRoom: S.confirm?(S.confirm.room||''):'',
+      confirmTime: S.confirm?(S.confirm.time||''):'',
+      confirmDate: S.confirm?(S.confirm.date||''):'',
+      confirmYes: S.confirm?S.confirm.yes:'',
+      confirmYesStyle:`flex:1;height:50px;border:none;border-radius:15px;font-size:15px;font-weight:800;cursor:pointer;color:#fff;background:${S.confirm?(S.confirm.icon==='check'?'linear-gradient(135deg,#4F7CFF,#9B5CFF)':'linear-gradient(135deg,#FF6B7E,#FF4D63)'):'#4F7CFF'};box-shadow:0 12px 24px -10px ${S.confirm&&S.confirm.icon!=='check'?'rgba(255,77,99,.55)':'rgba(106,76,255,.55)'};`,
+      onConfirmYes:()=>{ const c=this.state.confirm; this.setState({confirm:null}); if(c&&c.action) c.action(); },
+      onConfirmNo:()=>this.setState({confirm:null}),
+      detailScrollRef:this.detailScrollRef,
+      lastBooking:this._last||{room:'',loc:'',date:'',time:'',slotId:'hero-2A'},
+      confetti,
+      shownBookings, activeCount:activeList.length, doneCount:doneList.length, emptyShown:shownBookings.length===0,
+      tabActiveStyle: tabPill+(tab==='active'?'background:#fff;color:#4F7CFF;box-shadow:0 4px 12px -4px rgba(40,30,90,.28);':'background:transparent;color:#9aa0ad;'),
+      tabDoneStyle: tabPill+(tab==='done'?'background:#fff;color:#4F7CFF;box-shadow:0 4px 12px -4px rgba(40,30,90,.28);':'background:transparent;color:#9aa0ad;'),
+      onTabActive:()=>this.setState({tab:'active'}),
+      onTabDone:()=>this.setState({tab:'done'}),
+      onShowList:()=>this.setState({screen:'home'}),
+      onGoHistory:()=>this.setState({screen:'history'}),
+      onComingHome:()=>this.setState({screen:'notices'}),
+      onComingMy:()=>this.setState({screen:'my'}),
+      navHomeStyle: sideNav+(myHome?'color:#4F7CFF;':'color:#B6BAC6;'),
+      navMyStyle: sideNav+(myMy?'color:#4F7CFF;':'color:#B6BAC6;'),
+      navMainStyle:`border:none;cursor:pointer;width:50px;height:50px;border-radius:17px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 13px 24px -8px rgba(106,76,255,.6);transition:transform .2s cubic-bezier(.2,.8,.2,1.4);`+(isHome?'transform:translateY(-2px) scale(1.06);':''),
+      toast:S.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>

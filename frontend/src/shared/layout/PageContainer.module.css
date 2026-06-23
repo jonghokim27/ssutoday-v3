@@ -1,0 +1,19 @@
+.container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-status-top) var(--space-screen-x) calc(var(--space-bottom-nav-height) + var(--space-8));
+  scrollbar-width: none;
+}
+
+.container::-webkit-scrollbar {
+  display: none;
+}
+
+.title {
+  margin: 0 0 var(--space-8);
+  color: var(--color-text-heading-blue);
+  font-size: var(--font-size-page-title-sm);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.6px;
+}

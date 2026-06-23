@@ -1,0 +1,217 @@
+.screen {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-status-top) var(--space-9) calc(var(--space-bottom-nav-height) + var(--space-8));
+  scrollbar-width: none;
+  animation: slideInL 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.screen::-webkit-scrollbar {
+  display: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding-top: var(--space-4);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--font-size-page-title-sm);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.6px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: var(--space-9) 4px 0;
+  padding: 4px;
+  border-radius: var(--radius-icon);
+  background: var(--color-surface-control-strong);
+  animation: floatUp 0.4s 0.04s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.tabs button {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: #9aa0ad;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-bold);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.18s ease;
+}
+
+.tabs .active {
+  background: var(--color-surface-base);
+  color: var(--color-brand-blue);
+  box-shadow: 0 4px 12px -4px rgba(40, 30, 90, 0.28);
+  transform: translateY(-1px);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding-top: var(--space-8);
+}
+
+.historyCard {
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-base);
+  box-shadow: var(--shadow-card);
+  animation: floatUp 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.historyCard:hover {
+  border-color: #dcd9fb;
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+}
+
+.list > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+
+.list > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.list > *:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+.cardBody {
+  padding: var(--space-8) 17px var(--space-7);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.calendar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-badge);
+  background: linear-gradient(135deg, #eef2ff, #f4ecff);
+  color: var(--color-notice);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardHead strong {
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 13px 0 0;
+}
+
+.details div {
+  display: flex;
+  gap: var(--space-6);
+  font-size: 13.5px;
+}
+
+.details dt {
+  width: 54px;
+  flex: none;
+  color: #9aa0ad;
+  font-weight: var(--font-weight-medium);
+}
+
+.details dd {
+  margin: 0;
+  color: #2c3140;
+  font-weight: var(--font-weight-bold);
+}
+
+.details span {
+  color: #9aa0ad;
+  font-weight: var(--font-weight-medium);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.statusCell,
+.actions > button,
+.actions > a {
+  flex: 1;
+  min-width: 0;
+  min-height: 50px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-extra-bold);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px var(--space-7);
+}
+
+.actions > button,
+.actions > a {
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.actions > button:first-child,
+.actions > a:first-child {
+  border-left: 0;
+}
+
+.shotButton {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actions .shotButton span {
+  display: block;
+  color: #9aa0ad;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+}
+
+.actions .danger {
+  color: var(--color-danger);
+}
+
+.actions .rebook {
+  color: var(--color-brand-blue);
+}
+
+.empty {
+  padding: 64px var(--space-10);
+  color: #c2c6d2;
+  text-align: center;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}

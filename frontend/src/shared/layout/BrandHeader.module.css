@@ -1,0 +1,65 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-screen-x);
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  padding-top: var(--space-status-top);
+  padding-bottom: var(--space-6);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-icon);
+  background: var(--color-logo-gradient);
+  color: var(--color-surface-base);
+  box-shadow: var(--shadow-logo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.3px;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eyebrow {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: 1.4px;
+}
+
+.eyebrow span {
+  color: var(--color-brand-blue);
+}
+
+.eyebrow strong {
+  color: var(--color-brand-purple);
+}
+
+.title {
+  color: var(--color-text-heading-blue);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}

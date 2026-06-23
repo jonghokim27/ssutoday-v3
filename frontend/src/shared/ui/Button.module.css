@@ -1,0 +1,30 @@
+.button {
+  min-height: 50px;
+  border: 0;
+  border-radius: var(--radius-button);
+  padding: 0 var(--space-13);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-extra-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.primary {
+  background: var(--color-brand-gradient);
+  background-size: 200% 200%;
+  color: var(--color-surface-base);
+  box-shadow: var(--shadow-primary-button);
+  animation: gradMove 4s linear infinite alternate;
+}
+
+.secondary {
+  background: var(--color-surface-control-strong);
+  color: var(--color-text-secondary);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-brand-blue);
+}
