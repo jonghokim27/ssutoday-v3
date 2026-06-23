@@ -6,7 +6,7 @@ import kr.ac.ssu.ssutoday.api.article.dto.ArticleListRequest
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleListResponse
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleResponse
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.application.article.ArticleApplicationService
 import kr.ac.ssu.ssutoday.application.article.dto.ArticleQuery
 import kr.ac.ssu.ssutoday.core.status.SsuStatus
@@ -24,7 +24,7 @@ class ArticleController(
     @PostMapping("/list")
     @SsuResponse(SsuStatus.SSU2060)
     fun list(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: ArticleListRequest,
     ): ArticleListResponse {
         val result = articleApplicationService.list(

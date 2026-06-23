@@ -1,23 +1,10 @@
 spring:
+  config:
+    import: classpath:common.yml
   main:
     web-application-type: none
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:ssutoday}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:}
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:none}
-    properties:
-      hibernate:
-        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-  kafka:
-    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
 
 ssutoday:
   crawler:
     fixed-delay: ${CRAWLER_FIXED_DELAY:60000}
     max-pages: ${CRAWLER_MAX_PAGES:2}
-  kafka:
-    topics:
-      push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}

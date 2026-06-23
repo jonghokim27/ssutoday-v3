@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.room
 
 import jakarta.validation.Valid
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
 import kr.ac.ssu.ssutoday.api.room.dto.RoomGetRequest
 import kr.ac.ssu.ssutoday.api.room.dto.RoomListRequest
@@ -27,7 +27,7 @@ class RoomController(
     @PostMapping("/get")
     @SsuResponse(SsuStatus.SSU2100)
     fun get(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomGetRequest,
     ): RoomResponse {
         val room = roomApplicationService.get(request.roomNo, student.major, student.isAdmin)
@@ -46,7 +46,7 @@ class RoomController(
     @PostMapping("/list")
     @SsuResponse(SsuStatus.SSU2110)
     fun list(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomListRequest,
     ): RoomListResponse {
         val date = Date.valueOf(request.date)

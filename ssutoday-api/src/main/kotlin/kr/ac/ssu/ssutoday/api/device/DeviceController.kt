@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.device
 
 import jakarta.validation.Valid
-import kr.ac.ssu.ssutoday.api.config.AuthenticatedStudent
+import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.common.SsuResponse
 import kr.ac.ssu.ssutoday.api.device.dto.DeviceOptionRequest
 import kr.ac.ssu.ssutoday.api.device.dto.DeviceOptionsResponse
@@ -26,7 +26,7 @@ class DeviceController(
     @PostMapping("/register")
     @SsuResponse(SsuStatus.SSU2040)
     fun register(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRegisterRequest,
     ) {
         deviceApplicationService.register(request.key(student.id), request.pushToken)
@@ -35,7 +35,7 @@ class DeviceController(
     @PostMapping("/unregister")
     @SsuResponse(SsuStatus.SSU2050)
     fun unregister(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRequest,
     ) {
         deviceApplicationService.unregister(request.key(student.id))
@@ -53,7 +53,7 @@ class DeviceController(
     @PostMapping("/getOption")
     @SsuResponse(SsuStatus.SSU2170)
     fun options(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRequest,
     ): DeviceOptionsResponse {
         val result = deviceApplicationService.options(request.key(student.id))
@@ -63,7 +63,7 @@ class DeviceController(
     @PostMapping("/updateOption")
     @SsuResponse(SsuStatus.SSU2180)
     fun update(
-        @AuthenticatedStudent student: StudentView,
+        @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceOptionRequest,
     ) {
         deviceApplicationService.updateOption(

@@ -12,11 +12,13 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class AwsConfig {
     @Bean
-    fun amazonS3(
+    fun cloudflareR2(
+        @Value("\${cloud.aws.s3.endpoint}") endpoint: String,
+        @Value("\${cloud.aws.s3.region}") region: String,
         @Value("\${cloud.aws.credentials.access-key}") accessKey: String,
         @Value("\${cloud.aws.credentials.secret-key}") secretKey: String,
     ): AmazonS3 = AmazonS3ClientBuilder.standard()
-        .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration("https://kr.object.ncloudstorage.com", "kr-standard"))
+        .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(endpoint, region))
         .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
         .build()
 }

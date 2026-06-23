@@ -1,13 +1,7 @@
 spring:
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:ssutoday}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:}
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:none}
+  config:
+    import: classpath:common.yml
   kafka:
-    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP:ssutoday-push}
       auto-offset-reset: earliest
@@ -15,7 +9,3 @@ spring:
 ssutoday:
   firebase:
     credentials: ${FIREBASE_CREDENTIALS:firebase.json}
-  kafka:
-    topics:
-      push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
-      reservation-request: ${RESERVATION_REQUEST_TOPIC:requestReserve}

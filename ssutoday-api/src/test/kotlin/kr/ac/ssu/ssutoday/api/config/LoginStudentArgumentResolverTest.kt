@@ -12,8 +12,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class AuthenticatedStudentArgumentResolverTest {
-    private val resolver = AuthenticatedStudentArgumentResolver()
+class LoginStudentArgumentResolverTest {
+    private val resolver = LoginStudentArgumentResolver()
     private val parameter = MethodParameter(
         Fixture::class.java.getDeclaredMethod("handle", StudentView::class.java),
         0,
@@ -49,6 +49,6 @@ class AuthenticatedStudentArgumentResolverTest {
 
     @Suppress("unused")
     private class Fixture {
-        fun handle(@AuthenticatedStudent student: StudentView) = student
+        fun handle(@LoginStudent student: StudentView) = student
     }
 }

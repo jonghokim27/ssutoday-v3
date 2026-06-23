@@ -6,9 +6,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 class WebMvcConfig(
-    private val authenticatedStudentArgumentResolver: AuthenticatedStudentArgumentResolver,
+    private val loginStudentArgumentResolver: LoginStudentArgumentResolver,
 ) : WebMvcConfigurer {
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
-        resolvers.add(authenticatedStudentArgumentResolver)
+        resolvers.add(loginStudentArgumentResolver)
     }
 }
