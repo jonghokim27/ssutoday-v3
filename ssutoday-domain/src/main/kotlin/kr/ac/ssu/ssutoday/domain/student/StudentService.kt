@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 @Service
 class StudentService(
     private val students: StudentRepository,
-    private val refreshTokens: RefreshTokenRepository
+    private val refreshTokens: RefreshTokenRepository,
 ) {
     fun login(
         id: Int,

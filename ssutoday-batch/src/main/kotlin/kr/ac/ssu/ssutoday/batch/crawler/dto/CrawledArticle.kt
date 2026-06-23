@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.batch.crawler.dto
 
 import java.sql.Timestamp
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class CrawledArticle(
     val provider: String,
@@ -9,5 +9,5 @@ data class CrawledArticle(
     val title: String,
     val content: String,
     val url: String,
-    val createdAt: Timestamp = Timestamp.valueOf(LocalDateTime.now()),
+    val createdAt: Timestamp = Timestamp.from(Instant.now()),
 )

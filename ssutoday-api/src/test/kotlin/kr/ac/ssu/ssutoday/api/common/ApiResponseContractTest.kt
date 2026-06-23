@@ -141,7 +141,6 @@ class ApiResponseContractTest {
                 "/student/profile",
                 "/student/logout",
                 "/student/updateXnApiToken",
-                "/student/enrollBiometricsKey",
                 "/device/register",
                 "/device/unregister",
                 "/device/checkVersion",

@@ -10,10 +10,10 @@ import jakarta.persistence.Id
 class Version(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx")
+    @Column
     var id: Long = 0L,
-    @Column(name = "osType", nullable = false, length = 10)
+    @Column(nullable = false, length = 10)
     var osType: String,
-    @Column(name = "requiredVersion", nullable = false, length = 10)
+    @Column(nullable = false, length = 10)
     var requiredVersion: String,
 )

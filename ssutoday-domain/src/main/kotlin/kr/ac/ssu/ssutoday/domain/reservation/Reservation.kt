@@ -12,23 +12,23 @@ import java.time.LocalDate
 class Reservation(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx")
+    @Column
     var id: Long = 0L,
-    @Column(name = "StudentId", nullable = false)
+    @Column(nullable = false)
     var studentId: Int,
-    @Column(name = "roomNo", nullable = false, length = 10)
+    @Column(nullable = false, length = 10)
     var roomNo: String,
     @Column(nullable = false)
     var date: LocalDate,
-    @Column(name = "startBlock", nullable = false)
+    @Column(nullable = false)
     var startBlock: Int,
-    @Column(name = "endBlock", nullable = false)
+    @Column(nullable = false)
     var endBlock: Int,
-    @Column(name = "createdAt", nullable = false)
+    @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
-    @Column(name = "deletedAt")
+    @Column
     var deletedAt: Timestamp? = null,
-    @Column(name = "deletedReason")
+    @Column
     var deletedReason: String? = null,
 ) {
     val active: Boolean get() = deletedAt == null

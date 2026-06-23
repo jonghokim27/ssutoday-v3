@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
-import kr.ac.ssu.ssutoday.api.student.dto.BiometricsKeyRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentLoginRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentProfileResponse
 import kr.ac.ssu.ssutoday.api.student.dto.StudentUpdateTokenRequest

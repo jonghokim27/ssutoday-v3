@@ -11,11 +11,11 @@ import java.sql.Timestamp
 class Article(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx")
+    @Column
     var id: Long = 0L,
     @Column(nullable = false)
     var provider: String,
-    @Column(name = "articleNo", nullable = false, length = 200)
+    @Column(nullable = false, length = 200)
     var articleNo: String,
     @Column(nullable = false, length = 500)
     var title: String,
@@ -23,9 +23,9 @@ class Article(
     var content: String? = null,
     @Column(nullable = false, length = 200)
     var url: String,
-    @Column(name = "createdAt", nullable = false)
+    @Column(nullable = false)
     var createdAt: Timestamp,
-    @Column(name = "updatedAt")
+    @Column
     var updatedAt: Timestamp? = null,
 ) {
     fun update(
