@@ -14,20 +14,28 @@ class Reservation(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     var id: Long = 0L,
+
     @Column(nullable = false)
     var studentId: Int,
+
     @Column(nullable = false, length = 10)
     var roomNo: String,
+
     @Column(nullable = false)
     var date: LocalDate,
+
     @Column(nullable = false)
     var startBlock: Int,
+
     @Column(nullable = false)
     var endBlock: Int,
+
     @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
+
     @Column
     var deletedAt: Timestamp? = null,
+
     @Column
     var deletedReason: String? = null,
 ) {

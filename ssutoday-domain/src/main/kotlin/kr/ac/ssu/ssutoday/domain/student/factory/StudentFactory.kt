@@ -10,7 +10,7 @@ fun Student.toView() =
         id = id,
         name = name,
         major = major,
-        isAdmin = isAdmin,
+        isAdmin = isAdmin == 1,
     )
 
 fun RefreshToken.toView() =

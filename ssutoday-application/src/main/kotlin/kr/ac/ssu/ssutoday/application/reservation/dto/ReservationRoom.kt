@@ -9,5 +9,5 @@ data class ReservationRoom(
     val tags: String,
     val image: String,
     val bigImage: String,
-    val isAvailable: Int,
+    val isAvailable: Boolean,
 )

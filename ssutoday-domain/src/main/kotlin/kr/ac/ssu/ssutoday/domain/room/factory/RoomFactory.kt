@@ -13,6 +13,5 @@ fun Room.toView() =
         tags = tags,
         image = image,
         bigImage = bigImage,
-        availableValue = availableValue,
-        isAvailable = isAvailable,
+        isAvailable = isAvailable == 1,
     )
