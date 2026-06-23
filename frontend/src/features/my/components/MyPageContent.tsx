@@ -66,9 +66,8 @@ export function MyPageContent() {
         </button>
         {devOpen ? (
           <div className={styles.dev}>
-            <p><span>개발</span><strong>SSUTODAY 팀</strong></p>
-            <p><span>문의</span><strong>help@ssutoday.com</strong></p>
-            <p><span>오픈소스 라이선스</span><strong>보기</strong></p>
+            <p><span>개발자</span><strong>제27대 컴퓨터학부 부학생회장 김종호</strong></p>
+            <p><span>기여하기</span><strong>https://github.com/jonghokim27/ssutoday</strong></p>
           </div>
         ) : null}
         <button className={styles.logout} onClick={() => setLogoutOpen(true)} type="button">

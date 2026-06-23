@@ -11,6 +11,6 @@ export const notificationRows = [
 ];
 
 export const appInfo = {
-  version: 'v2.4.1_59_2024.03.03',
+  version: 'v3.0.0_60_2026.06.24',
   copyright: 'SSUTODAY. 모든 권리 보유.',
 };

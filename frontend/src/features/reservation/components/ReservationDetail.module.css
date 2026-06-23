@@ -52,7 +52,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 6px var(--space-screen-x) 110px;
+  padding: 6px var(--space-screen-x) 136px;
   scrollbar-width: none;
 }
 
@@ -98,6 +98,8 @@
   height: 7px;
   border-radius: var(--radius-full);
   background: var(--color-danger);
+  box-shadow: 0 0 0 0 rgba(255, 77, 99, 0.55);
+  animation: dotPulse 1.8s infinite;
 }
 
 .guide {
@@ -212,19 +214,30 @@
   margin: 9px 0 0;
   padding-left: var(--space-9);
   color: #7a6a63;
-  font-size: 12.8px;
+  font-size: var(--font-size-body);
   font-weight: var(--font-weight-regular);
-  line-height: 1.7;
+  line-height: 1.55;
+}
+
+.rules li + li {
+  margin-top: var(--space-2);
+}
+
+.ruleStrong {
+  font-weight: var(--font-weight-bold);
+}
+
+.rulesOld {
+  display: none;
 }
 
 .cta {
   position: absolute;
   right: 0;
-  bottom: var(--space-bottom-nav-height);
+  bottom: 0;
   left: 0;
   padding: var(--space-6) var(--space-screen-x) var(--space-13);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 32%);
-  border-top: 1px solid var(--color-border-soft);
 }
 
 .cta button {
@@ -236,4 +249,10 @@
   background: var(--color-surface-disabled);
   color: var(--color-text-disabled);
   box-shadow: none;
+}
+
+@keyframes dotPulse {
+  70% {
+    box-shadow: 0 0 0 7px rgba(255, 77, 99, 0);
+  }
 }

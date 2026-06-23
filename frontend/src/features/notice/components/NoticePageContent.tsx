@@ -75,9 +75,33 @@ export function NoticePageContent() {
             onToggleStar={() => toggleStar(notice.id)}
           />
         ))}
-        {feed.length === 0 ? <div className={styles.empty}>조건에 맞는 공지가 없어요</div> : null}
+        {feed.length === 0 ? (
+          <NoticeEmptyState
+            message={starredOnly ? '별표한 공지가 없어요' : '조건에 맞는 공지가 없어요'}
+            starredOnly={starredOnly}
+            subMessage={starredOnly ? '공지의 별표를 눌러 모아볼 수 있어요' : '검색어와 필터를 다시 확인해 주세요'}
+          />
+        ) : null}
       </section>
       <Toast message={toast} />
+    </div>
+  );
+}
+
+type NoticeEmptyStateProps = {
+  message: string;
+  subMessage: string;
+  starredOnly: boolean;
+};
+
+function NoticeEmptyState({ message, subMessage, starredOnly }: NoticeEmptyStateProps) {
+  return (
+    <div className={styles.empty}>
+      <div className={styles.emptyIcon} aria-hidden="true">
+        <Icon name={starredOnly ? 'star' : 'search'} />
+      </div>
+      <strong>{message}</strong>
+      <p>{subMessage}</p>
     </div>
   );
 }

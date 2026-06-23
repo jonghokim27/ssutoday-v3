@@ -3,7 +3,6 @@
   top: 108px;
   z-index: 23;
   background: var(--color-surface-base);
-  box-shadow: var(--shadow-sticky);
 }
 
 .dates {

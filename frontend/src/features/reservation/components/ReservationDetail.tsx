@@ -8,6 +8,7 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { Toast } from '../../../shared/ui/Toast';
 import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
 import { slotLabel } from '../data/time';
+import { usageRules } from '../data/usageRules';
 import { AvailabilityBars } from './AvailabilityBars';
 import { DatePickerDialog } from './DatePickerDialog';
 import { ReservedUserSheet } from './ReservedUserSheet';
@@ -90,14 +91,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           </button>
         </div>
 
-        <div className={styles.rules}>
-          <strong>이용 규칙</strong>
-          <ul>
-            <li>최소 이용 인원은 3명입니다.</li>
-            <li>예약 취소는 이용 시작 전에만 가능합니다.</li>
-            <li>종료 5분 전에는 자리를 정리해 주세요.</li>
-          </ul>
-        </div>
+        <UsageRules />
       </section>
 
       <div className={styles.cta}>
@@ -154,5 +148,18 @@ function RoomHero({ room, onBack }: RoomHeroProps) {
       <IconButton className={styles.back} onClick={onBack} type="button"><Icon name="arrowLeft" /></IconButton>
       <h1>{room.name}</h1>
     </header>
+  );
+}
+
+function UsageRules() {
+  return (
+    <div className={styles.rules}>
+      <strong>이용 규칙</strong>
+      <ul>
+        {usageRules.map((rule) => (
+          <li className={rule.strong ? styles.ruleStrong : ''} key={rule.text}>{rule.text}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
