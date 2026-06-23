@@ -5,7 +5,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.port.RecaptchaVerificationPort
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationCompletionPolicy
@@ -41,15 +41,15 @@ class ReservationCommandApplicationService(
     fun request(command: CreateReservationCommand): Long {
         try {
             if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
-                throw BusinessException(SsuStatus.SSU4003)
+                throw BusinessException(StatusCode.SSU4003)
             }
             reservationService.validate(command.startBlock, command.endBlock)
             val room = roomService.get(command.roomNo, command.major, command.admin)
             if (!room.isAvailable) {
-                throw BusinessException(SsuStatus.SSU5091)
+                throw BusinessException(StatusCode.SSU5091)
             }
             if (configService.isReservationRequestDisabled()) {
-                throw BusinessException(SsuStatus.SSU5091)
+                throw BusinessException(StatusCode.SSU5091)
             }
             val requestId = reservationRequestService.create(
                 studentId = command.studentId,
@@ -62,22 +62,22 @@ class ReservationCommandApplicationService(
                 try {
                     reservationRequestPublisher.publish(requestId)
                 } catch (exception: Exception) {
-                    throw BusinessException(SsuStatus.SSU5090, cause = exception)
+                    throw BusinessException(StatusCode.SSU5090, cause = exception)
                 }
             }
             return requestId
         } catch (exception: BusinessException) {
             if (
-                exception.status == SsuStatus.SSU4000 ||
-                exception.status == SsuStatus.SSU4003 ||
-                exception.status == SsuStatus.SSU5090 ||
-                exception.status == SsuStatus.SSU5091
+                exception.status == StatusCode.SSU4000 ||
+                exception.status == StatusCode.SSU4003 ||
+                exception.status == StatusCode.SSU5090 ||
+                exception.status == StatusCode.SSU5091
             ) {
                 throw exception
             }
-            throw BusinessException(SsuStatus.SSU5090, cause = exception)
+            throw BusinessException(StatusCode.SSU5090, cause = exception)
         } catch (exception: Exception) {
-            throw BusinessException(SsuStatus.SSU5090, cause = exception)
+            throw BusinessException(StatusCode.SSU5090, cause = exception)
         }
     }
 
@@ -124,7 +124,7 @@ class ReservationCommandApplicationService(
 
     @Transactional
     fun done(studentId: Int, reservationId: Long) {
-        val reservation = reservationService.getActive(studentId, reservationId, SsuStatus.SSU4230)
+        val reservation = reservationService.getActive(studentId, reservationId, StatusCode.SSU4230)
         val verifyPhotoSatisfied =
             reservationService.isContinuous(reservation) || verifyPhotoService.find(reservationId) != null
         val completionBlock = reservationCompletionPolicy.completionBlock(

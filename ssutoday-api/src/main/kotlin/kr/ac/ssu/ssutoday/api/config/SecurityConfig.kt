@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.config
 
 import kr.ac.ssu.ssutoday.api.common.ApiResponseWriter
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 class SecurityConfig(
     private val authenticationFilter: AuthenticationFilter,
-    private val clientKeyFilter: ClientKeyFilter,
     private val apiResponseWriter: ApiResponseWriter,
 ) {
     @Bean
@@ -34,18 +33,17 @@ class SecurityConfig(
         }
         .exceptionHandling {
             it.authenticationEntryPoint { _, response, _ ->
-                writeFailure(response, SsuStatus.SSU4001)
+                writeFailure(response, StatusCode.SSU4001)
             }
             it.accessDeniedHandler { _, response, _ ->
-                writeFailure(response, SsuStatus.SSU4001)
+                writeFailure(response, StatusCode.SSU4003)
             }
         }
         .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-        .addFilterBefore(clientKeyFilter, AuthenticationFilter::class.java)
         .build()
 
     private fun writeFailure(
         response: jakarta.servlet.http.HttpServletResponse,
-        status: SsuStatus,
+        status: StatusCode,
     ) = apiResponseWriter.write(response, status)
 }

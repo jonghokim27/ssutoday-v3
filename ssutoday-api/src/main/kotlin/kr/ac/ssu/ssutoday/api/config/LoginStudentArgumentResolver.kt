@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.config
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.Authentication
@@ -26,5 +26,5 @@ class LoginStudentArgumentResolver : HandlerMethodArgumentResolver {
         (webRequest.userPrincipal as? Authentication)
             ?.principal
             .let { it as? StudentView }
-            ?: throw BusinessException(SsuStatus.SSU4001)
+            ?: throw BusinessException(StatusCode.SSU4001)
 }

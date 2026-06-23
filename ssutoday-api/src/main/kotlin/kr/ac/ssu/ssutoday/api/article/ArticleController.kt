@@ -5,11 +5,11 @@ import kr.ac.ssu.ssutoday.api.article.dto.ArticleIdRequest
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleListRequest
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleListResponse
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleResponse
-import kr.ac.ssu.ssutoday.api.common.SsuResponse
+import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.application.article.ArticleApplicationService
 import kr.ac.ssu.ssutoday.application.article.dto.ArticleQuery
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,7 +22,7 @@ class ArticleController(
     private val articleApplicationService: ArticleApplicationService,
 ) {
     @PostMapping("/list")
-    @SsuResponse(SsuStatus.SSU2060)
+    @ResponseStatus(StatusCode.SSU2060)
     fun list(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: ArticleListRequest,
@@ -39,7 +39,7 @@ class ArticleController(
     }
 
     @PostMapping("/get")
-    @SsuResponse(SsuStatus.SSU2080)
+    @ResponseStatus(StatusCode.SSU2080)
     fun get(@Valid @RequestBody request: ArticleIdRequest) =
         ArticleResponse(articleApplicationService.get(request.idx))
 }

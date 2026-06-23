@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.factory.toView
 import org.springframework.stereotype.Service
 
@@ -11,7 +11,7 @@ class VerifyPhotoService(
 ) {
     fun create(reservationId: Long, url: String) {
         if (repository.findByReservationId(reservationId) != null) {
-            throw BusinessException(SsuStatus.SSU4200)
+            throw BusinessException(StatusCode.SSU4200)
         }
         repository.save(VerifyPhoto(reservationId = reservationId, url = url))
     }

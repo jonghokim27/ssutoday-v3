@@ -4,7 +4,7 @@ import kr.ac.ssu.ssutoday.application.sso.dto.SsoGenerationResult
 import kr.ac.ssu.ssutoday.application.sso.dto.SsoValidationResult
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.TokenPort
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.sso.SsoService
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.stereotype.Service
@@ -27,7 +27,7 @@ class SsoApplicationService(
     fun validate(clientId: String, clientSecret: String, token: String): SsoValidationResult {
         val client = ssoService.authenticateClient(clientId, clientSecret)
         val stored = ssoService.getToken(token)
-        if (stored.clientId != client.id) throw BusinessException(SsuStatus.SSU4160)
+        if (stored.clientId != client.id) throw BusinessException(StatusCode.SSU4160)
         ssoService.deleteToken(token)
         return SsoValidationResult(stored.studentId, stored.name, stored.major)
     }

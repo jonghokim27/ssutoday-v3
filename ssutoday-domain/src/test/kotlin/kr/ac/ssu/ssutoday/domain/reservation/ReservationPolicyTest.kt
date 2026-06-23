@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -15,6 +15,6 @@ class ReservationPolicyTest {
             policy.validateBlocks(12, 16)
         }
 
-        assertEquals(SsuStatus.SSU4000, exception.status)
+        assertEquals(StatusCode.SSU4000, exception.status)
     }
 }

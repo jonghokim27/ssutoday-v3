@@ -1,10 +1,11 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.factory.toView
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.sql.Date
 import java.time.LocalDateTime
@@ -42,53 +43,53 @@ class ReservationService(
     ).toView()
 
     fun find(reservationId: Long): ReservationView? =
-        repository.findById(reservationId).orElse(null)?.toView()
+        repository.findByIdOrNull(reservationId)?.toView()
 
-    fun getActive(studentId: Int, reservationId: Long, status: SsuStatus): ReservationView =
+    fun getActive(studentId: Int, reservationId: Long, status: StatusCode): ReservationView =
         repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
             ?.toView()
             ?: throw BusinessException(status)
 
     fun cancelByAdmin(reservationId: Long, reason: String) {
-        repository.findById(reservationId)
-            .orElseThrow { IllegalStateException("Reservation $reservationId disappeared") }
-            .cancel(reason)
+        val reservation = repository.findByIdOrNull(reservationId)
+            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+        reservation.cancel(reason)
     }
 
     fun resetCreatedAt(reservationId: Long) {
-        repository.findById(reservationId)
-            .orElseThrow { IllegalStateException("Reservation $reservationId disappeared") }
-            .resetCreatedAt()
+        val reservation = repository.findByIdOrNull(reservationId)
+            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+        reservation.resetCreatedAt()
     }
 
     fun finish(reservationId: Long, endBlock: Int) {
-        repository.findById(reservationId)
-            .orElseThrow { IllegalStateException("Reservation $reservationId disappeared") }
-            .finishAt(endBlock)
+        val reservation = repository.findByIdOrNull(reservationId)
+            ?: throw IllegalStateException("Reservation $reservationId disappeared")
+        reservation.finishAt(endBlock)
     }
 
     fun cancel(studentId: Int, reservationId: Long, reason: String) {
         val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
-            ?: throw BusinessException(SsuStatus.SSU4140)
+            ?: throw BusinessException(StatusCode.SSU4140)
         val now = LocalDateTime.now(SEOUL)
         val startAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
 
         if (reservation.date.toLocalDate().isBefore(now.toLocalDate())) {
-            throw BusinessException(SsuStatus.SSU4141)
+            throw BusinessException(StatusCode.SSU4141)
         }
         if (now.isAfter(endAt)) {
-            throw BusinessException(SsuStatus.SSU4142)
+            throw BusinessException(StatusCode.SSU4142)
         }
         if (now.isAfter(startAt)) {
-            throw BusinessException(SsuStatus.SSU4143)
+            throw BusinessException(StatusCode.SSU4143)
         }
         reservation.cancel(reason)
     }
 
     fun getForPhotoUpload(studentId: Int, reservationId: Long): ReservationView {
         val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
-            ?: throw BusinessException(SsuStatus.SSU4200)
+            ?: throw BusinessException(StatusCode.SSU4200)
         val now = LocalDateTime.now(SEOUL)
         val startAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
@@ -96,16 +97,16 @@ class ReservationService(
         val useStartAt = maxOf(startAt, createdAt)
 
         if (reservation.date.toLocalDate().isBefore(now.toLocalDate())) {
-            throw BusinessException(SsuStatus.SSU4201)
+            throw BusinessException(StatusCode.SSU4201)
         }
         if (now.isAfter(endAt)) {
-            throw BusinessException(SsuStatus.SSU4202)
+            throw BusinessException(StatusCode.SSU4202)
         }
         if (now.isBefore(startAt)) {
-            throw BusinessException(SsuStatus.SSU4203)
+            throw BusinessException(StatusCode.SSU4203)
         }
         if (now.isAfter(useStartAt.plusMinutes(10))) {
-            throw BusinessException(SsuStatus.SSU4204)
+            throw BusinessException(StatusCode.SSU4204)
         }
         return reservation.toView()
     }

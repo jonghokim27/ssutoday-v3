@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.api.config
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.core.MethodParameter
 import org.springframework.mock.web.MockHttpServletRequest
@@ -44,7 +44,7 @@ class LoginStudentArgumentResolverTest {
             )
         }
 
-        assertEquals(SsuStatus.SSU4001, exception.status)
+        assertEquals(StatusCode.SSU4001, exception.status)
     }
 
     @Suppress("unused")
