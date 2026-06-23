@@ -1,9 +1,8 @@
 package kr.ac.ssu.ssutoday.api.common
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kr.ac.ssu.ssutoday.api.common.dto.ApiResponse
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.context.MessageSource
 import org.springframework.core.MethodParameter
 import org.springframework.http.MediaType
@@ -30,7 +29,7 @@ class GlobalControllerAdvice(
     override fun supports(
         returnType: MethodParameter,
         converterType: Class<out HttpMessageConverter<*>>,
-    ): Boolean = returnType.hasMethodAnnotation(SsuResponse::class.java)
+    ): Boolean = returnType.hasMethodAnnotation(ResponseStatus::class.java)
 
     override fun beforeBodyWrite(
         body: Any?,
@@ -40,11 +39,11 @@ class GlobalControllerAdvice(
         request: ServerHttpRequest,
         response: ServerHttpResponse,
     ): ApiResponse<Any> {
-        val declaredStatus = requireNotNull(returnType.getMethodAnnotation(SsuResponse::class.java)).status
-        val status = body as? SsuStatus ?: declaredStatus
-        val data = body.takeUnless { it == Unit || it is SsuStatus }
+        val declaredStatus = requireNotNull(returnType.getMethodAnnotation(ResponseStatus::class.java)).status
+        val status = body as? StatusCode ?: declaredStatus
+        val data = body.takeUnless { it == Unit || it is StatusCode }
         response.setStatusCode(status.httpStatus())
-        return apiResponse(status, data, messageSource)
+        return ApiResponse.of(status, data, messageSource)
     }
 
     @ExceptionHandler(BusinessException::class)
@@ -62,7 +61,7 @@ class GlobalControllerAdvice(
     )
     fun badRequest(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         logger.debug(exception) { "Invalid API request" }
-        return errorResponse(SsuStatus.SSU4000)
+        return errorResponse(StatusCode.SSU4000)
     }
 
     @ExceptionHandler(
@@ -72,17 +71,17 @@ class GlobalControllerAdvice(
     )
     fun notFound(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         logger.debug(exception) { "API endpoint not found" }
-        return errorResponse(SsuStatus.SSU4004)
+        return errorResponse(StatusCode.SSU4004)
     }
 
     @ExceptionHandler(Exception::class)
     fun internal(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         logger.error(exception) { "Unhandled API exception" }
-        return errorResponse(SsuStatus.SSU5000)
+        return errorResponse(StatusCode.SSU5000)
     }
 
-    private fun errorResponse(status: SsuStatus): ResponseEntity<ApiResponse<Nothing>> =
-        ResponseEntity.status(status.httpStatus()).body(apiResponse(status, null, messageSource))
+    private fun errorResponse(status: StatusCode): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(status.httpStatus()).body(ApiResponse.of(status, null, messageSource))
 
     private companion object {
         val logger = KotlinLogging.logger {}

@@ -1,6 +1,6 @@
 package kr.ac.ssu.ssutoday.core.status
 
-enum class SsuStatus(
+enum class StatusCode(
     val code: String,
     val messageKey: String = code,
 ) {

@@ -1,7 +1,6 @@
 package kr.ac.ssu.ssutoday.api.common
 
 import kr.ac.ssu.ssutoday.api.article.ArticleController
-import kr.ac.ssu.ssutoday.api.common.dto.ApiResponse
 import kr.ac.ssu.ssutoday.api.config.JacksonConfig
 import kr.ac.ssu.ssutoday.api.device.DeviceController
 import kr.ac.ssu.ssutoday.api.reservation.ReservationController
@@ -13,7 +12,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationRoom
 import kr.ac.ssu.ssutoday.application.reservation.dto.RoomReservation
 import kr.ac.ssu.ssutoday.application.student.dto.LoginResult
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.article.ArticleView
 import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.http.HttpStatus
@@ -41,14 +40,14 @@ class ApiResponseContractTest {
     fun `성공 응답은 기존 SSU 코드 메시지를 사용한다`() {
         assertEquals(
             ApiResponse("SSU2010", "data", "Login success"),
-            apiResponse(SsuStatus.SSU2010, "data", messageSource),
+            ApiResponse.of(StatusCode.SSU2010, "data", messageSource),
         )
     }
 
     @Test
     fun `BusinessException은 SSU 코드에 맞는 HTTP 상태와 메시지를 반환한다`() {
-        val badRequest = advice.business(BusinessException(SsuStatus.SSU4080))
-        val serverError = advice.business(BusinessException(SsuStatus.SSU5090))
+        val badRequest = advice.business(BusinessException(StatusCode.SSU4080))
+        val serverError = advice.business(BusinessException(StatusCode.SSU5090))
 
         assertEquals(HttpStatus.BAD_REQUEST, badRequest.statusCode)
         assertEquals("Not an existing article", badRequest.body?.message)
@@ -161,7 +160,7 @@ class ApiResponseContractTest {
     fun `예약 완료 상태 코드 메시지를 기존과 동일하게 반환한다`() {
         assertEquals(
             ApiResponse<Nothing>("SSU2230", null, "Done reservation success"),
-            apiResponse(SsuStatus.SSU2230, null, messageSource),
+            ApiResponse.of(StatusCode.SSU2230, null, messageSource),
         )
     }
 
@@ -177,7 +176,7 @@ class ApiResponseContractTest {
         ).flatMap { controller ->
             controller.declaredMethods
                 .filter { it.getAnnotation(PostMapping::class.java) != null }
-                .filter { it.getAnnotation(SsuResponse::class.java) == null }
+                .filter { it.getAnnotation(ResponseStatus::class.java) == null }
                 .map { "${controller.simpleName}.${it.name}" }
         }
 

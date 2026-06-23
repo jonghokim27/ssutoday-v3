@@ -1,8 +1,9 @@
 package kr.ac.ssu.ssutoday.domain.student
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.factory.toView
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -12,15 +13,15 @@ class StudentService(
     private val biometricsKeys: BiometricsKeyRepository,
 ) {
     fun login(id: Int, name: String, major: String): StudentView {
-        val student = students.findById(id).orElse(null)
+        val student = students.findByIdOrNull(id)
             ?.apply { updateProfile(name, major) }
             ?: Student(id, name, major)
         return students.save(student).toView()
     }
 
     fun get(id: Int): StudentView =
-        students.findById(id)
-            .orElseThrow { BusinessException(SsuStatus.SSU4001) }
+        (students.findByIdOrNull(id)
+            ?: throw BusinessException(StatusCode.SSU4001))
             .toView()
 
     fun updateXnApiToken(studentId: Int, token: String) {
@@ -54,7 +55,7 @@ class StudentService(
     }
 
     fun findRefreshToken(refreshToken: String): RefreshTokenView? =
-        refreshTokens.findById(refreshToken).orElse(null)?.toView()
+        refreshTokens.findByIdOrNull(refreshToken)?.toView()
 
     fun deleteRefreshToken(refreshToken: String) {
         refreshTokens.deleteById(refreshToken)

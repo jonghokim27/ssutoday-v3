@@ -8,7 +8,7 @@ import kr.ac.ssu.ssutoday.core.exception.TokenExpiredException
 import kr.ac.ssu.ssutoday.core.dto.TokenPayload
 import kr.ac.ssu.ssutoday.core.port.TokenPort
 import kr.ac.ssu.ssutoday.core.port.StudentAuthenticationPort
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.stereotype.Service
@@ -43,8 +43,8 @@ class StudentApplicationService(
             ValidationResult(validateStudent(payload))
         } catch (_: TokenExpiredException) {
             val stored = refreshToken?.let(studentService::findRefreshToken)
-                ?: throw BusinessException(SsuStatus.SSU4001)
-            if (stored.accessToken != accessToken) throw BusinessException(SsuStatus.SSU4001)
+                ?: throw BusinessException(StatusCode.SSU4001)
+            if (stored.accessToken != accessToken) throw BusinessException(StatusCode.SSU4001)
             val student = validateStudent(TokenPayload(stored.studentId, stored.name, stored.major))
             val renewed = issue(student)
             studentService.deleteRefreshToken(stored.refreshToken)
@@ -73,7 +73,7 @@ class StudentApplicationService(
     private fun validateStudent(payload: TokenPayload): StudentView {
         val student = studentService.get(payload.studentId)
         if (student.name != payload.name || student.major != payload.major) {
-            throw BusinessException(SsuStatus.SSU4001)
+            throw BusinessException(StatusCode.SSU4001)
         }
         return student
     }

@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.domain.student
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,16 +17,16 @@ class DeviceService(
     }
 
     fun unregister(studentId: Int, osType: String, uuid: String) {
-        devices.delete(getDevice(studentId, osType, uuid, SsuStatus.SSU4050))
+        devices.delete(getDevice(studentId, osType, uuid, StatusCode.SSU4050))
     }
 
     fun getOptions(studentId: Int, osType: String, uuid: String): DeviceOptionsView =
-        getDevice(studentId, osType, uuid, SsuStatus.SSU4170).let {
+        getDevice(studentId, osType, uuid, StatusCode.SSU4170).let {
             DeviceOptionsView(it.notice == 1, it.reserve == 1, it.lms == 1)
         }
 
     fun updateOption(studentId: Int, osType: String, uuid: String, option: DeviceOption, enabled: Boolean) {
-        getDevice(studentId, osType, uuid, SsuStatus.SSU4180).change(option, enabled)
+        getDevice(studentId, osType, uuid, StatusCode.SSU4180).change(option, enabled)
     }
 
     fun getRequiredVersion(osType: String): String = versions.getByOsType(osType).requiredVersion
@@ -40,7 +40,7 @@ class DeviceService(
         studentId: Int,
         osType: String,
         uuid: String,
-        notFoundStatus: SsuStatus,
+        notFoundStatus: StatusCode,
     ): Device =
         devices.findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)
             ?: throw BusinessException(notFoundStatus)

@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import java.sql.Date
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -22,7 +22,7 @@ class ReservationCompletionPolicyTest {
             )
         }
 
-        assertEquals(SsuStatus.SSU4235, exception.status)
+        assertEquals(StatusCode.SSU4235, exception.status)
     }
 
     @Test

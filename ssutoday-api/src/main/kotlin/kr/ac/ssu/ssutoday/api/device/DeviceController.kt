@@ -2,7 +2,7 @@ package kr.ac.ssu.ssutoday.api.device
 
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
-import kr.ac.ssu.ssutoday.api.common.SsuResponse
+import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.device.dto.DeviceOptionRequest
 import kr.ac.ssu.ssutoday.api.device.dto.DeviceOptionsResponse
 import kr.ac.ssu.ssutoday.api.device.dto.DeviceRegisterRequest
@@ -12,7 +12,7 @@ import kr.ac.ssu.ssutoday.application.device.DeviceApplicationService
 import kr.ac.ssu.ssutoday.application.device.dto.DeviceKey
 import kr.ac.ssu.ssutoday.domain.student.DeviceOption
 import kr.ac.ssu.ssutoday.domain.student.StudentView
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,7 +24,7 @@ class DeviceController(
     private val deviceApplicationService: DeviceApplicationService,
 ) {
     @PostMapping("/register")
-    @SsuResponse(SsuStatus.SSU2040)
+    @ResponseStatus(StatusCode.SSU2040)
     fun register(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRegisterRequest,
@@ -33,7 +33,7 @@ class DeviceController(
     }
 
     @PostMapping("/unregister")
-    @SsuResponse(SsuStatus.SSU2050)
+    @ResponseStatus(StatusCode.SSU2050)
     fun unregister(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRequest,
@@ -42,16 +42,16 @@ class DeviceController(
     }
 
     @PostMapping("/checkVersion")
-    @SsuResponse(SsuStatus.SSU2070)
-    fun version(@Valid @RequestBody request: DeviceVersionRequest): SsuStatus =
+    @ResponseStatus(StatusCode.SSU2070)
+    fun version(@Valid @RequestBody request: DeviceVersionRequest): StatusCode =
         if (deviceApplicationService.isUpdateRequired(request.osType, request.version)) {
-            SsuStatus.SSU2071
+            StatusCode.SSU2071
         } else {
-            SsuStatus.SSU2070
+            StatusCode.SSU2070
         }
 
     @PostMapping("/getOption")
-    @SsuResponse(SsuStatus.SSU2170)
+    @ResponseStatus(StatusCode.SSU2170)
     fun options(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceRequest,
@@ -61,7 +61,7 @@ class DeviceController(
     }
 
     @PostMapping("/updateOption")
-    @SsuResponse(SsuStatus.SSU2180)
+    @ResponseStatus(StatusCode.SSU2180)
     fun update(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: DeviceOptionRequest,

@@ -1,8 +1,9 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.factory.toView
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.sql.Date
 
@@ -27,23 +28,23 @@ class ReservationRequestService(
     ).id
 
     fun get(requestId: Long): ReservationRequestView =
-        repository.findById(requestId)
-            .orElseThrow { BusinessException(SsuStatus.SSU4120) }
+        (repository.findByIdOrNull(requestId)
+            ?: throw BusinessException(StatusCode.SSU4120))
             .toView()
 
     fun getStatus(requestId: Long, studentId: Int): Int =
         repository.findByIdAndStudentId(requestId, studentId)?.status
-            ?: throw BusinessException(SsuStatus.SSU4120)
+            ?: throw BusinessException(StatusCode.SSU4120)
 
     fun accept(requestId: Long) {
-        repository.findById(requestId)
-            .orElseThrow { BusinessException(SsuStatus.SSU4120) }
-            .accept()
+        val request = repository.findByIdOrNull(requestId)
+            ?: throw BusinessException(StatusCode.SSU4120)
+        request.accept()
     }
 
     fun updateStatus(requestId: Long, status: ReservationRequestStatus) {
-        repository.findById(requestId)
-            .orElseThrow { BusinessException(SsuStatus.SSU4120) }
-            .updateStatus(status)
+        val request = repository.findByIdOrNull(requestId)
+            ?: throw BusinessException(StatusCode.SSU4120)
+        request.updateStatus(status)
     }
 }

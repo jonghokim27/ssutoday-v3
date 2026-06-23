@@ -1,10 +1,11 @@
 package kr.ac.ssu.ssutoday.domain.article
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.article.factory.toView
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.sql.Timestamp
 
@@ -16,8 +17,8 @@ class ArticleService(
         repository.search(providers, search, pageable).map(Article::toView)
 
     fun get(id: Long): ArticleView =
-        repository.findById(id)
-            .orElseThrow { BusinessException(SsuStatus.SSU4080, arrayOf(id)) }
+        (repository.findByIdOrNull(id)
+            ?: throw BusinessException(StatusCode.SSU4080, arrayOf(id)))
             .toView()
 
     fun upsert(

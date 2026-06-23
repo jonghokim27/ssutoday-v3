@@ -2,7 +2,7 @@ package kr.ac.ssu.ssutoday.api.room
 
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
-import kr.ac.ssu.ssutoday.api.common.SsuResponse
+import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.room.dto.RoomGetRequest
 import kr.ac.ssu.ssutoday.api.room.dto.RoomListRequest
 import kr.ac.ssu.ssutoday.api.room.dto.RoomListResponse
@@ -10,7 +10,7 @@ import kr.ac.ssu.ssutoday.api.room.dto.RoomResponse
 import kr.ac.ssu.ssutoday.api.room.mapper.toView
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.room.RoomApplicationService
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -25,7 +25,7 @@ class RoomController(
     private val reservationQueryApplicationService: ReservationQueryApplicationService,
 ) {
     @PostMapping("/get")
-    @SsuResponse(SsuStatus.SSU2100)
+    @ResponseStatus(StatusCode.SSU2100)
     fun get(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomGetRequest,
@@ -44,7 +44,7 @@ class RoomController(
     }
 
     @PostMapping("/list")
-    @SsuResponse(SsuStatus.SSU2110)
+    @ResponseStatus(StatusCode.SSU2110)
     fun list(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: RoomListRequest,

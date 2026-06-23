@@ -2,7 +2,7 @@ package kr.ac.ssu.ssutoday.api.student
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import kr.ac.ssu.ssutoday.api.common.SsuResponse
+import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.student.dto.BiometricsKeyRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentLoginRequest
@@ -10,7 +10,7 @@ import kr.ac.ssu.ssutoday.api.student.dto.StudentProfileResponse
 import kr.ac.ssu.ssutoday.api.student.dto.StudentUpdateTokenRequest
 import kr.ac.ssu.ssutoday.application.student.StudentApplicationService
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -23,25 +23,25 @@ class StudentController(
     private val studentApplicationService: StudentApplicationService,
 ) {
     @PostMapping("/login")
-    @SsuResponse(SsuStatus.SSU2010)
+    @ResponseStatus(StatusCode.SSU2010)
     fun login(@Valid @RequestBody request: StudentLoginRequest) =
         studentApplicationService.login(request.sToken, request.sIdno)
 
     @PostMapping("/profile")
-    @SsuResponse(SsuStatus.SSU2020)
+    @ResponseStatus(StatusCode.SSU2020)
     fun profile(@LoginStudent student: StudentView) =
         StudentProfileResponse(student.id, student.name, student.major, student.isAdmin)
 
     @PostMapping("/logout")
-    @SsuResponse(SsuStatus.SSU2030)
+    @ResponseStatus(StatusCode.SSU2030)
     fun logout(request: HttpServletRequest) {
         val refreshToken = request.getHeader("Refresh-Token")
-            ?: throw BusinessException(SsuStatus.SSU4000)
+            ?: throw BusinessException(StatusCode.SSU4000)
         studentApplicationService.logout(refreshToken)
     }
 
     @PostMapping("/updateXnApiToken")
-    @SsuResponse(SsuStatus.SSU2190)
+    @ResponseStatus(StatusCode.SSU2190)
     fun updateToken(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: StudentUpdateTokenRequest,
@@ -50,7 +50,7 @@ class StudentController(
     }
 
     @PostMapping("/enrollBiometricsKey")
-    @SsuResponse(SsuStatus.SSU2210)
+    @ResponseStatus(StatusCode.SSU2210)
     fun biometrics(
         @LoginStudent student: StudentView,
         @Valid @RequestBody request: BiometricsKeyRequest,

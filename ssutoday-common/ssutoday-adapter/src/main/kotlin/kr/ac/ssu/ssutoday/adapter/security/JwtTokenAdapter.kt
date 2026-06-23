@@ -4,7 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
-import kr.ac.ssu.ssutoday.core.status.SsuStatus
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.exception.TokenExpiredException
 import kr.ac.ssu.ssutoday.core.dto.TokenPayload
 import kr.ac.ssu.ssutoday.core.port.TokenPort
@@ -39,7 +39,7 @@ class JwtTokenAdapter(
         } catch (exception: ExpiredJwtException) {
             throw TokenExpiredException(exception)
         } catch (exception: Exception) {
-            throw BusinessException(SsuStatus.SSU4001, cause = exception)
+            throw BusinessException(StatusCode.SSU4001, cause = exception)
         }
     }
 
