@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service
 @Service
 class StudentService(
     private val students: StudentRepository,
-    private val refreshTokens: RefreshTokenRepository,
-    private val biometricsKeys: BiometricsKeyRepository,
+    private val refreshTokens: RefreshTokenRepository
 ) {
     fun login(
         id: Int,
@@ -37,26 +36,6 @@ class StudentService(
     ) {
         students.getReferenceById(studentId).xnApiToken = token
     }
-
-    fun enrollBiometricsKey(
-        studentId: Int,
-        osType: String,
-        uuid: String,
-        publicKey: String,
-    ) {
-        val key =
-            biometricsKeys
-                .findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)
-                ?.apply { this.publicKey = publicKey }
-                ?: BiometricsKey(studentId = studentId, osType = osType, uuid = uuid, publicKey = publicKey)
-        biometricsKeys.save(key)
-    }
-
-    fun findBiometricsPublicKey(
-        studentId: Int,
-        osType: String,
-        uuid: String,
-    ): String? = biometricsKeys.findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)?.publicKey
 
     fun saveRefreshToken(
         refreshToken: String,
