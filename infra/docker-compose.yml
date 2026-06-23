@@ -23,8 +23,6 @@ services:
     env_file: ../.env
     ports: ["8080:80"]
     depends_on:
-      mysql:
-        condition: service_healthy
       redis:
         condition: service_started
       kafka:
@@ -36,8 +34,6 @@ services:
       args: { MODULE: ssutoday-batch }
     env_file: ../.env
     depends_on:
-      mysql:
-        condition: service_healthy
       kafka:
         condition: service_started
 
@@ -49,8 +45,6 @@ services:
     volumes:
       - ../firebase.json:/run/secrets/firebase.json:ro
     depends_on:
-      mysql:
-        condition: service_healthy
       kafka:
         condition: service_started
 
