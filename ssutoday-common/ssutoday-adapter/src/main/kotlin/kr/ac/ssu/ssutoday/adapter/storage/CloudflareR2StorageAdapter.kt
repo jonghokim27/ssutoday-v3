@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import java.io.InputStream
 
 @Component
-class S3FileStorageAdapter(private val amazonS3: AmazonS3) : FileStoragePort {
+class CloudflareR2StorageAdapter(private val cloudflareR2Bucket: AmazonS3) : FileStoragePort {
     override fun upload(
         bucket: String,
         key: String,
@@ -19,7 +19,7 @@ class S3FileStorageAdapter(private val amazonS3: AmazonS3) : FileStoragePort {
             this.contentType = contentType
             contentLength = size
         }
-        amazonS3.putObject(bucket, key, input, metadata)
-        return amazonS3.getUrl(bucket, key).toString()
+        cloudflareR2Bucket.putObject(bucket, key, input, metadata)
+        return cloudflareR2Bucket.getUrl(bucket, key).toString()
     }
 }
