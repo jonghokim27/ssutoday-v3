@@ -51,18 +51,4 @@ class StudentController(
     ) {
         studentApplicationService.updateXnApiToken(student.id, request.xnApiToken)
     }
-
-    @PostMapping("/enrollBiometricsKey")
-    @ResponseStatus(StatusCode.SSU2210)
-    fun enrollBiometricsKey(
-        @LoginStudent student: StudentView,
-        @Valid @RequestBody request: BiometricsKeyRequest,
-    ) {
-        studentApplicationService.enrollBiometricsKey(
-            student.id,
-            request.osType,
-            request.uuid,
-            request.publicKey,
-        )
-    }
 }
