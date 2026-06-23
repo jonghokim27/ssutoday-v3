@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service
 class ConfigService(
     private val configRepository: ConfigRepository,
 ) {
-    fun isReservationRequestDisabled(): Boolean =
-        configRepository.findByIdOrNull(RESERVATION_REQUEST_DISABLED)?.value == "true"
+    fun isReservationRequestDisabled(): Boolean = configRepository.findByIdOrNull(RESERVATION_REQUEST_DISABLED)?.value == "true"
 
     private companion object {
         const val RESERVATION_REQUEST_DISABLED = "RESERVE_REQUEST_DISABLED"

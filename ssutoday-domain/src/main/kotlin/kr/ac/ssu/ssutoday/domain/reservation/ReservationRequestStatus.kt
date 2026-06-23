@@ -1,6 +1,8 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
-enum class ReservationRequestStatus(val code: Int) {
+enum class ReservationRequestStatus(
+    val code: Int,
+) {
     PENDING(0),
     ACCEPTED(1),
     DATE_PASSED(2),

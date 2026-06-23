@@ -17,29 +17,37 @@ class RecaptchaVerificationAdapter(
     @Value("\${ssutoday.recaptcha.allowed-hostnames:}")
     allowedHostnames: String,
 ) : RecaptchaVerificationPort {
-    private val restClient = restClientBuilder
-        .baseUrl(VERIFY_URL)
-        .build()
+    private val restClient =
+        restClientBuilder
+            .baseUrl(VERIFY_URL)
+            .build()
 
-    private val allowedHostnames = allowedHostnames
-        .split(",")
-        .map(String::trim)
-        .filter(String::isNotEmpty)
-        .toSet()
+    private val allowedHostnames =
+        allowedHostnames
+            .split(",")
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .toSet()
 
-    override fun verify(token: String, expectedAction: String): Boolean {
+    override fun verify(
+        token: String,
+        expectedAction: String,
+    ): Boolean {
         if (secretKey.isBlank()) return false
 
-        val form = LinkedMultiValueMap<String, String>().apply {
-            add("secret", secretKey)
-            add("response", token)
-        }
-        val result = restClient.post()
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(form)
-            .retrieve()
-            .body(RecaptchaVerificationResponse::class.java)
-            ?: return false
+        val form =
+            LinkedMultiValueMap<String, String>().apply {
+                add("secret", secretKey)
+                add("response", token)
+            }
+        val result =
+            restClient
+                .post()
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(form)
+                .retrieve()
+                .body(RecaptchaVerificationResponse::class.java)
+                ?: return false
 
         val score = result.score ?: return false
         return result.success &&

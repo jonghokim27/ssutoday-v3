@@ -25,7 +25,7 @@ class ArticleCrawlJob(
     }
 
     private fun upsert(crawled: CrawledArticle) {
-        articleApplicationService.upsert(
+        articleApplicationService.upsertArticle(
             provider = crawled.provider,
             articleNo = crawled.articleNo,
             title = crawled.title,

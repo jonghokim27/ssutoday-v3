@@ -13,19 +13,14 @@ class BiometricsKey(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
     var id: Long = 0L,
-
     @Column(name = "StudentId", nullable = false)
     var studentId: Int,
-
     @Column(name = "osType", nullable = false, length = 10)
     var osType: String,
-
     @Column(nullable = false, length = 200)
     var uuid: String,
-
     @Column(name = "publicKey", nullable = false, length = 500)
     var publicKey: String,
-
     @Column(name = "createdAt", nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
 )

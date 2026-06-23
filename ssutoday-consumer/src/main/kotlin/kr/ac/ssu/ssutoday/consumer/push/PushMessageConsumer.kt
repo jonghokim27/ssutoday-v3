@@ -26,18 +26,28 @@ class PushMessageConsumer(
     )
     fun consume(payload: String) {
         val push = objectMapper.readValue(payload, PushMessage::class.java)
-        val builder = Message.builder()
-            .setNotification(Notification.builder().setTitle(push.title).setBody(push.body).build())
-            .putData("link", push.link)
-            .setAndroidConfig(
-                AndroidConfig.builder()
-                    .setNotification(AndroidNotification.builder().setPriority(AndroidNotification.Priority.HIGH).build())
-                    .build(),
-            )
-            .setApnsConfig(
-                ApnsConfig.builder().putHeader("apns-priority", "10")
-                    .setAps(Aps.builder().setContentAvailable(true).build()).build(),
-            )
+        val builder =
+            Message
+                .builder()
+                .setNotification(
+                    Notification
+                        .builder()
+                        .setTitle(push.title)
+                        .setBody(push.body)
+                        .build(),
+                ).putData("link", push.link)
+                .setAndroidConfig(
+                    AndroidConfig
+                        .builder()
+                        .setNotification(AndroidNotification.builder().setPriority(AndroidNotification.Priority.HIGH).build())
+                        .build(),
+                ).setApnsConfig(
+                    ApnsConfig
+                        .builder()
+                        .putHeader("apns-priority", "10")
+                        .setAps(Aps.builder().setContentAvailable(true).build())
+                        .build(),
+                )
         when (push.type) {
             "topic" -> builder.setTopic(requireNotNull(push.topic))
             "token" -> builder.setToken(requireNotNull(push.token))

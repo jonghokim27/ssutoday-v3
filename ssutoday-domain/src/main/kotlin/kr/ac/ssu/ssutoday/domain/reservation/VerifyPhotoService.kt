@@ -9,15 +9,17 @@ import org.springframework.stereotype.Service
 class VerifyPhotoService(
     private val repository: VerifyPhotoRepository,
 ) {
-    fun create(reservationId: Long, url: String) {
+    fun create(
+        reservationId: Long,
+        url: String,
+    ) {
         if (repository.findByReservationId(reservationId) != null) {
             throw BusinessException(StatusCode.SSU4200)
         }
         repository.save(VerifyPhoto(reservationId = reservationId, url = url))
     }
 
-    fun find(reservationId: Long): VerifyPhotoView? =
-        repository.findByReservationId(reservationId)?.toView()
+    fun find(reservationId: Long): VerifyPhotoView? = repository.findByReservationId(reservationId)?.toView()
 
     fun delete(reservationId: Long): Boolean {
         val photo = repository.findByReservationId(reservationId) ?: return false

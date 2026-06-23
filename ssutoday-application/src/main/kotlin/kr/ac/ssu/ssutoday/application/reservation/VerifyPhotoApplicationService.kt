@@ -27,11 +27,12 @@ class VerifyPhotoApplicationService(
         }
         reservationService.getForPhotoUpload(command.studentId, command.reservationId)
         val key = "${command.reservationId}/${System.currentTimeMillis()}"
-        val url = try {
-            fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
-        } catch (exception: Exception) {
-            throw BusinessException(StatusCode.SSU5200, cause = exception)
-        }
+        val url =
+            try {
+                fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
+            } catch (exception: Exception) {
+                throw BusinessException(StatusCode.SSU5200, cause = exception)
+            }
         verifyPhotoService.create(command.reservationId, url)
         return url
     }

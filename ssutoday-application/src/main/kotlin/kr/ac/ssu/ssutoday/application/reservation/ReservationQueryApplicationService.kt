@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
-import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationPageResult
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationDetail
+import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationPageResult
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationPhoto
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationRoom
 import kr.ac.ssu.ssutoday.application.reservation.dto.RoomReservation
@@ -27,69 +27,77 @@ class ReservationQueryApplicationService(
     private val studentService: StudentService,
 ) {
     @Transactional(readOnly = true)
-    fun list(studentId: Int, page: Int, previous: Boolean): ReservationPageResult {
+    fun listReservations(
+        studentId: Int,
+        page: Int,
+        previous: Boolean,
+    ): ReservationPageResult {
         val now = ZonedDateTime.now(SEOUL)
         val today = now.toLocalDate()
         val block = currentBlock(now)
-        val result = if (previous) {
-            reservationService.findPrevious(
-                studentId,
-                today,
-                block,
-                PageRequest.of(
-                    page,
-                    PAGE_SIZE,
-                    Sort.by("date", "endBlock", "id").descending(),
-                ),
-            )
-        } else {
-            reservationService.findWaiting(
-                studentId,
-                today,
-                block,
-                PageRequest.of(
-                    page,
-                    PAGE_SIZE,
-                    Sort.by("date", "startBlock", "id").ascending(),
-                ),
-            )
-        }
-        val reservations = result.content.map { reservation ->
-            val room = roomService.get(reservation.roomNo, "", true)
-            val photo = verifyPhotoService.find(reservation.id)
-            ReservationDetail(
-                idx = reservation.id,
-                roomNo = reservation.roomNo,
-                date = reservation.date,
-                startBlock = reservation.startBlock,
-                endBlock = reservation.endBlock,
-                createdAt = reservation.createdAt,
-                deletedAt = reservation.deletedAt,
-                deletedReason = reservation.deletedReason,
-                roomByRoomNo = ReservationRoom(
-                    no = room.no,
-                    name = room.name,
-                    major = room.major,
-                    capacity = room.capacity,
-                    location = room.location,
-                    tags = room.tags,
-                    image = room.image,
-                    bigImage = room.bigImage,
-                    isAvailable = room.availableValue,
-                ),
-                verifyPhotosByIdx = listOfNotNull(
-                    photo?.let {
-                        ReservationPhoto(it.id, it.reservationId, it.url, it.createdAt)
-                    },
-                ),
-                isContinuous = reservationService.isContinuous(reservation),
-            )
-        }
+        val result =
+            if (previous) {
+                reservationService.findPrevious(
+                    studentId,
+                    today,
+                    block,
+                    PageRequest.of(
+                        page,
+                        PAGE_SIZE,
+                        Sort.by("date", "endBlock", "id").descending(),
+                    ),
+                )
+            } else {
+                reservationService.findWaiting(
+                    studentId,
+                    today,
+                    block,
+                    PageRequest.of(
+                        page,
+                        PAGE_SIZE,
+                        Sort.by("date", "startBlock", "id").ascending(),
+                    ),
+                )
+            }
+        val reservations =
+            result.content.map { reservation ->
+                val room = roomService.get(reservation.roomNo, "", true)
+                val photo = verifyPhotoService.find(reservation.id)
+                ReservationDetail(
+                    idx = reservation.id,
+                    roomNo = reservation.roomNo,
+                    date = reservation.date,
+                    startBlock = reservation.startBlock,
+                    endBlock = reservation.endBlock,
+                    createdAt = reservation.createdAt,
+                    deletedAt = reservation.deletedAt,
+                    deletedReason = reservation.deletedReason,
+                    roomByRoomNo =
+                        ReservationRoom(
+                            no = room.no,
+                            name = room.name,
+                            major = room.major,
+                            capacity = room.capacity,
+                            location = room.location,
+                            tags = room.tags,
+                            image = room.image,
+                            bigImage = room.bigImage,
+                            isAvailable = room.availableValue,
+                        ),
+                    verifyPhotosByIdx =
+                        listOfNotNull(
+                            photo?.let {
+                                ReservationPhoto(it.id, it.reservationId, it.url, it.createdAt)
+                            },
+                        ),
+                    isContinuous = reservationService.isContinuous(reservation),
+                )
+            }
         return ReservationPageResult(reservations, result.totalPages, result.totalElements)
     }
 
     @Transactional(readOnly = true)
-    fun room(
+    fun getRoomReservations(
         roomNo: String,
         date: LocalDate,
         currentStudentId: Int,
@@ -99,11 +107,12 @@ class ReservationQueryApplicationService(
             val student = studentService.get(reservation.studentId)
             RoomReservation(
                 idx = reservation.id.takeIf { admin },
-                studentInfo = if (admin) {
-                    "${student.name} (${student.id}/${majorShortName(student.major)})"
-                } else {
-                    "${maskName(student.name)} (${student.id.toString().takeLast(2)})"
-                },
+                studentInfo =
+                    if (admin) {
+                        "${student.name} (${student.id}/${majorShortName(student.major)})"
+                    } else {
+                        "${maskName(student.name)} (${student.id.toString().takeLast(2)})"
+                    },
                 startBlock = reservation.startBlock,
                 endBlock = reservation.endBlock,
                 isMine = currentStudentId == reservation.studentId,
@@ -111,12 +120,12 @@ class ReservationQueryApplicationService(
         }
 
     @Transactional(readOnly = true)
-    fun getRequestStatus(requestId: Long, studentId: Int): Int =
-        reservationRequestService.getStatus(requestId, studentId)
+    fun getReservationRequestStatus(
+        requestId: Long,
+        studentId: Int,
+    ): Int = reservationRequestService.getStatus(requestId, studentId)
 
-    private fun currentBlock(now: ZonedDateTime): Int {
-        return (now.hour * 60 + now.minute) / 30
-    }
+    private fun currentBlock(now: ZonedDateTime): Int = (now.hour * 60 + now.minute) / 30
 
     private fun maskName(name: String): String {
         if (name.length <= 1) return name
@@ -124,14 +133,15 @@ class ReservationQueryApplicationService(
         return "${name.first()}${"*".repeat(name.length - 2)}${name.last()}"
     }
 
-    private fun majorShortName(major: String): String = when (major) {
-        "cse" -> "컴"
-        "sw" -> "솦"
-        "media" -> "글"
-        "mediamba" -> "미경"
-        "sec" -> "정"
-        else -> ""
-    }
+    private fun majorShortName(major: String): String =
+        when (major) {
+            "cse" -> "컴"
+            "sw" -> "솦"
+            "media" -> "글"
+            "mediamba" -> "미경"
+            "sec" -> "정"
+            else -> ""
+        }
 
     private companion object {
         const val PAGE_SIZE = 10

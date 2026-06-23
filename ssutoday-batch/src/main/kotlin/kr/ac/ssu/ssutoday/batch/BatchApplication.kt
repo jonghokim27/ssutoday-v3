@@ -1,8 +1,8 @@
 package kr.ac.ssu.ssutoday.batch
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
+import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories
 import org.springframework.scheduling.annotation.EnableScheduling

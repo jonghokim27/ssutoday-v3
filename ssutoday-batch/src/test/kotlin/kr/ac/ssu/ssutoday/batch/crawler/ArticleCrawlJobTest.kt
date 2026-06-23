@@ -12,25 +12,27 @@ class ArticleCrawlJobTest {
     @Test
     fun `한 크롤러가 실패해도 다른 크롤러의 기사는 저장한다`() {
         val createdAt = Timestamp.valueOf("2026-06-22 12:00:00")
-        val article = CrawledArticle(
-            provider = "success",
-            articleNo = "1",
-            title = "제목",
-            content = "본문",
-            url = "https://example.com/1",
-            createdAt = createdAt,
-        )
+        val article =
+            CrawledArticle(
+                provider = "success",
+                articleNo = "1",
+                title = "제목",
+                content = "본문",
+                url = "https://example.com/1",
+                createdAt = createdAt,
+            )
         val failingCrawler = stubCrawler("failure") { error("crawl failed") }
         val successfulCrawler = stubCrawler("success") { listOf(article) }
         val articleApplicationService = mock(ArticleApplicationService::class.java)
-        val job = ArticleCrawlJob(
-            crawlers = listOf(failingCrawler, successfulCrawler),
-            articleApplicationService = articleApplicationService,
-        )
+        val job =
+            ArticleCrawlJob(
+                crawlers = listOf(failingCrawler, successfulCrawler),
+                articleApplicationService = articleApplicationService,
+            )
 
         job.execute()
 
-        verify(articleApplicationService).upsert(
+        verify(articleApplicationService).upsertArticle(
             provider = article.provider,
             articleNo = article.articleNo,
             title = article.title,

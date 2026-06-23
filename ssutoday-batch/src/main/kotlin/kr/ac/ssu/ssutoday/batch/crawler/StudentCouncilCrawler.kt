@@ -22,18 +22,21 @@ class StudentCouncilCrawler(
 
     private val maxPages = pages
 
-    override fun crawl(): List<CrawledArticle> =
-        (maxPages - 1 downTo 0).flatMap(::crawlPage)
+    override fun crawl(): List<CrawledArticle> = (maxPages - 1 downTo 0).flatMap(::crawlPage)
 
     private fun crawlPage(page: Int): List<CrawledArticle> {
-        val response = Jsoup.connect(listUrl(page))
-            .userAgent(USER_AGENT)
-            .ignoreContentType(true)
-            .timeout(TIMEOUT_MILLIS)
-            .execute()
-        val posts = objectMapper.readValue(response.body(), StudentCouncilResponse::class.java)
-            .data
-            .postListResDto
+        val response =
+            Jsoup
+                .connect(listUrl(page))
+                .userAgent(USER_AGENT)
+                .ignoreContentType(true)
+                .timeout(TIMEOUT_MILLIS)
+                .execute()
+        val posts =
+            objectMapper
+                .readValue(response.body(), StudentCouncilResponse::class.java)
+                .data
+                .postListResDto
 
         return posts.map { post ->
             CrawledArticle(

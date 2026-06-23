@@ -13,31 +13,22 @@ class Device(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
     var id: Long = 0L,
-
     @Column(name = "StudentId", nullable = false)
     var studentId: Int,
-
     @Column(name = "osType", nullable = false, length = 10)
     var osType: String,
-
     @Column(nullable = false, length = 200)
     var uuid: String,
-
     @Column(name = "pushToken", nullable = false, length = 200)
     var pushToken: String,
-
     @Column(nullable = false)
     var notice: Int = 1,
-
     @Column(nullable = false)
     var reserve: Int = 1,
-
     @Column(nullable = false)
     var lms: Int = 1,
-
     @Column(name = "createdAt", nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
-
     @Column(name = "updatedAt")
     var updatedAt: Timestamp? = null,
 ) {
@@ -46,7 +37,10 @@ class Device(
         updatedAt = Timestamp(System.currentTimeMillis())
     }
 
-    fun change(option: DeviceOption, enabled: Boolean) {
+    fun change(
+        option: DeviceOption,
+        enabled: Boolean,
+    ) {
         val value = if (enabled) 1 else 0
         when (option) {
             DeviceOption.NOTICE -> notice = value

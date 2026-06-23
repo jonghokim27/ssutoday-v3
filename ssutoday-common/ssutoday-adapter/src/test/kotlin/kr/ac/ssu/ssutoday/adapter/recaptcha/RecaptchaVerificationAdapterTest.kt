@@ -17,13 +17,15 @@ class RecaptchaVerificationAdapterTest {
     fun `action과 score 및 hostname이 일치하면 검증에 성공한다`() {
         val builder = RestClient.builder()
         val server = MockRestServiceServer.bindTo(builder).build()
-        val adapter = RecaptchaVerificationAdapter(
-            builder,
-            secretKey = "secret",
-            minimumScore = 0.5,
-            allowedHostnames = "ssu.today,www.ssu.today",
-        )
-        server.expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
+        val adapter =
+            RecaptchaVerificationAdapter(
+                builder,
+                secretKey = "secret",
+                minimumScore = 0.5,
+                allowedHostnames = "ssu.today,www.ssu.today",
+            )
+        server
+            .expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().formDataContains(mapOf("secret" to "secret", "response" to "token")))
             .andRespond(
@@ -50,13 +52,15 @@ class RecaptchaVerificationAdapterTest {
     fun `action이 다르거나 score가 낮으면 검증에 실패한다`() {
         val builder = RestClient.builder()
         val server = MockRestServiceServer.bindTo(builder).build()
-        val adapter = RecaptchaVerificationAdapter(
-            builder,
-            secretKey = "secret",
-            minimumScore = 0.5,
-            allowedHostnames = "",
-        )
-        server.expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
+        val adapter =
+            RecaptchaVerificationAdapter(
+                builder,
+                secretKey = "secret",
+                minimumScore = 0.5,
+                allowedHostnames = "",
+            )
+        server
+            .expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
             .andRespond(
                 withSuccess(
                     """{"success":true,"score":0.4,"action":"other","hostname":"ssu.today"}""",

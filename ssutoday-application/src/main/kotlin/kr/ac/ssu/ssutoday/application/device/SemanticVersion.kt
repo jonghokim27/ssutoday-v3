@@ -1,6 +1,8 @@
 package kr.ac.ssu.ssutoday.application.device
 
-internal data class SemanticVersion(private val value: String) : Comparable<SemanticVersion> {
+internal data class SemanticVersion(
+    private val value: String,
+) : Comparable<SemanticVersion> {
     private val parts = value.split(".").map(String::toInt)
 
     override fun compareTo(other: SemanticVersion): Int =

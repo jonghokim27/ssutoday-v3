@@ -16,7 +16,10 @@ class SsoApplicationService(
     private val tokenPort: TokenPort,
 ) {
     @Transactional
-    fun generate(student: StudentView, clientId: String): SsoGenerationResult {
+    fun generateToken(
+        student: StudentView,
+        clientId: String,
+    ): SsoGenerationResult {
         val client = ssoService.getClient(clientId)
         val token = tokenPort.randomToken()
         ssoService.saveToken(token, client.id, student.id, student.name, student.major)
@@ -24,7 +27,11 @@ class SsoApplicationService(
     }
 
     @Transactional
-    fun validate(clientId: String, clientSecret: String, token: String): SsoValidationResult {
+    fun validateToken(
+        clientId: String,
+        clientSecret: String,
+        token: String,
+    ): SsoValidationResult {
         val client = ssoService.authenticateClient(clientId, clientSecret)
         val stored = ssoService.getToken(token)
         if (stored.clientId != client.id) throw BusinessException(StatusCode.SSU4160)

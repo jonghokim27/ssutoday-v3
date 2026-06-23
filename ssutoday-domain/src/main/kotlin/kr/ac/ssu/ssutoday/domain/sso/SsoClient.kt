@@ -9,10 +9,8 @@ class SsoClient(
     @Id
     @Column(name = "id", length = 20)
     var id: String,
-
     @Column(nullable = false, length = 500)
     var secret: String,
-
     @Column(name = "callbackUrl", nullable = false, length = 200)
     var callbackUrl: String,
 )

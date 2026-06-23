@@ -15,16 +15,18 @@ data class ApiResponse<T>(
             status: StatusCode,
             data: T?,
             messageSource: MessageSource,
-        ): ApiResponse<T> = ApiResponse(
-            statusCode = status.code,
-            data = data,
-            message = messageSource.getMessage(status.messageKey, null, Locale.ENGLISH),
-        )
+        ): ApiResponse<T> =
+            ApiResponse(
+                statusCode = status.code,
+                data = data,
+                message = messageSource.getMessage(status.messageKey, null, Locale.ENGLISH),
+            )
     }
 }
 
-fun StatusCode.httpStatus(): HttpStatus = when {
-    code.startsWith("SSU2") -> HttpStatus.OK
-    code.startsWith("SSU4") -> HttpStatus.BAD_REQUEST
-    else -> HttpStatus.INTERNAL_SERVER_ERROR
-}
+fun StatusCode.httpStatus(): HttpStatus =
+    when {
+        code.startsWith("SSU2") -> HttpStatus.OK
+        code.startsWith("SSU4") -> HttpStatus.BAD_REQUEST
+        else -> HttpStatus.INTERNAL_SERVER_ERROR
+    }

@@ -11,9 +11,10 @@ class ReservationPolicyTest {
 
     @Test
     fun `예약은 최대 네 블록까지만 가능하다`() {
-        val exception = assertFailsWith<BusinessException> {
-            policy.validateBlocks(12, 16)
-        }
+        val exception =
+            assertFailsWith<BusinessException> {
+                policy.validateBlocks(12, 16)
+            }
 
         assertEquals(StatusCode.SSU4000, exception.status)
     }

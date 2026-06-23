@@ -18,7 +18,10 @@ abstract class JsoupArticleCrawler(
 
     protected abstract fun articleNo(link: Element): String
 
-    protected open fun detailUrl(link: Element, articleNo: String): String = link.absUrl("href")
+    protected open fun detailUrl(
+        link: Element,
+        articleNo: String,
+    ): String = link.absUrl("href")
 
     protected abstract fun title(document: Document): String
 
@@ -28,7 +31,10 @@ abstract class JsoupArticleCrawler(
         (maxPages downTo 1)
             .flatMap(::crawlPage)
 
-    protected fun parameter(value: String, name: String): String =
+    protected fun parameter(
+        value: String,
+        name: String,
+    ): String =
         Regex("""(?:^|[?&])${Regex.escape(name)}=([^&#]+)""")
             .find(value)
             ?.groupValues
@@ -60,7 +66,8 @@ abstract class JsoupArticleCrawler(
         }.getOrNull()
 
     private fun load(url: String): Document =
-        Jsoup.connect(url)
+        Jsoup
+            .connect(url)
             .userAgent(USER_AGENT)
             .timeout(TIMEOUT_MILLIS)
             .get()

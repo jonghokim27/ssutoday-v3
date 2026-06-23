@@ -11,7 +11,10 @@ class ApiResponseWriter(
     private val objectMapper: ObjectMapper,
     private val messageSource: MessageSource,
 ) {
-    fun write(response: HttpServletResponse, status: StatusCode) {
+    fun write(
+        response: HttpServletResponse,
+        status: StatusCode,
+    ) {
         response.status = status.httpStatus().value()
         response.contentType = "application/json"
         response.writer.write(objectMapper.writeValueAsString(ApiResponse.of(status, null, messageSource)))

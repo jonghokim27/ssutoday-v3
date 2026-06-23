@@ -9,6 +9,7 @@ plugins {
     kotlin("plugin.jpa") version "2.2.21" apply false
     id("org.springframework.boot") version "4.0.6" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0" apply false
 }
 
 allprojects {
@@ -27,6 +28,7 @@ subprojects {
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     extensions.configure<DependencyManagementExtension> {
         imports {

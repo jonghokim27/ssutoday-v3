@@ -14,17 +14,19 @@ import kotlin.test.assertTrue
 
 class LoginStudentArgumentResolverTest {
     private val resolver = LoginStudentArgumentResolver()
-    private val parameter = MethodParameter(
-        Fixture::class.java.getDeclaredMethod("handle", StudentView::class.java),
-        0,
-    )
+    private val parameter =
+        MethodParameter(
+            Fixture::class.java.getDeclaredMethod("handle", StudentView::class.java),
+            0,
+        )
 
     @Test
     fun `인증 principal을 StudentView 파라미터로 주입한다`() {
         val student = StudentView(20260000, "student", "cse", false)
-        val request = MockHttpServletRequest().apply {
-            userPrincipal = UsernamePasswordAuthenticationToken(student, null)
-        }
+        val request =
+            MockHttpServletRequest().apply {
+                userPrincipal = UsernamePasswordAuthenticationToken(student, null)
+            }
 
         assertTrue(resolver.supportsParameter(parameter))
         assertEquals(
@@ -35,20 +37,23 @@ class LoginStudentArgumentResolverTest {
 
     @Test
     fun `인증 principal이 없으면 SSU4001을 반환한다`() {
-        val exception = assertFailsWith<BusinessException> {
-            resolver.resolveArgument(
-                parameter,
-                null,
-                ServletWebRequest(MockHttpServletRequest()),
-                null,
-            )
-        }
+        val exception =
+            assertFailsWith<BusinessException> {
+                resolver.resolveArgument(
+                    parameter,
+                    null,
+                    ServletWebRequest(MockHttpServletRequest()),
+                    null,
+                )
+            }
 
         assertEquals(StatusCode.SSU4001, exception.status)
     }
 
     @Suppress("unused")
     private class Fixture {
-        fun handle(@LoginStudent student: StudentView) = student
+        fun handle(
+            @LoginStudent student: StudentView,
+        ) = student
     }
 }
