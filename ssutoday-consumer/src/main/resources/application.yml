@@ -3,7 +3,7 @@ spring:
     import: classpath:common.yml
   kafka:
     consumer:
-      group-id: ${KAFKA_CONSUMER_GROUP:ssutoday-push}
+      group-id: ${KAFKA_CONSUMER_GROUP:ssutoday}
       auto-offset-reset: earliest
 
 ssutoday:
