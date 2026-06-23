@@ -15,7 +15,7 @@ spring:
       auto-offset-reset: latest
       group-id: spring
   discord:
-    webhook-url: ${DISCORD_WEBHOOK_URL:}
+    webhook-url: ${DISCORD_WEBHOOK_URL}
 
 server:
   port: 80
