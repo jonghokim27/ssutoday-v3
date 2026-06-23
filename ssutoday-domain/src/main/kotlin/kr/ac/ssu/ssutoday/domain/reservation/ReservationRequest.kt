@@ -5,8 +5,8 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import java.sql.Date
 import java.sql.Timestamp
+import java.time.LocalDate
 
 @Entity
 class ReservationRequest(
@@ -22,7 +22,7 @@ class ReservationRequest(
     var roomNo: String,
 
     @Column(nullable = false)
-    var date: Date,
+    var date: LocalDate,
 
     @Column(name = "startBlock", nullable = false)
     var startBlock: Int,

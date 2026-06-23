@@ -2,8 +2,8 @@ package kr.ac.ssu.ssutoday.domain.reservation
 
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.status.StatusCode
-import java.sql.Date
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,7 +41,7 @@ class ReservationCompletionPolicyTest {
         id = 1L,
         studentId = 20260000,
         roomNo = "A101",
-        date = Date.valueOf("2026-06-22"),
+        date = LocalDate.parse("2026-06-22"),
         startBlock = 24,
         endBlock = endBlock,
         createdAt = Timestamp.valueOf("2026-06-22 12:00:00"),

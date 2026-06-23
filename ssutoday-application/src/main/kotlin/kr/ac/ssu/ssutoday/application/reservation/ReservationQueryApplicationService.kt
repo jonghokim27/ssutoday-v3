@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.sql.Date
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -29,7 +29,7 @@ class ReservationQueryApplicationService(
     @Transactional(readOnly = true)
     fun list(studentId: Int, page: Int, previous: Boolean): ReservationPageResult {
         val now = ZonedDateTime.now(SEOUL)
-        val today = Date.valueOf(now.toLocalDate())
+        val today = now.toLocalDate()
         val block = currentBlock(now)
         val result = if (previous) {
             reservationService.findPrevious(
@@ -91,7 +91,7 @@ class ReservationQueryApplicationService(
     @Transactional(readOnly = true)
     fun room(
         roomNo: String,
-        date: Date,
+        date: LocalDate,
         currentStudentId: Int,
         admin: Boolean,
     ): List<RoomReservation> =

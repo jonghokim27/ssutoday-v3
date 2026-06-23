@@ -13,7 +13,7 @@ class ReservationRequestPolicy {
         studentConflict: Boolean,
         now: LocalDateTime,
     ): ReservationRequestStatus? {
-        val reservationDate = request.date.toLocalDate()
+        val reservationDate = request.date
         val startAt = reservationDate.atStartOfDay().plusMinutes(request.startBlock * 30L)
         val endAt = reservationDate.atStartOfDay().plusMinutes((request.endBlock + 1) * 30L)
 

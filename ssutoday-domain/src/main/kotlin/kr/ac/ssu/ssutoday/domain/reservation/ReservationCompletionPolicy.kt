@@ -12,7 +12,7 @@ class ReservationCompletionPolicy {
         verifyPhotoSatisfied: Boolean,
         now: LocalDateTime,
     ): Int {
-        val reservationDate = reservation.date.toLocalDate()
+        val reservationDate = reservation.date
         val startAt = reservationDate.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
         val endAt = reservationDate.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
 

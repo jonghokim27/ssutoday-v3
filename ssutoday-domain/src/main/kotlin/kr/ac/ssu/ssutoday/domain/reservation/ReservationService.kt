@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.sql.Date
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -20,16 +20,16 @@ class ReservationService(
         policy.validateBlocks(startBlock, endBlock)
     }
 
-    fun hasRoomConflict(roomNo: String, date: Date, startBlock: Int, endBlock: Int): Boolean =
+    fun hasRoomConflict(roomNo: String, date: LocalDate, startBlock: Int, endBlock: Int): Boolean =
         repository.existsRoomConflict(date, roomNo, startBlock, endBlock)
 
-    fun hasStudentConflict(studentId: Int, date: Date, startBlock: Int, endBlock: Int): Boolean =
+    fun hasStudentConflict(studentId: Int, date: LocalDate, startBlock: Int, endBlock: Int): Boolean =
         repository.existsStudentConflict(studentId, date, startBlock, endBlock)
 
     fun create(
         studentId: Int,
         roomNo: String,
-        date: Date,
+        date: LocalDate,
         startBlock: Int,
         endBlock: Int,
     ): ReservationView = repository.save(
@@ -72,10 +72,10 @@ class ReservationService(
         val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
             ?: throw BusinessException(StatusCode.SSU4140)
         val now = LocalDateTime.now(SEOUL)
-        val startAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes(reservation.startBlock * 30L)
-        val endAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
+        val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
+        val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
 
-        if (reservation.date.toLocalDate().isBefore(now.toLocalDate())) {
+        if (reservation.date.isBefore(now.toLocalDate())) {
             throw BusinessException(StatusCode.SSU4141)
         }
         if (now.isAfter(endAt)) {
@@ -91,12 +91,12 @@ class ReservationService(
         val reservation = repository.findByIdAndStudentIdAndDeletedAtIsNull(reservationId, studentId)
             ?: throw BusinessException(StatusCode.SSU4200)
         val now = LocalDateTime.now(SEOUL)
-        val startAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes(reservation.startBlock * 30L)
-        val endAt = reservation.date.toLocalDate().atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
+        val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
+        val endAt = reservation.date.atStartOfDay().plusMinutes((reservation.endBlock + 1) * 30L)
         val createdAt = reservation.createdAt.toLocalDateTime()
         val useStartAt = maxOf(startAt, createdAt)
 
-        if (reservation.date.toLocalDate().isBefore(now.toLocalDate())) {
+        if (reservation.date.isBefore(now.toLocalDate())) {
             throw BusinessException(StatusCode.SSU4201)
         }
         if (now.isAfter(endAt)) {
@@ -111,13 +111,13 @@ class ReservationService(
         return reservation.toView()
     }
 
-    fun findPrevious(studentId: Int, date: Date, block: Int, pageable: Pageable): Page<ReservationView> =
+    fun findPrevious(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<ReservationView> =
         repository.previous(studentId, date, block, pageable).map(Reservation::toView)
 
-    fun findWaiting(studentId: Int, date: Date, block: Int, pageable: Pageable): Page<ReservationView> =
+    fun findWaiting(studentId: Int, date: LocalDate, block: Int, pageable: Pageable): Page<ReservationView> =
         repository.waiting(studentId, date, block, pageable).map(Reservation::toView)
 
-    fun findAll(roomNo: String, date: Date): List<ReservationView> =
+    fun findAll(roomNo: String, date: LocalDate): List<ReservationView> =
         repository.findAllByRoomNoAndDateAndDeletedAtIsNull(roomNo, date).map(Reservation::toView)
 
     fun isContinuous(reservation: ReservationView): Boolean =
@@ -128,7 +128,7 @@ class ReservationService(
             roomNo = reservation.roomNo,
         ) > 0
 
-    fun totalReservedBlocks(studentId: Int, date: Date): Int =
+    fun totalReservedBlocks(studentId: Int, date: LocalDate): Int =
         repository.findAllByStudentIdAndDateAndDeletedAtIsNull(studentId, date)
             .sumOf { it.endBlock - it.startBlock + 1 }
 

@@ -1,6 +1,6 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
-import java.sql.Date
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,7 +41,7 @@ class ReservationRequestPolicyTest {
         id = 1L,
         studentId = 20260000,
         roomNo = "A101",
-        date = Date.valueOf(date),
+        date = LocalDate.parse(date),
         startBlock = startBlock,
         endBlock = endBlock,
         status = 0,

@@ -39,46 +39,28 @@ class ReservationCommandApplicationService(
 ) {
     @Transactional
     fun request(command: CreateReservationCommand): Long {
-        try {
-            if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
-                throw BusinessException(StatusCode.SSU4003)
-            }
-            reservationService.validate(command.startBlock, command.endBlock)
-            val room = roomService.get(command.roomNo, command.major, command.admin)
-            if (!room.isAvailable) {
-                throw BusinessException(StatusCode.SSU5091)
-            }
-            if (configService.isReservationRequestDisabled()) {
-                throw BusinessException(StatusCode.SSU5091)
-            }
-            val requestId = reservationRequestService.create(
-                studentId = command.studentId,
-                roomNo = command.roomNo,
-                date = command.date,
-                startBlock = command.startBlock,
-                endBlock = command.endBlock,
-            )
-            afterCommit {
-                try {
-                    reservationRequestPublisher.publish(requestId)
-                } catch (exception: Exception) {
-                    throw BusinessException(StatusCode.SSU5090, cause = exception)
-                }
-            }
-            return requestId
-        } catch (exception: BusinessException) {
-            if (
-                exception.status == StatusCode.SSU4000 ||
-                exception.status == StatusCode.SSU4003 ||
-                exception.status == StatusCode.SSU5090 ||
-                exception.status == StatusCode.SSU5091
-            ) {
-                throw exception
-            }
-            throw BusinessException(StatusCode.SSU5090, cause = exception)
-        } catch (exception: Exception) {
-            throw BusinessException(StatusCode.SSU5090, cause = exception)
+        if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
+            throw BusinessException(StatusCode.SSU4003)
         }
+        reservationService.validate(command.startBlock, command.endBlock)
+        val room = roomService.get(command.roomNo, command.major, command.admin)
+        if (!room.isAvailable) {
+            throw BusinessException(StatusCode.SSU4091)
+        }
+        if (configService.isReservationRequestDisabled()) {
+            throw BusinessException(StatusCode.SSU4091)
+        }
+        val requestId = reservationRequestService.create(
+            studentId = command.studentId,
+            roomNo = command.roomNo,
+            date = command.date,
+            startBlock = command.startBlock,
+            endBlock = command.endBlock,
+        )
+        afterCommit {
+            reservationRequestPublisher.publish(requestId)
+        }
+        return requestId
     }
 
     @Transactional
@@ -140,7 +122,7 @@ class ReservationCommandApplicationService(
         val reservation = reservationService.find(command.reservationId) ?: return 0
         if (!reservation.active) return 1
 
-        val endAt = reservation.date.toLocalDate().atStartOfDay()
+        val endAt = reservation.date.atStartOfDay()
             .plusMinutes((reservation.endBlock + 1) * 30L)
         if (endAt.isBefore(LocalDateTime.now(SEOUL))) return 2
 

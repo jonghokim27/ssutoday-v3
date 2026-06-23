@@ -1,6 +1,6 @@
 package kr.ac.ssu.ssutoday.application.reservation.dto
 
-import java.sql.Date
+import java.time.LocalDate
 
 data class CreateReservationCommand(
     val recaptchaToken: String,
@@ -8,7 +8,7 @@ data class CreateReservationCommand(
     val major: String,
     val admin: Boolean,
     val roomNo: String,
-    val date: Date,
+    val date: LocalDate,
     val startBlock: Int,
     val endBlock: Int,
 )

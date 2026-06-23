@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.sql.Date
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/reserve")
@@ -47,7 +47,7 @@ class ReservationController(
                 student.major,
                 student.isAdmin,
                 request.roomNo,
-                Date.valueOf(request.date),
+                LocalDate.parse(request.date),
                 request.startBlock,
                 request.endBlock,
             ),
