@@ -246,10 +246,41 @@
 
 .empty {
   padding: 64px var(--space-10);
-  color: #c2c6d2;
+  color: #9aa0ad;
   text-align: center;
+}
+
+.emptyIcon {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto var(--space-5);
+  color: #c2c6d2;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  animation: scaleIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
+}
+
+.emptyIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.empty strong {
+  display: block;
+  color: #9aa0ad;
   font-size: var(--font-size-body);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
+}
+
+.empty p {
+  margin: 5px 0 0;
+  color: #c2c6d2;
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-regular);
 }
 
 .loadingOverlay {
@@ -261,6 +292,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.topButton {
+  position: fixed;
+  right: 18px;
+  bottom: 36px;
+  z-index: 90;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-gradient);
+  color: var(--color-surface-base);
+  box-shadow: 0 14px 24px -14px rgba(106, 76, 255, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
+}
+
+.topIcon {
+  transform: rotate(180deg);
 }
 
 @keyframes blinkAction {
