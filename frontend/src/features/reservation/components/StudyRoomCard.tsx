@@ -31,7 +31,7 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
           </div>
           <Badge tone={busy ? 'orange' : 'green'}>{busy ? '혼잡' : '여유'}</Badge>
         </div>
-        <AvailabilityBars onScrollLeftChange={onTimebarScroll} room={room} scrollLeft={timebarScrollLeft} />
+        <AvailabilityBars date={date} onScrollLeftChange={onTimebarScroll} room={room} scrollLeft={timebarScrollLeft} />
       </Card>
     </Link>
   );

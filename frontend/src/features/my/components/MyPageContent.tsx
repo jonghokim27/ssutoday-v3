@@ -174,7 +174,7 @@ export function MyPageContent() {
         </button>
         {devOpen ? (
           <div className={styles.dev}>
-            <p><span>개발자</span><strong>제27대 컴퓨터학부 부학생회장 김종호</strong></p>
+            <p><span>개발/디자인</span><strong>제27대 컴퓨터학부 부학생회장 김종호</strong></p>
             <p><span>기여하기</span><strong onClick={() => void nativeBridge.openExternalUrl(GITHUB_URL)}>{GITHUB_URL}</strong></p>
           </div>
         ) : null}

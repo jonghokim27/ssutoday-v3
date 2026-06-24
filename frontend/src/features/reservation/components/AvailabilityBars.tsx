@@ -5,20 +5,24 @@ import styles from './AvailabilityBars.module.css';
 
 type AvailabilityBarsProps = {
   room: StudyRoom;
+  date?: string;
   large?: boolean;
   selectedStart?: number | null;
   selectedEnd?: number | null;
   onSlotClick?: (index: number, booking?: TimeBooking) => void;
+  onCurrentSlotClick?: () => void;
   scrollLeft?: number;
   onScrollLeftChange?: (scrollLeft: number) => void;
 };
 
 export function AvailabilityBars({
   room,
+  date,
   large = false,
   selectedStart = null,
   selectedEnd = null,
   onSlotClick,
+  onCurrentSlotClick,
   scrollLeft,
   onScrollLeftChange,
 }: AvailabilityBarsProps) {
@@ -52,10 +56,13 @@ export function AvailabilityBars({
         <div className={large ? styles.largeBars : styles.bars}>
           {Array.from({ length: slotCount }, (_, index) => {
             const isBooked = booked.has(index);
+            const slotState = getSlotTimeState(date, index);
             const selected = selectedStart !== null && selectedEnd !== null && index >= selectedStart && index <= selectedEnd;
             const className = [
               large ? styles.largeBar : styles.bar,
               isBooked ? styles.booked : styles.available,
+              slotState === 'past' ? styles.past : '',
+              slotState === 'current' ? styles.current : '',
               selected ? styles.selected : '',
             ]
               .filter(Boolean)
@@ -65,9 +72,14 @@ export function AvailabilityBars({
               return (
                 <button
                   className={className}
-                  disabled={false}
+                  disabled={slotState === 'past'}
                   key={index}
-                  onClick={() => onSlotClick?.(index, booked.get(index))}
+                  onClick={() => {
+                    if (slotState === 'current') {
+                      onCurrentSlotClick?.();
+                    }
+                    onSlotClick?.(index, booked.get(index));
+                  }}
                   style={{ width }}
                   type="button"
                 />
@@ -77,7 +89,7 @@ export function AvailabilityBars({
             return <span className={className} key={index} style={{ width }} />;
           })}
         </div>
-        <span className={styles.now} style={{ left: `${nowPositionRatio * 100}%` }} />
+        {isToday(date) ? <span className={styles.now} style={{ left: `${nowPositionRatio * 100}%` }} /> : null}
         <div className={styles.ticks}>
           {hourTicks.map((tick) => (
             <span key={tick}>{tick}</span>
@@ -86,4 +98,48 @@ export function AvailabilityBars({
       </div>
     </div>
   );
+}
+
+function getSlotTimeState(date: string | undefined, index: number) {
+  if (!date) {
+    return 'future';
+  }
+
+  const selected = startOfDay(new Date(date));
+  const today = startOfDay(new Date());
+  if (selected < today) {
+    return 'past';
+  }
+
+  if (selected > today) {
+    return 'future';
+  }
+
+  const start = new Date(selected);
+  start.setHours(6, index * 30, 0, 0);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const now = new Date();
+  if (end <= now) {
+    return 'past';
+  }
+
+  if (start <= now && now < end) {
+    return 'current';
+  }
+
+  return 'future';
+}
+
+function isToday(date: string | undefined) {
+  if (!date) {
+    return true;
+  }
+
+  return startOfDay(new Date(date)).getTime() === startOfDay(new Date()).getTime();
+}
+
+function startOfDay(date: Date) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
 }

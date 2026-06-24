@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../shared/ui/Button';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
-import { SSO_LOGIN_URL } from '../config/sso';
+import { getSsoLoginUrl } from '../config/sso';
 import styles from './AuthTerms.module.css';
 
 const termsGroups = [
@@ -141,7 +141,7 @@ export function AuthTerms() {
   function redirectToSso() {
     setRedirecting(true);
     window.setTimeout(() => {
-      window.location.assign(SSO_LOGIN_URL);
+      window.location.assign(getSsoLoginUrl());
     }, 120);
   }
 

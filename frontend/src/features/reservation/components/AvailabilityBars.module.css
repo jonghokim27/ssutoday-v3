@@ -78,6 +78,19 @@
   background: repeating-linear-gradient(135deg, #ffe1e6 0 6px, #ffd2da 6px 12px);
 }
 
+.bar.past,
+.largeBar.past {
+  border-color: #e4e5ea;
+  background: #eeeeee;
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+.largeBar.current {
+  outline: 2px solid rgba(255, 106, 106, 0.22);
+  outline-offset: 2px;
+}
+
 .largeBar.selected {
   height: 86px;
   border-color: transparent;
