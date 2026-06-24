@@ -78,10 +78,12 @@
     border-color 0.18s ease;
 }
 
-.historyCard:hover {
-  border-color: #dcd9fb;
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .historyCard:hover {
+    border-color: #dcd9fb;
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+  }
 }
 
 .list > *:nth-child(1) {

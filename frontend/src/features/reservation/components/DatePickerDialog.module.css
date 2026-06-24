@@ -103,8 +103,10 @@
     box-shadow 0.18s ease;
 }
 
-.days button:hover {
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .days button:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .days .selected {

@@ -57,9 +57,11 @@ a {
     opacity 0.18s ease;
 }
 
-button:not(:disabled):active,
-a:active {
-  transform: scale(0.97);
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):active,
+  a:active {
+    transform: scale(0.97);
+  }
 }
 
 @keyframes floatUp {
