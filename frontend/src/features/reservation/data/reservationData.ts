@@ -10,6 +10,7 @@ export type TimeBooking = {
   department: string;
   people: number;
   isMine?: boolean;
+  verifyPhotoUrl?: string | null;
 };
 
 export type StudyRoom = {
