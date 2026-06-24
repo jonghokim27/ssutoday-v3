@@ -141,7 +141,7 @@ export function MyPageContent() {
 
   return (
     <div className={styles.screen}>
-      <BrandHeader title="마이페이지" />
+      <BrandHeader sticky title="마이페이지" />
       <section className={styles.profile}>
         <div className={styles.avatar}><Icon name="user" width="44" height="44" /></div>
         <div>
