@@ -73,6 +73,33 @@
   font-weight: var(--font-weight-regular);
 }
 
+.clearSearchButton {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: #dfe3ec;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1.4);
+}
+
+.clearSearchButton:active {
+  transform: scale(0.92);
+}
+
+.clearSearchButton svg {
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+
 .filters {
   display: flex;
   gap: 7px;
@@ -328,9 +355,9 @@
 
 .topButton {
   position: fixed;
-  right: max(18px, calc((100vw - 402px) / 2 + 18px));
-  bottom: calc(var(--space-bottom-nav-height) + var(--space-8));
-  z-index: 80;
+  right: 18px;
+  bottom: calc(var(--space-bottom-nav-height) + var(--space-12));
+  z-index: 90;
   width: 46px;
   height: 46px;
   border: 0;
