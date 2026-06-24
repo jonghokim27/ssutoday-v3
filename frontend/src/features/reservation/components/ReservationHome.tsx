@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
@@ -14,6 +15,7 @@ import { StudyRoomCard } from './StudyRoomCard';
 import styles from './ReservationHome.module.css';
 
 export function ReservationHome() {
+  const safePath = useSafeAreaPath();
   const [selectedDay, setSelectedDay] = useState(8);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [timebarScrollLeft, setTimebarScrollLeft] = useState(0);
@@ -51,7 +53,7 @@ export function ReservationHome() {
     <div className={styles.screen}>
       <BrandHeader
         action={
-          <Link to="/reservations/history">
+          <Link to={safePath('/reservations/history')}>
             <IconButton aria-label="예약 내역"><Icon name="refresh" /></IconButton>
           </Link>
         }

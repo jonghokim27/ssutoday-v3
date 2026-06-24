@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Button } from '../../../shared/ui/Button';
 import { Icon } from '../../../shared/ui/Icon';
 import { studyRooms, type StudyRoom } from '../data/reservationData';
@@ -14,6 +15,7 @@ type ReservationResultState = {
 };
 
 export function ReservationSuccess() {
+  const safePath = useSafeAreaPath();
   const { state } = useLocation();
   const result = (state ?? {}) as ReservationResultState;
   const ok = result.ok ?? true;
@@ -41,8 +43,8 @@ export function ReservationSuccess() {
         </dl>
       </section>
       <div className={styles.buttons}>
-        {ok ? <Link to="/reservations/history"><Button>예약 내역 보기</Button></Link> : null}
-        <Link to="/reservations"><Button variant="secondary">예약 화면으로</Button></Link>
+        {ok ? <Link to={safePath('/reservations/history')}><Button>예약 내역 보기</Button></Link> : null}
+        <Link to={safePath('/reservations')}><Button variant="secondary">예약 화면으로</Button></Link>
       </div>
     </div>
   );

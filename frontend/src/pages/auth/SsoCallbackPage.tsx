@@ -4,11 +4,13 @@ import { useAuthSession } from '../../app/authSessionContext';
 import { authRepository } from '../../features/auth/api/authRepository';
 import { deviceRepository } from '../../features/my/api/deviceRepository';
 import { nativeBridge } from '../../shared/native/nativeBridge';
+import { useSafeAreaPath } from '../../shared/routing/safeAreaParams';
 import { Button } from '../../shared/ui/Button';
 import styles from './SsoCallbackPage.module.css';
 
 export function SsoCallbackPage() {
   const navigate = useNavigate();
+  const safePath = useSafeAreaPath();
   const [params] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const { setSession } = useAuthSession();
@@ -29,13 +31,13 @@ export function SsoCallbackPage() {
           await nativeBridge.subscribePushTopic(result.data.major);
         }
         setSession('authenticated');
-        navigate('/notices', { replace: true });
+        navigate(safePath('/notices'), { replace: true });
         return;
       }
 
       setError(result.message);
     });
-  }, [navigate, params, setSession]);
+  }, [navigate, params, safePath, setSession]);
 
   if (error) {
     return (
@@ -45,8 +47,8 @@ export function SsoCallbackPage() {
         <h1>유세인트 인증에 실패했어요</h1>
         <p className={styles.message}>{error}</p>
         <div className={styles.actions}>
-          <Button onClick={() => navigate('/terms')} type="button">다시 시도</Button>
-          <Button onClick={() => navigate('/landing')} type="button" variant="secondary">처음으로</Button>
+          <Button onClick={() => navigate(safePath('/terms'))} type="button">다시 시도</Button>
+          <Button onClick={() => navigate(safePath('/landing'))} type="button" variant="secondary">처음으로</Button>
         </div>
       </div>
     );

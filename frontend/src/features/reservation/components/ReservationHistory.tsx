@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
@@ -14,6 +15,7 @@ import styles from './ReservationHistory.module.css';
 type HistoryViewItem = ReturnType<typeof reserveToHistoryView>;
 
 export function ReservationHistory() {
+  const safePath = useSafeAreaPath();
   const [tab, setTab] = useState<'active' | 'done'>('active');
   const [items, setItems] = useState<HistoryViewItem[]>([]);
   const [cancelTarget, setCancelTarget] = useState<HistoryViewItem | null>(null);
@@ -84,7 +86,7 @@ export function ReservationHistory() {
   return (
     <div className={styles.screen}>
       <header className={styles.header}>
-        <Link to="/reservations"><IconButton><Icon name="arrowLeft" /></IconButton></Link>
+        <Link to={safePath('/reservations')}><IconButton><Icon name="arrowLeft" /></IconButton></Link>
         <h1>예약 내역</h1>
       </header>
       <div className={styles.tabs}>
@@ -142,7 +144,7 @@ export function ReservationHistory() {
                 </div>
               ) : null}
               {item.cancelable ? <button className={styles.danger} onClick={() => setCancelTarget(item)} type="button">예약 취소</button> : null}
-              {item.canRebook ? <Link className={styles.rebook} to={`/reservations/${item.roomNo}?date=${item.rawDate}`}>다시 예약하기</Link> : null}
+              {item.canRebook ? <Link className={styles.rebook} to={safePath(`/reservations/${item.roomNo}?date=${item.rawDate}`)}>다시 예약하기</Link> : null}
             </div>
           </article>
         ))}

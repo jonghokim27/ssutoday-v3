@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../shared/layout/AppLayout';
+import { SafeAreaNavigate } from '../shared/routing/SafeAreaNavigate';
 import { LandingPage } from '../pages/auth/LandingPage';
 import { SsoCallbackPage } from '../pages/auth/SsoCallbackPage';
 import { TermsPage } from '../pages/auth/TermsPage';
@@ -22,7 +23,7 @@ export function AppRouter() {
         </Route>
         <Route path="sso_callback" element={<SsoCallbackPage />} />
         <Route element={<ProtectedRoute />}>
-          <Route index element={<Navigate to="/reservations" replace />} />
+          <Route index element={<SafeAreaNavigate to="/reservations" replace />} />
           <Route path="notices" element={<NoticesPage />} />
           <Route path="reservations" element={<ReservationHomePage />} />
           <Route path="reservations/:roomId" element={<ReservationDetailPage />} />
@@ -31,7 +32,7 @@ export function AppRouter() {
           <Route path="my" element={<MyPage />} />
           <Route path="coming-soon" element={<ComingSoonPage />} />
         </Route>
-        <Route path="*" element={<Navigate to="/reservations" replace />} />
+        <Route path="*" element={<SafeAreaNavigate to="/reservations" replace />} />
       </Route>
     </Routes>
   );
