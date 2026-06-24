@@ -309,6 +309,15 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
             { label: '날짜', value: selectedDate },
             { label: '시간', value: summary },
           ]}
+          footnote={
+            <>
+              이 사이트는 reCAPTCHA의 보호를 받으며, Google의{' '}
+              <button onClick={() => void openLink('https://policies.google.com/privacy')} type="button">개인정보처리방침</button>
+              {' '}및{' '}
+              <button onClick={() => void openLink('https://policies.google.com/terms')} type="button">서비스 약관</button>
+              이 적용됩니다.
+            </>
+          }
           onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
             void submitReservation();

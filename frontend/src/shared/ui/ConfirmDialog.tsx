@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
@@ -9,6 +10,7 @@ type ConfirmDialogProps = {
   title: string;
   message?: string;
   details?: Array<{ label: string; value: string }>;
+  footnote?: ReactNode;
   confirmLabel: string;
   icon?: IconName;
   tone?: ConfirmDialogTone;
@@ -20,6 +22,7 @@ export function ConfirmDialog({
   title,
   message,
   details,
+  footnote,
   confirmLabel,
   icon = 'check',
   tone = 'primary',
@@ -44,6 +47,7 @@ export function ConfirmDialog({
           </dl>
         ) : null}
         {message ? <p>{message}</p> : null}
+        {footnote ? <p className={styles.footnote}>{footnote}</p> : null}
         <div className={styles.actions}>
           <Button onClick={onCancel} type="button" variant="secondary">취소</Button>
           <Button className={tone === 'danger' ? styles.dangerButton : ''} onClick={onConfirm} type="button">

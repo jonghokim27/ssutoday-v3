@@ -91,6 +91,24 @@
   line-height: 1.55;
 }
 
+.dialog p.footnote {
+  margin: var(--space-7) 4px 0;
+  color: var(--color-text-disabled);
+  text-align: center;
+  font-size: 11px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+}
+
+.footnote button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+}
+
 .actions {
   display: flex;
   gap: var(--space-5);

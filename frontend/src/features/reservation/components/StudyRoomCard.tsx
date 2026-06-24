@@ -3,10 +3,12 @@ import { useRef } from 'react';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { Card } from '../../../shared/ui/Card';
-import { bookedSlots, slotCount } from '../data/time';
+import { bookedSlots, slotCount, toSlot } from '../data/time';
 import { type StudyRoom } from '../data/reservationData';
 import { AvailabilityBars } from './AvailabilityBars';
 import styles from './StudyRoomCard.module.css';
+
+const NOON_SLOT = toSlot('12:00');
 
 type StudyRoomCardProps = {
   room: StudyRoom;
@@ -19,8 +21,10 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
   const safePath = useSafeAreaPath();
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const pointerMovedRef = useRef(false);
-  const freeCount = slotCount - bookedSlots(room).size;
-  const busy = freeCount < slotCount * 0.45;
+  const afternoonSlotCount = slotCount - NOON_SLOT;
+  const bookedAfternoonCount = Array.from(bookedSlots(room).keys()).filter((slot) => slot >= NOON_SLOT).length;
+  const freeRatio = afternoonSlotCount > 0 ? (afternoonSlotCount - bookedAfternoonCount) / afternoonSlotCount : 0;
+  const congestion = congestionLevel(freeRatio);
   const roomPath = date ? `/reservations/${room.id}?date=${date}` : `/reservations/${room.id}`;
 
   return (
@@ -61,10 +65,16 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
             </div>
             <strong className={styles.name}>{room.name}</strong>
           </div>
-          <Badge tone={busy ? 'orange' : 'green'}>{busy ? '혼잡' : '여유'}</Badge>
+          <Badge tone={congestion.tone}>{congestion.label}</Badge>
         </div>
         <AvailabilityBars date={date} onScrollLeftChange={onTimebarScroll} room={room} scrollLeft={timebarScrollLeft} />
       </Card>
     </Link>
   );
+}
+
+function congestionLevel(freeRatio: number): { label: string; tone: 'green' | 'orange' | 'red' } {
+  if (freeRatio >= 0.55) return { label: '여유', tone: 'green' };
+  if (freeRatio >= 0.25) return { label: '보통', tone: 'orange' };
+  return { label: '혼잡', tone: 'red' };
 }
