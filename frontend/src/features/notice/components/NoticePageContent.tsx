@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
@@ -36,8 +36,14 @@ export function NoticePageContent() {
   const [opening, setOpening] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [showTopButton, setShowTopButton] = useState(false);
+  const [starredCount, setStarredCount] = useState(0);
 
-  const starredCount = useMemo(() => notices.filter((notice) => notice.starred).length, [notices]);
+  const refreshStarredCount = useCallback(async () => {
+    const result = await noticeRepository.starredCount();
+    if (result.ok) {
+      setStarredCount(result.data.count);
+    }
+  }, []);
 
   const loadNotices = useCallback(
     async (nextPage: number, append = false) => {
@@ -139,6 +145,14 @@ export function NoticePageContent() {
     void loadNotices(0);
   }, [loadNotices, providersReady]);
 
+  useEffect(() => {
+    if (!providersReady) {
+      return;
+    }
+
+    void refreshStarredCount();
+  }, [providersReady, refreshStarredCount]);
+
   async function toggleStar(notice: ArticleSummary) {
     const result = notice.starred ? await noticeRepository.unstar(notice.idx) : await noticeRepository.star(notice.idx);
     if (!result.ok) {
@@ -153,6 +167,7 @@ export function NoticePageContent() {
     noticesRef.current = nextNotices;
     setNotices(nextNotices);
     noticesLengthRef.current = nextNotices.length;
+    void refreshStarredCount();
   }
 
   function flash(message: string) {
