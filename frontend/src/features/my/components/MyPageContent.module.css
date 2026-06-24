@@ -88,7 +88,6 @@
 
 .cardTitle {
   padding: var(--space-8) 0 var(--space-7);
-  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .cardTitle strong {
@@ -100,14 +99,6 @@
   padding: var(--space-7) 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-body-lg);
-  font-weight: var(--font-weight-medium);
-}
-
-.notice {
-  margin: 0;
-  padding: 4px 0 var(--space-7);
-  color: var(--color-text-disabled);
-  font-size: var(--font-size-caption);
   font-weight: var(--font-weight-medium);
 }
 
