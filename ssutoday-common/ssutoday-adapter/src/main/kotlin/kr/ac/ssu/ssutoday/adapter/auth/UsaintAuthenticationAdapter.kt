@@ -94,14 +94,14 @@ class UsaintAuthenticationAdapter(
 
     private fun normalizeMajor(value: String): String =
         when {
-            "전자정보공학부" in value -> "infocom"
+//            "전자정보공학부" in value -> "infocom"
             value == "컴퓨터학부" -> "cse"
-            value == "소프트웨어학부" -> "sw"
-            value == "AI소프트웨어학부" -> "sw"
+//            value == "소프트웨어학부" -> "sw"
+//            value == "AI소프트웨어학부" -> "sw"
             value == "글로벌미디어학부" -> "media"
             value == "미디어경영학과" -> "mediamba"
-            value == "AI융합학부" -> "aix"
-            value == "정보보호학과" -> "sec"
+//            value == "AI융합학부" -> "aix"
+//            value == "정보보호학과" -> "sec"
             else -> throw BusinessException(StatusCode.SSU4011, arrayOf(value))
         }
 
