@@ -7,6 +7,7 @@ import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
+import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
 import { openLink } from '../../../shared/native/nativeBridge';
 import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
@@ -36,6 +37,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date') ?? todayString());
   const [pickerOpen, setPickerOpen] = useState(false);
   const [reservedBooking, setReservedBooking] = useState<TimeBooking | null>(null);
+  const [cancelReasonBooking, setCancelReasonBooking] = useState<TimeBooking | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -203,14 +205,22 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     await openLink(booking.verifyPhotoUrl);
   }
 
-  async function runAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking) {
+  function runAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking) {
     if (!booking.idx) {
       flash('예약 정보를 찾을 수 없어요');
       return;
     }
 
-    const text = type === 'reserveCancel' ? window.prompt('예약 취소 사유를 입력해 주세요.', '인증샷으로 입실을 확인할 수 없음') : null;
-    if (type === 'reserveCancel' && !text) {
+    if (type === 'reserveCancel') {
+      setCancelReasonBooking(booking);
+      return;
+    }
+
+    void executeAdminTool(type, booking, null);
+  }
+
+  async function executeAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking, text: string | null) {
+    if (!booking.idx) {
       return;
     }
 
@@ -322,6 +332,21 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
             void submitReservation();
           }}
           title="이 시간으로 예약할까요?"
+        />
+      ) : null}
+      {cancelReasonBooking ? (
+        <PromptDialog
+          confirmLabel="취소 확정"
+          defaultValue="인증샷으로 입실을 확인할 수 없음"
+          icon="x"
+          message="예약 취소 사유를 입력해 주세요."
+          onCancel={() => setCancelReasonBooking(null)}
+          onConfirm={(text) => {
+            void executeAdminTool('reserveCancel', cancelReasonBooking, text);
+            setCancelReasonBooking(null);
+          }}
+          title="예약 취소"
+          tone="danger"
         />
       ) : null}
       {submitting ? (
