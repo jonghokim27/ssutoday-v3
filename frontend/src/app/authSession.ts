@@ -6,12 +6,6 @@ import { appStorage } from '../shared/storage/appStorage';
 export type AuthSessionResult = 'authenticated' | 'anonymous';
 
 export async function validateAuthSession(): Promise<AuthSessionResult> {
-  const accessToken = await appStorage.getItem('accessToken');
-  const refreshToken = await appStorage.getItem('refreshToken');
-  if (!accessToken || !refreshToken) {
-    return 'anonymous';
-  }
-
   const profile = await authRepository.getProfile();
   if (!profile.ok) {
     if (profile.statusCode === 'SSU4001') {

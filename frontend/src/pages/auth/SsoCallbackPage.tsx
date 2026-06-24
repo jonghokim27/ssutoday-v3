@@ -35,7 +35,15 @@ export function SsoCallbackPage() {
         return;
       }
 
-      setError(result.message);
+      if (result.statusCode === "SSU4010") {
+        setError('유세인트 인증에 실패했어요');
+      } else if (result.statusCode === "SSU4011") {
+        setError('지원하지 않는 학과(부)에요');
+      } else if (result.statusCode === "SSU4012") {
+        setError('학사과정 재/휴학 상태가 아니에요');
+      } else {
+        setError(result.message);
+      }
     });
   }, [navigate, params, safePath, setSession]);
 
@@ -43,7 +51,7 @@ export function SsoCallbackPage() {
     return (
       <div className={styles.errorScreen}>
         <div className={styles.errorIcon} aria-hidden="true">!</div>
-        <p className={styles.eyebrow}>SIGN IN FAILED</p>
+        <p className={styles.eyebrow}>FAILED</p>
         <h1>유세인트 인증에 실패했어요</h1>
         <p className={styles.message}>{error}</p>
         <div className={styles.actions}>

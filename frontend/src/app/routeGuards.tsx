@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SafeAreaNavigate } from '../shared/routing/SafeAreaNavigate';
 import { LoadingState } from '../shared/ui/LoadingState';
@@ -7,18 +6,7 @@ import styles from './routeGuards.module.css';
 
 export function ProtectedRoute() {
   const location = useLocation();
-  const { session, setSession } = useAuthSession();
-  const hasTokens = hasAuthTokens();
-
-  useEffect(() => {
-    if (!hasTokens && session !== 'anonymous') {
-      setSession('anonymous');
-    }
-  }, [hasTokens, session, setSession]);
-
-  if (!hasTokens) {
-    return <SafeAreaNavigate to="/landing" replace state={{ from: location.pathname }} />;
-  }
+  const { session } = useAuthSession();
 
   if (session === 'checking') {
     return <RouteLoading />;
@@ -33,11 +21,6 @@ export function ProtectedRoute() {
 
 export function PublicOnlyRoute() {
   const { session } = useAuthSession();
-  const hasTokens = hasAuthTokens();
-
-  if (session === 'checking' && hasTokens) {
-    return <RouteLoading />;
-  }
 
   if (session === 'authenticated') {
     return <SafeAreaNavigate to="/reservations" replace />;
@@ -48,8 +31,4 @@ export function PublicOnlyRoute() {
 
 function RouteLoading() {
   return <LoadingState className={styles.loading} label="로그인 상태를 확인하는 중" />;
-}
-
-function hasAuthTokens() {
-  return Boolean(window.localStorage.getItem('accessToken') && window.localStorage.getItem('refreshToken'));
 }

@@ -51,7 +51,7 @@ class UsaintAuthenticationAdapter(
             id = values.id ?: sIdno,
             name = name,
             major = normalizeMajor(values.major),
-            status = values.status,
+            status = normalizeStatus(values.status),
         )
     }
 
@@ -86,23 +86,26 @@ class UsaintAuthenticationAdapter(
             when (key) {
                 "학번" -> values.id = value.toIntOrNull() ?: errorWithBody("studentId in strong is not an integer", html)
                 "소속" -> values.major = value
-                "과정/학적" -> values.status = value
+                "과정/학기" -> values.status = value
             }
         }
         return values
     }
 
     private fun normalizeMajor(value: String): String =
-        when {
-//            "전자정보공학부" in value -> "infocom"
-            value == "컴퓨터학부" -> "cse"
-//            value == "소프트웨어학부" -> "sw"
-//            value == "AI소프트웨어학부" -> "sw"
-            value == "글로벌미디어학부" -> "media"
-            value == "미디어경영학과" -> "mediamba"
-//            value == "AI융합학부" -> "aix"
-//            value == "정보보호학과" -> "sec"
+        when (value) {
+            "컴퓨터학부" -> "cse"
+            "글로벌미디어학부" -> "media"
+            "미디어경영학과" -> "mediamba"
             else -> throw BusinessException(StatusCode.SSU4011, arrayOf(value))
+        }
+
+    private fun normalizeStatus(value: String): String =
+        when (value) {
+            "학사과정 휴학" -> "LEAVE_OF_ABSENCE"
+            "학사과정 재학" -> "ENROLLED"
+            "학사과정 졸업" -> "GRADUATED"
+            else -> throw BusinessException(StatusCode.SSU4012, arrayOf(value))
         }
 
     private fun errorWithBody(
