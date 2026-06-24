@@ -26,20 +26,7 @@ export function getSafeAreaTopExtra(search: string) {
 export function getSafeAreaTopParamValue(search: string) {
   const params = new URLSearchParams(search);
   const namedValue = SAFE_AREA_TOP_PARAMS.map((param) => params.get(param)).find((value) => value != null);
-  const parsedNamedValue = parseCssPixelNumber(namedValue);
-
-  if (parsedNamedValue != null) {
-    return parsedNamedValue;
-  }
-
-  for (const [key, value] of params.entries()) {
-    const parsedValue = parseCssPixelNumber(value) ?? parseCssPixelNumber(key);
-    if (parsedValue != null) {
-      return parsedValue;
-    }
-  }
-
-  return null;
+  return parseCssPixelNumber(namedValue);
 }
 
 export function withSafeAreaParams(to: string, currentSearch: string) {
@@ -49,15 +36,7 @@ export function withSafeAreaParams(to: string, currentSearch: string) {
     return value == null ? [] : [[param, value] as const];
   });
 
-  const fallbackValue = getSafeAreaTopParamValue(currentSearch);
-  const normalizedSafeAreaParams =
-    safeAreaParams.length > 0
-      ? safeAreaParams
-      : fallbackValue == null
-        ? []
-        : [['safeAreaTop', String(Math.min(Math.max(Math.round(fallbackValue), 0), MAX_SAFE_AREA_TOP))] as const];
-
-  if (normalizedSafeAreaParams.length === 0) {
+  if (safeAreaParams.length === 0) {
     return to;
   }
 
@@ -69,7 +48,7 @@ export function withSafeAreaParams(to: string, currentSearch: string) {
   const targetSearch = searchIndex === -1 ? '' : pathAndSearch.slice(searchIndex + 1);
   const targetParams = new URLSearchParams(targetSearch);
 
-  normalizedSafeAreaParams.forEach(([param, value]) => {
+  safeAreaParams.forEach(([param, value]) => {
     if (!targetParams.has(param)) {
       targetParams.set(param, value);
     }

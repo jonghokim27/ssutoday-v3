@@ -14,10 +14,10 @@ export function BrandHeader({ title, action, sticky = false }: BrandHeaderProps)
       <div className={styles.brand}>
         <img alt="SSUTODAY" className={styles.logo} src={ssutodayIcon} />
         <div className={styles.copy}>
-          <span className={styles.eyebrow}>
+          {/* <span className={styles.eyebrow}>
             <span>SSU</span>
             <strong>TODAY</strong>
-          </span>
+          </span> */}
           <span className={styles.title}>{title}</span>
         </div>
       </div>
