@@ -109,6 +109,13 @@
   }
 }
 
+.days .today {
+  color: var(--color-brand-blue);
+  background: var(--color-surface-control);
+  box-shadow: inset 0 0 0 1.5px var(--color-brand-blue);
+  font-weight: var(--font-weight-extra-bold);
+}
+
 .days .selected {
   color: var(--color-surface-base);
   background: var(--color-brand-gradient);

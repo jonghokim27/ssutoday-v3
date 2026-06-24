@@ -1,25 +1,16 @@
 .wrap {
-  position: sticky;
-  top: 108px;
-  z-index: 23;
   background: var(--color-surface-base);
 }
 
 .dates {
-  overflow-x: auto;
   display: flex;
   gap: 9px;
   padding: var(--space-5) var(--space-screen-x) var(--space-5);
-  scrollbar-width: none;
-}
-
-.dates::-webkit-scrollbar {
-  display: none;
 }
 
 .date {
-  flex: none;
-  width: 54px;
+  flex: 1;
+  min-width: 0;
   height: 70px;
   border: 0;
   border-radius: var(--radius-button-lg);

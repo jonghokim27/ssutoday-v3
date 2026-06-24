@@ -31,7 +31,7 @@ export function ReservationHome() {
       setLoading(true);
       const profile = await appStorage.getProfile();
       if (profile?.name && mounted) {
-        setName(profile.name);
+        setName(profile.name.slice(-2));
       }
 
       const result = await reservationRepository.listRooms(selectedDate);
