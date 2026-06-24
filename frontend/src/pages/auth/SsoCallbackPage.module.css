@@ -1,0 +1,113 @@
+.loadingScreen {
+  height: 100%;
+  padding: var(--space-status-top) var(--space-screen-x) var(--space-14);
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+  animation: fadeIn 0.18s ease both;
+}
+
+.errorScreen {
+  height: 100%;
+  padding: var(--space-status-top) var(--space-screen-x) var(--space-14);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 78, 98, 0.1), transparent 30%),
+    var(--color-surface-base);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  animation: fadeIn 0.18s ease both;
+}
+
+.errorIcon {
+  width: 70px;
+  height: 70px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ff5b70, #ff8a4c);
+  color: var(--color-surface-base);
+  box-shadow: 0 18px 34px -18px rgba(255, 91, 112, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.eyebrow {
+  margin: var(--space-9) 0 var(--space-3);
+  color: #ff5b70;
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: 0.08em;
+}
+
+.errorScreen h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 24px;
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.4px;
+}
+
+.message {
+  max-width: 280px;
+  margin: var(--space-5) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.55;
+}
+
+.actions {
+  width: 100%;
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-11);
+}
+
+.actions button {
+  width: 100%;
+}
+
+.loader {
+  width: 34px;
+  height: 34px;
+  margin-bottom: var(--space-4);
+  border: 3px solid rgba(106, 76, 255, 0.18);
+  border-top-color: var(--color-brand-purple);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.loadingScreen strong {
+  font-size: 19px;
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.2px;
+}
+
+.loadingScreen p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}

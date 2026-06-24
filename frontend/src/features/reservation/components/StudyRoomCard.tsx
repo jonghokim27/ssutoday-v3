@@ -10,14 +10,15 @@ type StudyRoomCardProps = {
   room: StudyRoom;
   timebarScrollLeft: number;
   onTimebarScroll: (scrollLeft: number) => void;
+  date?: string;
 };
 
-export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll }: StudyRoomCardProps) {
+export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }: StudyRoomCardProps) {
   const freeCount = slotCount - bookedSlots(room).size;
   const busy = freeCount < slotCount * 0.45;
 
   return (
-    <Link to={`/reservations/${room.id}`}>
+    <Link to={date ? `/reservations/${room.id}?date=${date}` : `/reservations/${room.id}`}>
       <Card>
         <div className={styles.head}>
           <img alt={room.name} className={styles.thumb} src={room.thumbnail} />

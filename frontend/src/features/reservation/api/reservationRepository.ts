@@ -1,0 +1,214 @@
+import { apiClient } from '../../../shared/api/apiClient';
+import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
+import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { reservationHistory, studyRooms } from '../data/reservationData';
+import { blockToTime, timeToBlock } from './reservationBlocks';
+
+export type ReserveInRoom = {
+  idx: number;
+  startBlock: number;
+  endBlock: number;
+  studentInfo: string;
+  isMine?: boolean;
+  [key: string]: unknown;
+};
+
+export type RoomSummary = {
+  no: number | string;
+  name: string;
+  capacity: number;
+  location: string;
+  image: string;
+  reserves: ReserveInRoom[];
+};
+
+export type RoomDetail = RoomSummary & {
+  tags: string;
+  bigImage: string;
+};
+
+export type ReserveHistory = {
+  idx: number;
+  roomNo: number | string;
+  date: string;
+  startBlock: number;
+  endBlock: number;
+  createdAt: string;
+  deletedAt: string | null;
+  deletedReason: string | null;
+  isContinuous: boolean;
+  roomByRoomNo: { name: string };
+  verifyPhotosByIdx: Array<{ url: string; createdAt: string }>;
+};
+
+export type ReserveStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export type ReservationRepository = {
+  listRooms(date: string): Promise<ApiResult<{ rooms: RoomSummary[] }>>;
+  getRoom(date: string, roomNo: number | string): Promise<ApiResult<{ room: RoomDetail }>>;
+  requestReserve(params: { roomNo: number | string; date: string; startBlock: number; endBlock: number }): Promise<ApiResult<{ idx: number }>>;
+  getReserveStatus(idx: number): Promise<ApiResult<{ status: ReserveStatus }>>;
+  listReserves(type: 0 | 1, page: number): Promise<ApiResult<{ reserves: ReserveHistory[]; totalPages: number }>>;
+  cancelReserve(idx: number): Promise<ApiResult<null>>;
+  doneReserve(idx: number): Promise<ApiResult<null>>;
+  uploadVerifyPhoto(idx: number): Promise<ApiResult<null>>;
+  adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }): Promise<ApiResult<ReserveStatus>>;
+};
+
+export class ApiReservationRepository implements ReservationRepository {
+  async listRooms(date: string) {
+    return apiClient.post<{ date: string }, { rooms: RoomSummary[] }>('room/list', { date }, { authenticated: true });
+  }
+
+  async getRoom(date: string, roomNo: number | string) {
+    return apiClient.post<{ date: string; roomNo: number | string }, { room: RoomDetail }>('room/get', { date, roomNo }, { authenticated: true });
+  }
+
+  async requestReserve(params: { roomNo: number | string; date: string; startBlock: number; endBlock: number }) {
+    return apiClient.post<typeof params, { idx: number }>('reserve/request', params, { authenticated: true });
+  }
+
+  async getReserveStatus(idx: number) {
+    return apiClient.post<{ idx: number }, { status: ReserveStatus }>('reserve/status', { idx }, { authenticated: true });
+  }
+
+  async listReserves(type: 0 | 1, page: number) {
+    return apiClient.post<{ type: 0 | 1; page: number }, { reserves: ReserveHistory[]; totalPages: number }>(
+      'reserve/list',
+      { type, page },
+      { authenticated: true },
+    );
+  }
+
+  async cancelReserve(idx: number) {
+    return apiClient.post<{ idx: number }, null>('reserve/cancel', { idx }, { authenticated: true });
+  }
+
+  async doneReserve(idx: number) {
+    return apiClient.post<{ idx: number }, null>('reserve/done', { idx }, { authenticated: true });
+  }
+
+  async uploadVerifyPhoto(idx: number) {
+    const photo = await nativeBridge.captureVerifyPhoto();
+    if (!photo) {
+      return apiFailure('SSU0000', '사진 촬영이 취소되었습니다.');
+    }
+
+    const formData = new FormData();
+    formData.append('idx', String(idx));
+    formData.append('file', photo.blob ?? new Blob([], { type: photo.type }), photo.name);
+
+    return apiClient.postFormData<null>('reserve/verifyPhoto/upload', formData, { authenticated: true });
+  }
+
+  async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {
+    const device = await nativeBridge.getDeviceInfo();
+    const signed = await nativeBridge.signWithBiometrics(`${params.type}:${params.idx}`);
+    if (!signed) {
+      return apiFailure('SSU0000', '생체 인증을 사용할 수 없습니다.');
+    }
+
+    return apiClient.post<
+      { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null; osType: string; uuid: string; signature: string },
+      ReserveStatus
+    >(
+      'reserve/adminTools',
+      { ...params, osType: device.osType, uuid: device.uuid, signature: signed.signature },
+      { authenticated: true },
+    );
+  }
+}
+
+export class MockReservationRepository implements ReservationRepository {
+  async listRooms() {
+    return apiSuccess('SSU2110', {
+        rooms: studyRooms.map((room) => ({
+          no: room.id,
+          name: room.name,
+          capacity: Number.parseInt(room.capacity, 10),
+          location: room.location,
+          image: room.thumbnail,
+          reserves: room.bookings.map((booking, index) => ({
+            idx: index + 1,
+            startBlock: timeToBlock(booking.start),
+            endBlock: timeToBlock(booking.end) - 1,
+            studentInfo: booking.name,
+          })),
+        })),
+    });
+  }
+
+  async getRoom(_date: string, roomNo: number | string) {
+    const room = studyRooms.find((item) => item.id === String(roomNo)) ?? studyRooms[0];
+    const reserves = room.bookings.map((booking, index) => ({
+      idx: index + 1,
+      startBlock: timeToBlock(booking.start),
+      endBlock: timeToBlock(booking.end) - 1,
+      studentInfo: booking.name,
+    }));
+
+    return apiSuccess('SSU2100', {
+        room: {
+          no: room.id,
+          name: room.name,
+          capacity: Number.parseInt(room.capacity, 10),
+          location: room.location,
+          image: room.thumbnail,
+          bigImage: room.heroImage,
+          tags: room.amenities.join(','),
+          reserves,
+        },
+    });
+  }
+
+  async requestReserve() {
+    return apiSuccess('SSU2090', { idx: Date.now() });
+  }
+
+  async getReserveStatus() {
+    return apiSuccess('SSU2120', { status: 1 as const });
+  }
+
+  async listReserves(type: 0 | 1) {
+    const kind = type === 1 ? 'active' : 'done';
+    const reserves = reservationHistory
+      .filter((item) => item.kind === kind)
+      .map((item) => ({
+        idx: item.id,
+        roomNo: item.room,
+        date: item.date,
+        startBlock: timeToBlock(item.time.split(' ~ ')[0]),
+        endBlock: timeToBlock(item.time.split(' ~ ')[1]) - 1,
+        createdAt: item.date,
+        deletedAt: null,
+        deletedReason: null,
+        isContinuous: false,
+        roomByRoomNo: { name: item.room },
+        verifyPhotosByIdx: [],
+      }));
+
+    return apiSuccess('SSU2130', { reserves, totalPages: 1 });
+  }
+
+  async cancelReserve() {
+    return apiSuccess('SSU2140', null);
+  }
+
+  async doneReserve() {
+    return apiSuccess('SSU2230', null);
+  }
+
+  async uploadVerifyPhoto() {
+    return apiSuccess('SSU2200', null);
+  }
+
+  async adminTool() {
+    return apiSuccess('SSU2220', 3 as const);
+  }
+}
+
+export const reservationRepository: ReservationRepository = new ApiReservationRepository();
+
+export function reserveHistoryTime(startBlock: number, endBlock: number) {
+  return `${blockToTime(startBlock)} ~ ${blockToTime(endBlock + 1)}`;
+}

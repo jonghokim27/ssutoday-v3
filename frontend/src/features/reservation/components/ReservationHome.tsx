@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { Icon } from '../../../shared/ui/Icon';
-import { studyRooms } from '../data/reservationData';
+import { appStorage } from '../../../shared/storage/appStorage';
+import { reservationRepository } from '../api/reservationRepository';
+import { roomSummaryToStudyRoom } from '../api/reservationMappers';
+import { studyRooms, type StudyRoom } from '../data/reservationData';
 import { DateStrip } from './DateStrip';
 import { DatePickerDialog } from './DatePickerDialog';
 import { StudyRoomCard } from './StudyRoomCard';
@@ -13,6 +16,30 @@ export function ReservationHome() {
   const [selectedDay, setSelectedDay] = useState(8);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [timebarScrollLeft, setTimebarScrollLeft] = useState(0);
+  const [rooms, setRooms] = useState<StudyRoom[]>(studyRooms);
+  const [name, setName] = useState('숭실인');
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const profile = await appStorage.getProfile();
+      if (profile?.name && mounted) {
+        setName(profile.name);
+      }
+
+      const result = await reservationRepository.listRooms(selectedDateString(selectedDay));
+      if (mounted && result.ok) {
+        setRooms(result.data.rooms.map(roomSummaryToStudyRoom));
+      }
+    }
+
+    void load();
+
+    return () => {
+      mounted = false;
+    };
+  }, [selectedDay]);
 
   return (
     <div className={styles.screen}>
@@ -26,14 +53,15 @@ export function ReservationHome() {
         title="스터디룸 예약"
       />
       <section className={styles.hero}>
-        <h1>종호님, 어디서 공부할까요?</h1>
+        <h1>{name}님, 어디서 공부할까요?</h1>
         <p>실시간으로 빈 시간을 확인하고 바로 예약할 수 있어요</p>
       </section>
       <DateStrip onOpenPicker={() => setPickerOpen(true)} onPickDay={setSelectedDay} selectedDay={selectedDay} />
       <section className={styles.list}>
-        {studyRooms.map((room) => (
+        {rooms.map((room) => (
           <StudyRoomCard
             key={room.id}
+            date={selectedDateString(selectedDay)}
             onTimebarScroll={setTimebarScrollLeft}
             room={room}
             timebarScrollLeft={timebarScrollLeft}
@@ -52,4 +80,8 @@ export function ReservationHome() {
       ) : null}
     </div>
   );
+}
+
+function selectedDateString(day: number) {
+  return `2023-09-${String(day).padStart(2, '0')}`;
 }

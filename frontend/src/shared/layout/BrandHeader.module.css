@@ -25,15 +25,8 @@
   width: 44px;
   height: 44px;
   border-radius: var(--radius-icon);
-  background: var(--color-logo-gradient);
-  color: var(--color-surface-base);
   box-shadow: var(--shadow-logo);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-button);
-  font-weight: var(--font-weight-extra-bold);
-  letter-spacing: -0.3px;
+  display: block;
 }
 
 .copy {

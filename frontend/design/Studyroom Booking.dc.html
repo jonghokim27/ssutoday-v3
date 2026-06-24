@@ -56,6 +56,77 @@
   </div>
   <div style="position:absolute;top:13px;left:50%;transform:translateX(-50%);width:118px;height:33px;background:#0c0c14;border-radius:20px;z-index:41;"></div>
 
+  <!-- ===================== SCREEN: LANDING (pre-login) ===================== -->
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0;position:relative;overflow:hidden;background:radial-gradient(120% 70% at 50% 30%,#F3F6FF 0%,#FFFFFF 60%);animation:scaleIn .4s ease both;">
+
+    <div style="height:54px;"></div>
+
+    <!-- center brand -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:floatUp .6s cubic-bezier(.2,.7,.2,1) both;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1;"><span style="color:#4F7CFF;">SSU</span><span style="color:#9B5CFF;">TODAY</span></div>
+        <div style="font-size:16px;font-weight:600;letter-spacing:-.3px;color:#7E8AA8;">스터디룸 예약과 공지사항 확인을 한번에</div>
+      </div>
+    </div>
+
+    <!-- bottom CTA -->
+    <div style="width:100%;padding:0 22px 34px;display:flex;flex-direction:column;align-items:center;gap:16px;animation:floatUp .6s cubic-bezier(.2,.7,.2,1) .1s both;">
+      <button onClick="{{ onStartLogin }}" style="width:100%;height:60px;border:none;border-radius:19px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;font-size:17px;font-weight:800;letter-spacing:-.3px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 34px -12px rgba(106,76,255,.6);" style-active="transform:translateY(1px) scale(.99);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2.4"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        유세인트로 로그인
+      </button>
+      <div style="font-size:12px;color:#AEB4C2;font-weight:500;letter-spacing:-.2px;">숭실대학교 통합 계정(SSO)으로 로그인해요</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: TERMS (webview-backed) ===================== -->
+  <sc-if value="{{ isTerms }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff;animation:slideInR .32s cubic-bezier(.2,.7,.2,1) both;">
+
+    <!-- top bar -->
+    <div style="padding:52px 16px 6px;display:flex;align-items:center;">
+      <button onClick="{{ onBackLanding }}" style="width:42px;height:42px;border-radius:14px;border:none;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-active="transform:scale(.92);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+    </div>
+
+    <!-- headline -->
+    <div style="padding:14px 24px 18px;">
+      <h1 style="margin:0;font-size:27px;font-weight:800;letter-spacing:-1px;line-height:1.28;">SSUTODAY를 이용하려면<br><span style="background:linear-gradient(120deg,#4F7CFF,#9B5CFF);-webkit-background-clip:text;background-clip:text;color:transparent;">이용약관 및 개인정보취급방침</span>에<br>동의해주세요</h1>
+    </div>
+
+    <!-- webview content region (empty; filled by webview) -->
+    <div style="flex:1;margin:0 16px;border:1px solid #ECEDF3;border-radius:18px;background:#FBFBFD;"></div>
+
+    <!-- bottom CTA -->
+    <div style="padding:14px 16px 30px;">
+      <button onClick="{{ onAgreeTerms }}" style="width:100%;height:58px;border:none;border-radius:18px;background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;font-size:16.5px;font-weight:800;letter-spacing:-.3px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 14px 30px -12px rgba(106,76,255,.55);" style-active="transform:translateY(1px) scale(.99);">
+        동의하고 계속하기
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SCREEN: LOGIN (webview-backed) ===================== -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff;animation:slideInR .32s cubic-bezier(.2,.7,.2,1) both;">
+
+    <!-- top bar -->
+    <div style="flex:none;padding:52px 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #F1F2F7;">
+      <button onClick="{{ onBackTerms }}" style="flex:none;width:42px;height:42px;border-radius:14px;border:none;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-active="transform:scale(.92);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <span style="flex:1;text-align:center;margin-right:42px;font-size:18px;font-weight:800;letter-spacing:-.4px;color:#0F1222;">유세인트 로그인</span>
+    </div>
+
+    <!-- webview region (헤더 제외 전체, empty; filled by webview) -->
+    <div onClick="{{ onDoLogin }}" style="flex:1;border-top:1px solid #ECEDF3;background:#FBFBFD;cursor:pointer;"></div>
+  </div>
+  </sc-if>
+
   <!-- ===================== SCREEN: HOME ===================== -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
   <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 80px;">
@@ -64,7 +135,7 @@
     <div style="position:sticky;top:0;z-index:25;background:#fff;padding:52px 22px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 28% 112%,#1E9BD1 0%,#4F7CFF 34%,#9B5CFF 86%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
             <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:2px;">
@@ -362,7 +433,7 @@
       <!-- brand row -->
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+          <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 28% 112%,#1E9BD1 0%,#4F7CFF 34%,#9B5CFF 86%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
             <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:2px;">
@@ -435,7 +506,7 @@
   <div class="scr-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:52px 0 80px;animation:slideInR .3s cubic-bezier(.2,.7,.2,1) both;">
 
     <div style="padding:0 22px 0;display:flex;align-items:center;gap:10px;">
-      <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 30% 110%,#1E9BD1 0%,#4F7CFF 48%,#9B5CFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
+      <div style="width:44px;height:44px;border-radius:14px;background:radial-gradient(circle at 28% 112%,#1E9BD1 0%,#4F7CFF 34%,#9B5CFF 86%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px -6px rgba(106,76,255,.4);">
         <span style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;">SSU</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:2px;">
@@ -455,8 +526,8 @@
       </div>
       <div style="min-width:0;">
         <span style="display:inline-block;font-size:12px;font-weight:800;color:#7C5CFF;background:#F1ECFF;padding:5px 11px;border-radius:9px;margin-bottom:7px;">컴퓨터학부</span>
-        <div style="font-size:26px;font-weight:800;letter-spacing:0px;line-height:1;">김종호<span style="font-size:18px;color:#8A8F9C;font-weight:700;letter-spacing:.5px;">님</span></div>
-        <div style="font-size:13px;color:#8A8F9C;font-weight:600;margin-top:7px;letter-spacing:.3px;">학번 <span style="color:#4F5566;font-weight:800;letter-spacing:1px;">20221488</span></div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:1px;line-height:1;">김종호<span style="font-size:18px;color:#8A8F9C;font-weight:700;letter-spacing:.5px;">님</span></div>
+        <div style="font-size:13px;color:#8A8F9C;font-weight:600;margin-top:7px;letter-spacing:.3px;">학번 <span style="color:#4F5566;font-weight:800;letter-spacing:.2px;">20221488</span></div>
       </div>
     </div>
 
@@ -642,9 +713,17 @@
     <div onClick="{{ stop }}" style="width:100%;max-width:330px;background:#fff;border-radius:26px;padding:22px 20px 18px;box-shadow:0 30px 70px -20px rgba(40,30,90,.55);animation:scaleIn .3s cubic-bezier(.2,.8,.2,1.3) both;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="font-size:18px;font-weight:800;letter-spacing:-.4px;">{{ pickerMonth }}</div>
-        <button onClick="{{ onClosePicker }}" style="width:34px;height:34px;border:none;border-radius:11px;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7180" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-        </button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button onClick="{{ onPrevMonth }}" style="width:34px;height:34px;border:none;border-radius:11px;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-active="transform:scale(.9);background:#E7E9F2;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4F5566" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <button onClick="{{ onNextMonth }}" style="width:34px;height:34px;border:none;border-radius:11px;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-active="transform:scale(.9);background:#E7E9F2;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4F5566" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+          <button onClick="{{ onClosePicker }}" style="width:34px;height:34px;border:none;border-radius:11px;background:#F2F3F8;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:2px;" style-active="transform:scale(.9);background:#E7E9F2;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7180" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:7px;">
         <span style="text-align:center;font-size:11.5px;font-weight:700;color:#E0436B;">일</span>
@@ -657,7 +736,7 @@
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
         <sc-for list="{{ pickerCells }}" as="c" hint-placeholder-count="35">
-          <button onClick="{{ c.onPick }}" style="{{ c.style }}">{{ c.day }}</button>
+          <button onClick="{{ c.onPick }}" style="{{ c.style }}" style-active="transform:scale(.84);">{{ c.day }}</button>
         </sc-for>
       </div>
     </div>
@@ -688,8 +767,12 @@ class Component extends DCLogic {
       { id:6, ord:20260225, tag:'catch', src:'SSU:Catch', cat:'채용', title:'[현장실습] 2026 하계 IT 직무 인턴십 사전 수요조사', body:'산학협력단에서 2026 하계 현장실습(인턴십) 참여를 위한 사전 수요조사를 실시합니다. IT·SW 직무 중심으로 다수 기업이 참여 예정이며, 학점 인정도 가능합니다…', date:'2026년 2월 25일 16:45' },
     ];
     this.state = {
-      screen: 'home',
+      screen: 'landing',
       windowStart: 6, // first day shown in date strip (Sep)
+      year: 2023,
+      month: 9,
+      pickerY: 2023,
+      pickerM: 9,
       dateIdx: 2,
       pickerOpen: false,
       roomId: null,
@@ -812,29 +895,44 @@ class Component extends DCLogic {
     this.setState({ bookings:[nb, ...this.state.bookings], screen:'success', tab:'active' });
   }
 
+  dows(){ return ['일','월','화','수','목','금','토']; }
+  daysIn(y,m){ return new Date(y, m, 0).getDate(); }
   dateList(){
-    const dows=['일','월','화','수','목','금','토'];
-    const s=this.state.windowStart; // Sep 1 2023 is Friday -> dow = (4+day)%7
+    const dows=this.dows();
+    const {year:y, month:m, windowStart:s} = this.state;
     const out=[];
-    for(let i=0;i<7;i++){ const day=s+i; out.push({ day, dow:dows[(4+day)%7] }); }
+    for(let i=0;i<7;i++){ const day=s+i; out.push({ day, dow:dows[new Date(y, m-1, day).getDay()] }); }
     return out;
   }
-  dateFull(){ const d=this.dateList()[this.state.dateIdx]; return '2023년 9월 '+d.day+'일('+d.dow+')'; }
+  dateFull(){ const d=this.dateList()[this.state.dateIdx]; return this.state.year+'년 '+this.state.month+'월 '+d.day+'일('+d.dow+')'; }
+  pickDay(y, m, d){
+    const dim=this.daysIn(y,m);
+    const s=Math.max(1, Math.min(dim-6, d-2));
+    this.setState({ year:y, month:m, windowStart:s, dateIdx:d-s, pickerOpen:false });
+  }
+  shiftPicker(delta){
+    let y=this.state.pickerY, m=this.state.pickerM + delta;
+    if(m<1){ m=12; y--; } if(m>12){ m=1; y++; }
+    this.setState({ pickerY:y, pickerM:m });
+  }
 
   renderVals(){
     const S=this.state;
     const screen=S.screen;
     const accent='linear-gradient(135deg,#4F7CFF,#9B5CFF)';
 
-    // ----- date picker (September 2023) -----
-    const selDay=this.dateList()[S.dateIdx].day;
+    // ----- date picker -----
+    const pY=S.pickerY, pM=S.pickerM;
+    const selDay = (S.year===pY && S.month===pM) ? this.dateList()[S.dateIdx].day : -1;
+    const lead = new Date(pY, pM-1, 1).getDay();
+    const dim = this.daysIn(pY, pM);
     const pickerCells=[];
-    for(let i=0;i<5;i++) pickerCells.push({ blank:true, day:'', onPick:null, style:'visibility:hidden;height:40px;' }); // Sep 1 is Friday
-    for(let d=1; d<=30; d++){
+    for(let i=0;i<lead;i++) pickerCells.push({ blank:true, day:'', onPick:null, style:'visibility:hidden;height:40px;' });
+    for(let d=1; d<=dim; d++){
       const on=d===selDay;
       pickerCells.push({ blank:false, day:String(d),
-        onPick:()=>{ const s=Math.max(1,Math.min(24,d-2)); this.setState({windowStart:s, dateIdx:d-s, pickerOpen:false}); },
-        style:`height:40px;border:none;border-radius:12px;cursor:pointer;font-size:14.5px;font-family:inherit;transition:transform .15s;font-weight:${on?'800':'600'};`+(on?'background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;box-shadow:0 8px 16px -6px rgba(106,76,255,.55);':'background:#F4F5FA;color:#3a3f4c;'),
+        onPick:()=>this.pickDay(pY, pM, d),
+        style:`height:40px;border:none;border-radius:12px;cursor:pointer;font-size:14.5px;font-family:inherit;transition:transform .12s ease;font-weight:${on?'800':'600'};`+(on?'background:linear-gradient(135deg,#4F7CFF,#9B5CFF);color:#fff;box-shadow:0 8px 16px -6px rgba(106,76,255,.55);':'background:#F4F5FA;color:#3a3f4c;'),
       });
     }
 
@@ -947,6 +1045,7 @@ class Component extends DCLogic {
 
     const sideNav='border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px 16px;transition:color .2s;';
     const isHome=screen==='home', isHist=screen==='history', isComing=screen==='coming', isMy=screen==='my', isNotices=screen==='notices';
+    const isLanding=screen==='landing', isTerms=screen==='terms', isLogin=screen==='login';
     const myHome=isNotices;
     const myMy=isMy;
 
@@ -980,6 +1079,23 @@ class Component extends DCLogic {
 
     return {
       isHome, isDetail:screen==='detail', isSuccess:screen==='success', isHistory:isHist, isComing, isMy, isNotices,
+      isLanding, isTerms, isLogin,
+      termsArticles: [
+        { h:'제1조 (목적)', b:'본 약관은 “SSUTODAY”(이하 “회사”)가 제공하는 “공지사항 확인 및 스터디룸 예약 서비스”(이하 “서비스”)의 이용 조건 및 절차에 관한 기본적인 사항을 규정합니다.' },
+        { h:'제2조 (이용자의 의무)', b:'1. 이용자는 본 약관에 따라 회사의 서비스를 이용함에 있어서 관련 법령 및 약관을 준수해야 합니다.\n2. 이용자는 본 서비스를 통해 게시되는 공지사항 및 안내사항을 주기적으로 확인하여야 합니다.' },
+        { h:'제3조 (서비스의 제공 및 변경)', b:'1. 회사는 이용자에게 공지사항 확인 및 스터디룸 예약 서비스를 제공합니다.\n2. 회사는 필요한 경우 사전 공지 후 서비스의 일부 혹은 전체 내용을 변경할 수 있습니다.' },
+        { h:'제4조 (이용계약의 성립)', b:'1. 서비스 이용을 희망하는 자는 회사의 신청서 양식에 따라 정보를 제공하여야 합니다.\n2. 회사는 이용 신청 정보의 정확성 및 확인을 위해 필요한 조치를 취할 수 있습니다.' },
+        { h:'제5조 (서비스의 제한 및 중단)', b:'1. 이용자가 약관 또는 관련 법령을 위반하거나, 서비스 이용에 지장을 초래하는 경우, 회사는 해당 이용자의 서비스 이용을 제한하거나 중단할 수 있습니다.\n2. 회사는 서비스 제공 중단 및 중단 예정에 대한 사항을 공지사항을 통해 사전에 알립니다.' },
+        { h:'제6조 (면책 조항)', b:'1. 회사는 천재지변, 정전, 시스템 오류 등 부득이한 사유로 인한 서비스 중단에 대해서는 책임을 지지 않습니다.\n2. 이용자의 귀책사유로 인한 서비스 이용의 어려움이나 손해에 대해서도 회사는 책임을 지지 않습니다.' },
+        { h:'제7조 (분쟁해결)', b:'본 약관에서 정하지 않은 사항 및 본 약관의 해석에 관하여는 대한민국의 관련 법령 및 상관례에 따릅니다.' },
+        { h:'제8조 (약관의 변경)', b:'회사는 필요한 경우 약관을 변경할 수 있으며, 변경된 약관은 공지사항을 통해 이용자에게 공지됩니다.' },
+        { h:'제9조 (기타)', b:'본 약관에 명시되지 않은 사항은 관련 법령 및 회사의 정책에 따릅니다.' },
+      ],
+      onStartLogin:()=>this.setState({screen:'terms'}),
+      onBackLanding:()=>this.setState({screen:'landing'}),
+      onAgreeTerms:()=>this.setState({screen:'login'}),
+      onBackTerms:()=>this.setState({screen:'terms'}),
+      onDoLogin:()=>this.setState({screen:'home'}),
       showNav: isHome || isComing || isMy || isNotices,
       comingTitle: '홈 화면 준비 중',
       feedItems, feedEmpty:feedItems.length===0,
@@ -1011,10 +1127,12 @@ class Component extends DCLogic {
       }}),
       dates, dateFull:this.dateFull(),
       pickerOpen: !!S.pickerOpen,
-      pickerMonth: '2023년 9월',
+      pickerMonth: S.pickerY+'년 '+S.pickerM+'월',
       pickerCells,
-      onOpenPicker:()=>this.setState({pickerOpen:true}),
+      onOpenPicker:()=>this.setState({pickerOpen:true, pickerY:S.year, pickerM:S.month}),
       onClosePicker:()=>this.setState({pickerOpen:false}),
+      onPrevMonth:()=>this.shiftPicker(-1),
+      onNextMonth:()=>this.shiftPicker(1),
       rooms,
       room:{ ...room, heroId:'hero-'+room.id, hourTicks },
       detailSlots, nowLeftDetail:Math.round((this.NOW_MIN-this.START_H*60)/30*62),

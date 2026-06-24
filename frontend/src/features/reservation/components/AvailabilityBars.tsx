@@ -25,6 +25,8 @@ export function AvailabilityBars({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const booked = bookedSlots(room);
   const width = large ? 58 : 17;
+  const gap = large ? 4 : 3;
+  const trackWidth = slotCount * width + (slotCount - 1) * gap;
 
   useEffect(() => {
     if (large || scrollLeft === undefined || !scrollerRef.current) {
@@ -46,7 +48,7 @@ export function AvailabilityBars({
       }}
       ref={scrollerRef}
     >
-      <div className={styles.track} style={{ width: large ? 1612 : 521 }}>
+      <div className={styles.track} style={{ width: trackWidth }}>
         <div className={large ? styles.largeBars : styles.bars}>
           {Array.from({ length: slotCount }, (_, index) => {
             const isBooked = booked.has(index);

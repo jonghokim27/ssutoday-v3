@@ -15,7 +15,7 @@
 }
 
 .item {
-  min-width: 52px;
+  width: 52px;
   height: 42px;
   border-radius: var(--radius-icon);
   color: var(--color-text-disabled);
@@ -30,6 +30,15 @@
     color 0.2s ease,
     transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.4),
     box-shadow 0.2s ease;
+}
+
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .item.active {
