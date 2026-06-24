@@ -8,9 +8,10 @@ type ReservedUserSheetProps = {
   onClose: () => void;
   onReport?: () => void;
   onAdminTool?: (type: 'reserveCancel' | 'photoDelete' | 'photoExecpt') => void;
+  onViewPhoto?: () => void;
 };
 
-export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport, onAdminTool }: ReservedUserSheetProps) {
+export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport, onAdminTool, onViewPhoto }: ReservedUserSheetProps) {
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.sheet} onClick={(event) => event.stopPropagation()}>
@@ -31,8 +32,9 @@ export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport,
           {isAdmin ? (
             <>
               <Button onClick={() => onAdminTool?.('reserveCancel')} type="button" variant="secondary">관리자 취소</Button>
-              <Button onClick={() => onAdminTool?.('photoDelete')} type="button" variant="secondary">사진 삭제</Button>
-              <Button onClick={() => onAdminTool?.('photoExecpt')} type="button" variant="secondary">사진 예외</Button>
+              <Button disabled={!booking.verifyPhotoUrl} onClick={() => onViewPhoto?.()} type="button" variant="secondary">인증샷 보기</Button>
+              <Button onClick={() => onAdminTool?.('photoDelete')} type="button" variant="secondary">인증샷 삭제</Button>
+              <Button onClick={() => onAdminTool?.('photoExecpt')} type="button" variant="secondary">인증샷 예외</Button>
             </>
           ) : (
             <></>

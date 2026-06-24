@@ -10,6 +10,7 @@ export type ReserveInRoom = {
   endBlock: number;
   studentInfo: StudentInfo;
   isMine?: boolean;
+  verifyPhotoUrl?: string;
   [key: string]: unknown;
 };
 

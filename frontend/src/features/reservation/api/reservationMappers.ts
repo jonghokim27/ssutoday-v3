@@ -23,6 +23,7 @@ export function roomSummaryToStudyRoom(room: RoomSummary | RoomDetail): StudyRoo
       department: departmentCodeToName(reserve.studentInfo.major),
       people: 0,
       isMine: reserve.isMine,
+      verifyPhotoUrl: reserve.verifyPhotoUrl ?? null,
     })),
   };
 }

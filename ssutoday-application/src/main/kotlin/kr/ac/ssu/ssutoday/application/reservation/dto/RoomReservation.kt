@@ -6,6 +6,7 @@ data class RoomReservation(
     val startBlock: Int,
     val endBlock: Int,
     val isMine: Boolean,
+    val verifyPhotoUrl: String?,
 ) {
     data class StudentInfo(
         val studentId: String,

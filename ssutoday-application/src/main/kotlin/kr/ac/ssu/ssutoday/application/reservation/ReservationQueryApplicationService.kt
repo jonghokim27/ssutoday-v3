@@ -104,6 +104,7 @@ class ReservationQueryApplicationService(
     ): List<RoomReservation> =
         reservationService.findAll(roomNo, date).map { reservation ->
             val student = studentService.get(reservation.studentId)
+            val verifyPhoto = verifyPhotoService.find(reservation.id)
             RoomReservation(
                 idx = reservation.id.takeIf { admin },
                 studentInfo =
@@ -123,6 +124,7 @@ class ReservationQueryApplicationService(
                 startBlock = reservation.startBlock,
                 endBlock = reservation.endBlock,
                 isMine = currentStudentId == reservation.studentId,
+                verifyPhotoUrl = if (admin) verifyPhoto?.url else null,
             )
         }
 

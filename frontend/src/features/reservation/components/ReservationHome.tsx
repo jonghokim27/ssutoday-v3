@@ -9,7 +9,7 @@ import { appStorage } from '../../../shared/storage/appStorage';
 import { reservationRepository } from '../api/reservationRepository';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
 import { todayString } from '../data/dates';
-import { studyRooms, type StudyRoom } from '../data/reservationData';
+import { type StudyRoom } from '../data/reservationData';
 import { DateStrip } from './DateStrip';
 import { DatePickerDialog } from './DatePickerDialog';
 import { StudyRoomCard } from './StudyRoomCard';
@@ -20,7 +20,7 @@ export function ReservationHome() {
   const [selectedDate, setSelectedDate] = useState(todayString);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [timebarScrollLeft, setTimebarScrollLeft] = useState<number | undefined>(undefined);
-  const [rooms, setRooms] = useState<StudyRoom[]>(studyRooms);
+  const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [name, setName] = useState('숭실인');
   const [loading, setLoading] = useState(true);
 

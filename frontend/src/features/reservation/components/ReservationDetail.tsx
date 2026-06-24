@@ -181,6 +181,14 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     await nativeBridge.openExternalUrl(createReportUrl(room.name, selectedDate, `${booking.start} ~ ${booking.end}`));
   }
 
+  async function viewVerifyPhoto(booking: TimeBooking) {
+    if (!booking.verifyPhotoUrl) {
+      return;
+    }
+
+    await nativeBridge.openExternalUrl(booking.verifyPhotoUrl);
+  }
+
   async function runAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking) {
     if (!booking.idx) {
       flash('예약 정보를 찾을 수 없어요');
@@ -265,6 +273,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           onAdminTool={(type) => void runAdminTool(type, reservedBooking)}
           onClose={() => setReservedBooking(null)}
           onReport={() => void reportBooking(reservedBooking)}
+          onViewPhoto={() => void viewVerifyPhoto(reservedBooking)}
         />
       ) : null}
       {pickerOpen ? (
