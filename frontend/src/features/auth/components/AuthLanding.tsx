@@ -10,7 +10,7 @@ export function AuthLanding() {
   return (
     <div className={styles.screen}>
       <section className={styles.brand}>
-        <img alt="SSUTODAY" src={ssutodayIcon} />
+        {/* <img alt="SSUTODAY" src={ssutodayIcon} /> */}
         <h1><span>SSU</span>TODAY</h1>
         <p>스터디룸 예약과 공지사항 확인을 한번에</p>
       </section>

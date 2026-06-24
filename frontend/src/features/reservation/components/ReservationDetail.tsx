@@ -5,6 +5,7 @@ import { Button } from '../../../shared/ui/Button';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
+import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
@@ -37,6 +38,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const [toast, setToast] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingRoom, setLoadingRoom] = useState(true);
 
   const summary = selection ? `${slotLabel(selection.start)} ~ ${slotLabel(selection.end + 1)}` : '시간대를 선택하세요';
 
@@ -50,12 +52,17 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
     async function loadRoom() {
       if (!roomId) {
+        setLoadingRoom(false);
         return;
       }
 
+      setLoadingRoom(true);
       const result = await reservationRepository.getRoom(selectedDate, roomId);
       if (mounted && result.ok) {
         setRoom(roomSummaryToStudyRoom(result.data.room));
+      }
+      if (mounted) {
+        setLoadingRoom(false);
       }
     }
 
@@ -157,15 +164,18 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       return;
     }
 
+    setSubmitting(true);
     const result = await reservationRepository.adminTool({ type, idx: booking.idx, text });
     flash(result.ok ? adminResultMessage(result.data) : result.message);
     setReservedBooking(null);
+    setSubmitting(false);
   }
 
   return (
     <div className={styles.screen}>
       <RoomHero room={room} onBack={() => navigate('/reservations')} />
       <section className={styles.content}>
+        {loadingRoom ? <LoadingState label="예약 정보를 불러오는 중" /> : null}
         <div className={styles.amenities}>
           {room.amenities.map((amenity) => (
             <Badge key={amenity}>{amenity}</Badge>
@@ -245,6 +255,11 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           }}
           title="이 시간으로 예약할까요?"
         />
+      ) : null}
+      {submitting ? (
+        <div className={styles.loadingOverlay}>
+          <LoadingState compact label="요청을 처리하는 중" />
+        </div>
       ) : null}
       <Toast message={toast} />
     </div>

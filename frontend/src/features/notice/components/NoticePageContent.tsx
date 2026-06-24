@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
+import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage, defaultProviders, type ArticleProvider } from '../../../shared/storage/appStorage';
@@ -18,6 +19,7 @@ export function NoticePageContent() {
   const [toast, setToast] = useState('');
   const [notices, setNotices] = useState<ArticleSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [opening, setOpening] = useState(false);
 
   const feed = useMemo(() => {
     return notices
@@ -70,13 +72,16 @@ export function NoticePageContent() {
   }
 
   async function openNotice(idx: number) {
+    setOpening(true);
     const result = await noticeRepository.get(idx);
     if (!result.ok) {
+      setOpening(false);
       flash(result.message);
       return;
     }
 
     await nativeBridge.openExternalUrl(decodeURIComponent(result.data.article.url));
+    setOpening(false);
   }
 
   return (
@@ -114,6 +119,7 @@ export function NoticePageContent() {
       </div>
 
       <section className={styles.feed}>
+        {loading ? <LoadingState label="공지사항을 불러오는 중" /> : null}
         {feed.map((notice) => (
           <NoticeItem
             isStarred={starred.includes(notice.idx)}
@@ -131,6 +137,11 @@ export function NoticePageContent() {
           />
         ) : null}
       </section>
+      {opening ? (
+        <div className={styles.loadingOverlay}>
+          <LoadingState compact label="공지사항을 여는 중" />
+        </div>
+      ) : null}
       <Toast message={toast} />
     </div>
   );

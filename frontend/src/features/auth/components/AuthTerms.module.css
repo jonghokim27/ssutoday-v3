@@ -58,18 +58,46 @@
 .termsBody {
   height: calc(100% - 34px);
   overflow-y: auto;
-  padding: var(--space-9) var(--space-8);
+  padding: var(--space-6) var(--space-8) var(--space-9);
   color: var(--color-text-secondary);
 }
 
 .termsBody h2 {
-  margin: 0 0 var(--space-7);
+  margin: 0 0 var(--space-2);
   color: var(--color-text-primary);
   font-size: var(--font-size-button);
   font-weight: var(--font-weight-extra-bold);
 }
 
+.termsGroup {
+  padding-bottom: var(--space-8);
+}
+
+.termsGroup + .termsGroup {
+  margin-top: var(--space-10);
+  padding-top: var(--space-9);
+  border-top: 1px solid #ecedf3;
+}
+
 .termsBody h3 {
+  margin: var(--space-2) 0 var(--space-4);
+  color: var(--color-text-primary);
+  font-size: 17px;
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.meta {
+  margin-bottom: var(--space-7);
+}
+
+.meta p {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+}
+
+.termsBody h4 {
   margin: var(--space-8) 0 var(--space-2);
   color: var(--color-text-primary);
   font-size: var(--font-size-body);
@@ -77,7 +105,7 @@
 }
 
 .termsBody p {
-  margin: 0;
+  margin: var(--space-2) 0 0;
   font-size: var(--font-size-body-sm);
   font-weight: var(--font-weight-regular);
   line-height: 1.65;

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthSession } from '../../../app/authSessionContext';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
+import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { authRepository } from '../../auth/api/authRepository';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage, type StoredProfile } from '../../../shared/storage/appStorage';
+import { departmentCodeToName } from '../../../shared/utils/department';
 import { appInfo, notificationRows, profile as fallbackProfile } from '../data/myPageData';
 import { deviceRepository, type NotificationOptions } from '../api/deviceRepository';
 import styles from './MyPageContent.module.css';
@@ -17,14 +20,17 @@ const GITHUB_URL = 'https://github.com/jonghokim27/ssutoday';
 
 export function MyPageContent() {
   const navigate = useNavigate();
+  const { setSession } = useAuthSession();
   const [devOpen, setDevOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [profile, setProfile] = useState<StoredProfile | null>(null);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [notifications, setNotifications] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(notificationRows.map((row) => [row.key, row.enabled])),
+    Object.fromEntries(notificationRows.map((row) => [row.key, false])),
   );
-  const allOn = Object.values(notifications).every(Boolean);
 
   useEffect(() => {
     let mounted = true;
@@ -37,12 +43,23 @@ export function MyPageContent() {
       }
 
       if (enabled === 'false') {
+        if (mounted) {
+          setNotificationEnabled(false);
+          setNotifications(allNotificationRows(false));
+          setLoadingOptions(false);
+        }
         return;
       }
 
+      if (mounted) {
+        setNotificationEnabled(true);
+      }
       const result = await deviceRepository.getOptions();
       if (mounted && result.ok) {
         setNotifications(optionsToRows(result.data));
+      }
+      if (mounted) {
+        setLoadingOptions(false);
       }
     }
 
@@ -54,11 +71,17 @@ export function MyPageContent() {
   }, []);
 
   async function toggle(key: string) {
+    if (!notificationEnabled) {
+      return;
+    }
+
     const next = !notifications[key];
+    setActionLoading(true);
     setNotifications((prev) => ({ ...prev, [key]: next }));
     const option = optionFromRowKey(key);
     const result = await deviceRepository.updateOption(option, next);
     if (!result.ok) {
+      setActionLoading(false);
       flash(result.message);
       return;
     }
@@ -70,17 +93,21 @@ export function MyPageContent() {
         await topicAction(profile.major);
       }
     }
+    setActionLoading(false);
   }
 
   async function toggleAll() {
-    const next = !allOn;
-    setNotifications(Object.fromEntries(notificationRows.map((row) => [row.key, next])));
+    const next = !notificationEnabled;
+    setActionLoading(true);
+    setNotificationEnabled(next);
+    setNotifications(allNotificationRows(next));
     await appStorage.setItem('notificationEnabled', next ? 'true' : 'false');
     if (next) {
       await deviceRepository.register();
     } else {
       await deviceRepository.unregister();
     }
+    setActionLoading(false);
   }
 
   function flash(message: string) {
@@ -89,6 +116,8 @@ export function MyPageContent() {
   }
 
   async function logout() {
+    setLogoutOpen(false);
+    setActionLoading(true);
     const enabled = await appStorage.getItem('notificationEnabled');
     if (enabled !== 'false') {
       await deviceRepository.unregister();
@@ -98,12 +127,12 @@ export function MyPageContent() {
     }
     await nativeBridge.unsubscribePushTopic('all');
     await authRepository.logout();
-    setLogoutOpen(false);
+    setSession('anonymous');
     navigate('/landing', { replace: true });
   }
 
   const displayProfile = {
-    department: profile?.major ?? fallbackProfile.department,
+    department: departmentCodeToName(profile?.major) || fallbackProfile.department,
     name: profile?.name ?? fallbackProfile.name,
     studentId: profile?.studentId ?? fallbackProfile.studentId,
   };
@@ -123,12 +152,13 @@ export function MyPageContent() {
       <section className={styles.card}>
         <div className={styles.cardTitle}>
           <strong>알림 설정</strong>
-          <Switch checked={allOn} onClick={() => void toggleAll()} />
+          <Switch checked={notificationEnabled} onClick={() => void toggleAll()} />
         </div>
-        {notificationRows.map((row) => (
-          <div className={styles.row} key={row.key}>
+        {loadingOptions ? <LoadingState compact label="알림 설정을 불러오는 중" /> : null}
+        {!loadingOptions && notificationRows.map((row) => (
+          <div className={[styles.row, !notificationEnabled ? styles.rowDisabled : ''].join(' ')} key={row.key}>
             <span>{row.label}</span>
-            <Switch checked={notifications[row.key]} onClick={() => void toggle(row.key)} />
+            <Switch checked={notificationEnabled && notifications[row.key]} disabled={!notificationEnabled} onClick={() => void toggle(row.key)} />
           </div>
         ))}
       </section>
@@ -171,6 +201,11 @@ export function MyPageContent() {
           tone="danger"
         />
       ) : null}
+      {actionLoading ? (
+        <div className={styles.loadingOverlay}>
+          <LoadingState compact label="요청을 처리하는 중" />
+        </div>
+      ) : null}
       <Toast message={toast} />
     </div>
   );
@@ -184,6 +219,10 @@ function optionsToRows(options: NotificationOptions) {
   };
 }
 
+function allNotificationRows(value: boolean) {
+  return Object.fromEntries(notificationRows.map((row) => [row.key, value]));
+}
+
 function optionFromRowKey(key: string): keyof NotificationOptions {
   if (key === 'reservation') return 'reserve';
   if (key === 'lms') return 'lms';
@@ -192,12 +231,13 @@ function optionFromRowKey(key: string): keyof NotificationOptions {
 
 type SwitchProps = {
   checked: boolean;
+  disabled?: boolean;
   onClick: () => void;
 };
 
-function Switch({ checked, onClick }: SwitchProps) {
+function Switch({ checked, disabled = false, onClick }: SwitchProps) {
   return (
-    <button className={[styles.switch, checked ? styles.switchOn : ''].join(' ')} onClick={onClick} type="button">
+    <button className={[styles.switch, checked ? styles.switchOn : ''].join(' ')} disabled={disabled} onClick={onClick} type="button">
       <span />
     </button>
   );
