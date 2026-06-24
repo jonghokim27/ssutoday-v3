@@ -159,7 +159,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       return;
     }
 
-    const text = type === 'reserveCancel' ? window.prompt('취소 사유를 입력하세요') : null;
+    const text = type === 'reserveCancel' ? window.prompt('예약 취소 사유를 입력해 주세요.', '인증샷으로 입실을 확인할 수 없음') : null;
     if (type === 'reserveCancel' && !text) {
       return;
     }
@@ -190,7 +190,15 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
         </div>
         <p className={styles.guide}>한 칸은 30분입니다. 예약된 시간은 선택할 수 없어요.</p>
 
-        <AvailabilityBars large onSlotClick={handleSlotClick} room={room} selectedEnd={selection?.end ?? null} selectedStart={selection?.start ?? null} />
+        <AvailabilityBars
+          date={selectedDate}
+          large
+          onCurrentSlotClick={() => flash('이미 진행 중인 시간을 선택했어요. 일부만 사용해도 하루 최대 예약 가능 시간은 동일하게 차감돼요.')}
+          onSlotClick={handleSlotClick}
+          room={room}
+          selectedEnd={selection?.end ?? null}
+          selectedStart={selection?.start ?? null}
+        />
 
         <div className={styles.legend}>
           <span><i className={styles.booked} /> 예약됨</span>

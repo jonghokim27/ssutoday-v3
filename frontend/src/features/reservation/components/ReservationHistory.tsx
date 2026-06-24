@@ -17,6 +17,7 @@ export function ReservationHistory() {
   const [tab, setTab] = useState<'active' | 'done'>('active');
   const [items, setItems] = useState<HistoryViewItem[]>([]);
   const [cancelTarget, setCancelTarget] = useState<HistoryViewItem | null>(null);
+  const [doneTarget, setDoneTarget] = useState<HistoryViewItem | null>(null);
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -36,7 +37,7 @@ export function ReservationHistory() {
     const [active, done] = await Promise.all([reservationRepository.listReserves(1, 1), reservationRepository.listReserves(0, 1)]);
     const next = [
       ...(active.ok ? active.data.reserves.map(reserveToHistoryView) : []),
-      ...(done.ok ? done.data.reserves.map((item) => ({ ...reserveToHistoryView(item), kind: 'done' as const, status: '이용 완료' as const })) : []),
+      ...(done.ok ? done.data.reserves.map(reserveToHistoryView) : []),
     ];
     setItems(next);
     setLoading(false);
@@ -48,13 +49,28 @@ export function ReservationHistory() {
     setCancelTarget(null);
     if (!result.ok) {
       setActionLoading(false);
-      flash(result.message);
+      flash(cancelFailureMessage(result.statusCode, result.message));
       return;
     }
 
     await loadItems();
     setActionLoading(false);
     flash('예약이 취소됐어요');
+  }
+
+  async function doneReserve(item: HistoryViewItem) {
+    setActionLoading(true);
+    const result = await reservationRepository.doneReserve(item.id);
+    setDoneTarget(null);
+    if (!result.ok) {
+      setActionLoading(false);
+      flash(doneFailureMessage(result.statusCode, result.message));
+      return;
+    }
+
+    await loadItems();
+    setActionLoading(false);
+    flash('이용을 종료했어요');
   }
 
   async function shootPhoto(item: HistoryViewItem) {
@@ -91,28 +107,46 @@ export function ReservationHistory() {
               <dl className={styles.details}>
                 <div><dt>시설명</dt><dd>{item.room}</dd></div>
                 <div><dt>이용 시간</dt><dd>{item.time} <span>({item.duration})</span></dd></div>
+                {item.deletedReason ? <div><dt>취소 구분</dt><dd>{item.deletedReason.replace('(', '\n(')}</dd></div> : null}
               </dl>
             </div>
             <div className={styles.actions}>
               <div className={styles.statusCell}>
-                <Badge tone={item.status === '이용 대기' ? 'purple' : 'gray'}>{item.status}</Badge>
+                <Badge tone={statusTone(item.state)}>{item.status}</Badge>
+                {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
               </div>
-              {item.kind === 'active' && !item.verifyPhotoUrl && !item.isContinuous ? (
-                <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
-                  인증샷 촬영<span>촬영 기한: 곧 마감</span>
+              {item.canDone ? (
+                <button className={styles.primaryAction} onClick={() => setDoneTarget(item)} type="button">
+                  이용 종료<span>종료하려면 선택</span>
                 </button>
               ) : null}
-              {item.verifyPhotoUrl ? (
-                <button className={styles.shotButton} onClick={() => void nativeBridge.openExternalUrl(item.verifyPhotoUrl ?? '')} type="button">
-                  인증샷 보기
+              {item.canShootPhoto ? (
+                <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
+                  <span className={styles.blinkAction}>인증샷 촬영<i /></span>
+                  <span>촬영 기한: {item.shotDeadline} 까지</span>
                 </button>
+              ) : null}
+              {item.photoExempted ? (
+                <div className={styles.actionInfo}>
+                  인증샷 촬영<span>촬영이 면제됨</span>
+                </div>
+              ) : null}
+              {item.canViewPhoto ? (
+                <button className={styles.shotButton} onClick={() => void nativeBridge.openExternalUrl(item.verifyPhotoUrl ?? '')} type="button">
+                  인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
+                </button>
+              ) : null}
+              {item.photoMissing ? (
+                <div className={styles.actionInfo}>
+                  인증샷 보기<span>촬영되지 않음</span>
+                </div>
               ) : null}
               {item.cancelable ? <button className={styles.danger} onClick={() => setCancelTarget(item)} type="button">예약 취소</button> : null}
-              {item.kind === 'done' ? <Link className={styles.rebook} to="/reservations">다시 예약</Link> : null}
+              {item.canRebook ? <Link className={styles.rebook} to={`/reservations/${item.roomNo}?date=${item.rawDate}`}>다시 예약하기</Link> : null}
             </div>
           </article>
         ))}
-        {shown.length === 0 ? <div className={styles.empty}>표시할 예약이 없어요</div> : null}
+        {!loading && shown.length === 0 ? <div className={styles.empty}>표시할 예약이 없어요</div> : null}
       </section>
       {actionLoading ? (
         <div className={styles.loadingOverlay}>
@@ -137,7 +171,46 @@ export function ReservationHistory() {
           tone="danger"
         />
       ) : null}
+      {doneTarget ? (
+        <ConfirmDialog
+          confirmLabel="이용 종료"
+          details={[
+            { label: '스터디룸', value: doneTarget.room },
+            { label: '날짜', value: doneTarget.date },
+            { label: '시간', value: doneTarget.time },
+          ]}
+          icon="check"
+          message="종료 후에는 취소할 수 없어요. 최소 30분 이상 이용한 경우에만 종료할 수 있어요."
+          onCancel={() => setDoneTarget(null)}
+          onConfirm={() => {
+            void doneReserve(doneTarget);
+          }}
+          title="이용을 종료할까요?"
+        />
+      ) : null}
       <Toast message={toast} />
     </div>
   );
+}
+
+function statusTone(state: HistoryViewItem['state']) {
+  if (state === 'cancelled') return 'red';
+  if (state === 'waiting') return 'purple';
+  if (state === 'using') return 'blue';
+  return 'green';
+}
+
+function cancelFailureMessage(statusCode: string, fallback: string) {
+  if (statusCode === 'SSU4141' || statusCode === 'SSU4142') return '이미 이용이 완료된 예약이에요.';
+  if (statusCode === 'SSU4143') return '현재 이용중인 예약이에요.';
+  return fallback;
+}
+
+function doneFailureMessage(statusCode: string, fallback: string) {
+  if (statusCode === 'SSU4231' || statusCode === 'SSU4232') return '이미 이용이 완료된 예약이에요.';
+  if (statusCode === 'SSU4233') return '아직 이용을 시작하지 않은 예약이에요.';
+  if (statusCode === 'SSU4234') return '이용 종료는 최소 30분 이상 이용하신 경우에만 가능해요.';
+  if (statusCode === 'SSU4235') return '인증샷을 먼저 촬영해주세요.';
+  if (statusCode === 'SSU4236') return '이용 종료 시간에 근접하여 이용을 종료할 수 없어요.';
+  return fallback;
 }

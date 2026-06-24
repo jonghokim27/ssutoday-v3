@@ -322,6 +322,28 @@
   justify-content: center;
 }
 
+.topButton {
+  position: fixed;
+  right: max(18px, calc((100vw - 402px) / 2 + 18px));
+  bottom: calc(var(--space-bottom-nav-height) + var(--space-8));
+  z-index: 80;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-gradient);
+  color: var(--color-surface-base);
+  box-shadow: 0 14px 24px -14px rgba(106, 76, 255, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
+}
+
+.topIcon {
+  transform: rotate(180deg);
+}
+
 @keyframes starPop {
   60% {
     transform: scale(1.4);

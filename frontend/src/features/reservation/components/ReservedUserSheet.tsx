@@ -30,14 +30,15 @@ export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport,
         </dl>
         <p className={styles.help}>개인정보 보호를 위해 이름과 학번 일부가 마스킹되어 표시됩니다.</p>
         <div className={styles.actions}>
-          <Button onClick={onReport} type="button" variant="secondary">신고하기</Button>
           {isAdmin ? (
             <>
               <Button onClick={() => onAdminTool?.('reserveCancel')} type="button" variant="secondary">관리자 취소</Button>
               <Button onClick={() => onAdminTool?.('photoDelete')} type="button" variant="secondary">사진 삭제</Button>
               <Button onClick={() => onAdminTool?.('photoExecpt')} type="button" variant="secondary">사진 예외</Button>
             </>
-          ) : null}
+          ) : (
+            <Button onClick={onReport} type="button" variant="secondary">신고하기</Button>
+          )}
         </div>
         <Button onClick={onClose} type="button" variant="secondary">닫기</Button>
       </div>

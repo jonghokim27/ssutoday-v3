@@ -161,7 +161,8 @@
 
 .statusCell,
 .actions > button,
-.actions > a {
+.actions > a,
+.actionInfo {
   flex: 1;
   min-width: 0;
   min-height: 50px;
@@ -178,26 +179,59 @@
 }
 
 .actions > button,
-.actions > a {
+.actions > a,
+.actionInfo {
   border-left: 1px solid var(--color-border-subtle);
 }
 
 .actions > button:first-child,
-.actions > a:first-child {
+.actions > a:first-child,
+.actionInfo:first-child {
   border-left: 0;
 }
 
+.statusCell,
 .shotButton {
   flex-direction: column;
   gap: 2px;
 }
 
-.actions .shotButton span {
+.statusCell > span,
+.actions .shotButton span,
+.actionInfo span,
+.primaryAction span {
   display: block;
   color: #9aa0ad;
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-medium);
   line-height: 1.2;
+}
+
+.actionInfo {
+  color: var(--color-text-secondary);
+  flex-direction: column;
+}
+
+.primaryAction {
+  color: var(--color-brand-blue);
+  flex-direction: column;
+}
+
+.blinkAction {
+  color: var(--color-text-primary) !important;
+  display: inline-flex !important;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  font-weight: var(--font-weight-extra-bold) !important;
+  animation: blinkAction 1.5s ease-in-out infinite;
+}
+
+.blinkAction i {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
 }
 
 .actions .danger {
@@ -225,4 +259,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@keyframes blinkAction {
+  50% {
+    opacity: 0.35;
+  }
 }

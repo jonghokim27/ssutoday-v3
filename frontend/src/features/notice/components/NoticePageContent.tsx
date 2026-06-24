@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
@@ -6,20 +6,29 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage, defaultProviders, type ArticleProvider } from '../../../shared/storage/appStorage';
+import { formatKoreanDateTime } from '../../../shared/utils/date';
+import { departmentCodeToName } from '../../../shared/utils/department';
 import { noticeRepository, type ArticleSummary } from '../api/noticeRepository';
-import { noticeSources } from '../data/notices';
 import styles from './NoticePageContent.module.css';
 
 export function NoticePageContent() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const loadingMoreRef = useRef(false);
+  const noticesLengthRef = useRef(0);
+  const totalPagesRef = useRef(0);
   const [query, setQuery] = useState('');
-  const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [selectedProviders, setSelectedProviders] = useState<ArticleProvider[]>(defaultProviders);
+  const [majorLabel, setMajorLabel] = useState('학부 공지');
   const [starredOnly, setStarredOnly] = useState(false);
   const [starred, setStarred] = useState<number[]>([1]);
   const [latest, setLatest] = useState(true);
   const [toast, setToast] = useState('');
   const [notices, setNotices] = useState<ArticleSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [opening, setOpening] = useState(false);
+  const [page, setPage] = useState(0);
+  const [showTopButton, setShowTopButton] = useState(false);
 
   const feed = useMemo(() => {
     return notices
@@ -27,40 +36,53 @@ export function NoticePageContent() {
       .sort((a, b) => (latest ? b.idx - a.idx : a.idx - b.idx));
   }, [latest, notices, starred, starredOnly]);
 
-  useEffect(() => {
-    let mounted = true;
+  const loadNotices = useCallback(
+    async (nextPage: number, append = false) => {
+      if (append) {
+        if (loadingMoreRef.current || (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) || noticesLengthRef.current < 20) {
+          return;
+        }
 
-    async function load() {
-      setLoading(true);
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setPage(0);
+        totalPagesRef.current = 0;
+      }
+
       const storedProviders = await appStorage.getProviders();
-      const provider =
-        selectedSource === 'all'
-          ? storedProviders ?? defaultProviders
-          : [providerFromLabel(selectedSource)];
+      const provider = selectedProviders.length > 0 ? selectedProviders : storedProviders ?? defaultProviders;
       await appStorage.setProviders(provider);
       const result = await noticeRepository.list({
-        page: 1,
+        page: nextPage,
         orderBy: latest ? 'DESC' : 'ASC',
         search: query,
         provider,
       });
-      if (!mounted) {
-        return;
-      }
+
       if (result.ok) {
-        setNotices(result.data.articles);
+        setNotices((prev) => {
+          const next = append ? [...prev, ...result.data.articles] : result.data.articles;
+          noticesLengthRef.current = next.length;
+          return next;
+        });
+        totalPagesRef.current = result.data.totalPages;
+        setPage(nextPage);
       } else {
         flash(result.message);
       }
+
       setLoading(false);
-    }
+      setLoadingMore(false);
+      loadingMoreRef.current = false;
+    },
+    [latest, query, selectedProviders],
+  );
 
-    void load();
-
-    return () => {
-      mounted = false;
-    };
-  }, [latest, query, selectedSource]);
+  useEffect(() => {
+    void loadNotices(0);
+  }, [loadNotices]);
 
   function toggleStar(id: number) {
     setStarred((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -69,6 +91,30 @@ export function NoticePageContent() {
   function flash(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(''), 1700);
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    void Promise.all([appStorage.getProviders(), appStorage.getProfile()]).then(([providers, profile]) => {
+      if (!mounted) {
+        return;
+      }
+
+      setSelectedProviders(providers);
+      setMajorLabel(departmentCodeToName(profile?.major) || '학부 공지');
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function toggleProvider(provider: ArticleProvider) {
+    const next = selectedProviders.includes(provider)
+      ? selectedProviders.filter((item) => item !== provider)
+      : [...selectedProviders, provider];
+    setSelectedProviders(next);
+    await appStorage.setProviders(next);
   }
 
   async function openNotice(idx: number) {
@@ -84,8 +130,22 @@ export function NoticePageContent() {
     setOpening(false);
   }
 
+  function handleScroll() {
+    const screen = screenRef.current;
+    if (!screen) {
+      return;
+    }
+
+    setShowTopButton(screen.scrollTop >= 120);
+
+    const distanceToBottom = screen.scrollHeight - screen.scrollTop - screen.clientHeight;
+    if (distanceToBottom <= 50) {
+      void loadNotices(page + 1, true);
+    }
+  }
+
   return (
-    <div className={styles.screen}>
+    <div className={styles.screen} onScroll={handleScroll} ref={screenRef}>
       <div className={styles.header}>
         <BrandHeader
           action={
@@ -105,14 +165,12 @@ export function NoticePageContent() {
             <Icon name="star" width="13" height="13" /> 별표 {starred.length}
           </button>
           <span className={styles.divider} />
-          <button className={selectedSource === 'all' ? styles.filterOn : styles.filter} onClick={() => setSelectedSource('all')}>전체</button>
-          {noticeSources.map((source) => (
-            <button
-              className={selectedSource === source ? styles.filterOn : styles.filter}
-              key={source}
-              onClick={() => setSelectedSource(source)}
-            >
-              {source}
+          <button className={selectedProviders.length === defaultProviders.length ? styles.filterOn : styles.filter} onClick={() => setSelectedProviders(defaultProviders)}>
+            전체
+          </button>
+          {defaultProviders.map((provider) => (
+            <button className={selectedProviders.includes(provider) ? styles.filterOn : styles.filter} key={provider} onClick={() => void toggleProvider(provider)}>
+              {provider === 'major' ? majorLabel : providerLabel(provider)}
             </button>
           ))}
         </div>
@@ -136,7 +194,18 @@ export function NoticePageContent() {
             subMessage={starredOnly ? '공지의 별표를 눌러 모아볼 수 있어요' : '검색어와 필터를 다시 확인해 주세요'}
           />
         ) : null}
+        {loadingMore ? <LoadingState compact label="공지사항을 더 불러오는 중" /> : null}
       </section>
+      {showTopButton ? (
+        <button
+          className={styles.topButton}
+          onClick={() => screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          type="button"
+          aria-label="맨 위로 이동"
+        >
+          <Icon className={styles.topIcon} name="arrowDown" />
+        </button>
+      ) : null}
       {opening ? (
         <div className={styles.loadingOverlay}>
           <LoadingState compact label="공지사항을 여는 중" />
@@ -264,7 +333,7 @@ function NoticeItem({ notice, isStarred, onOpen, onToggleStar }: NoticeItemProps
         <span className={styles.title}>{notice.title}</span>
         <span className={styles.body}>{notice.content}</span>
         <span className={styles.footer}>
-          <span>{notice.createdAt}</span>
+          <span>{formatKoreanDateTime(notice.createdAt)}</span>
           <strong>{providerLabel(notice.provider)}</strong>
         </span>
       </button>
@@ -278,16 +347,10 @@ function toneByCategory(category: string) {
   return 'blue';
 }
 
-function providerFromLabel(label: string): ArticleProvider {
-  if (label === 'SSU:Catch') return 'ssuCatch';
-  if (label === '총학생회') return 'stu';
-  if (label === '사용자 학부 공지') return 'major';
-  return label;
-}
-
 function providerLabel(provider: string) {
+  if (provider === 'ssucatch') return 'SSU:Catch';
   if (provider === 'ssuCatch') return 'SSU:Catch';
   if (provider === 'stu') return '총학생회';
   if (provider === 'major') return '사용자 학부 공지';
-  return provider;
+  return departmentCodeToName(provider) || provider;
 }
