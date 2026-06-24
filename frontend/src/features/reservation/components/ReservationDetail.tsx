@@ -8,7 +8,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { openLink } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
@@ -178,7 +178,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   }
 
   async function reportBooking(booking: TimeBooking) {
-    await nativeBridge.openExternalUrl(createReportUrl(room.name, selectedDate, `${booking.start} ~ ${booking.end}`));
+    await openLink(createReportUrl(room.name, selectedDate, `${booking.start} ~ ${booking.end}`));
   }
 
   async function viewVerifyPhoto(booking: TimeBooking) {
@@ -186,7 +186,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       return;
     }
 
-    await nativeBridge.openExternalUrl(booking.verifyPhotoUrl);
+    await openLink(booking.verifyPhotoUrl);
   }
 
   async function runAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking) {

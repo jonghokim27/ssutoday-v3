@@ -83,3 +83,16 @@ class MockNativeBridge implements NativeBridge {
 }
 
 export const nativeBridge: NativeBridge = new MockNativeBridge();
+
+function isNativeApp() {
+  return navigator.userAgent.startsWith('SSUTODAY');
+}
+
+export async function openLink(url: string) {
+  if (isNativeApp()) {
+    await nativeBridge.openExternalUrl(url);
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
