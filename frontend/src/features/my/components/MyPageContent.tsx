@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthSession } from '../../../app/authSessionContext';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
@@ -20,6 +21,7 @@ const GITHUB_URL = 'https://github.com/jonghokim27/ssutoday';
 
 export function MyPageContent() {
   const navigate = useNavigate();
+  const safePath = useSafeAreaPath();
   const { setSession } = useAuthSession();
   const [devOpen, setDevOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -128,7 +130,7 @@ export function MyPageContent() {
     await nativeBridge.unsubscribePushTopic('all');
     await authRepository.logout();
     setSession('anonymous');
-    navigate('/landing', { replace: true });
+    navigate(safePath('/landing'), { replace: true });
   }
 
   const displayProfile = {

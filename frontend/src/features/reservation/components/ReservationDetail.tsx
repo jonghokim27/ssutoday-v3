@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '../../../shared/ui/Badge';
 import { Button } from '../../../shared/ui/Button';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
@@ -26,6 +27,7 @@ type ReservationDetailProps = {
 
 export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const navigate = useNavigate();
+  const safePath = useSafeAreaPath();
   const [searchParams] = useSearchParams();
   const fallbackRoom = useMemo(() => studyRooms.find((item) => item.id === roomId) ?? studyRooms[0], [roomId]);
   const [room, setRoom] = useState<StudyRoom>(fallbackRoom);
@@ -90,7 +92,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   function handleSlotClick(index: number, booking?: TimeBooking) {
     if (booking) {
       if (booking.isMine) {
-        navigate('/reservations/history');
+        navigate(safePath('/reservations/history'));
         return;
       }
       setReservedBooking(booking);
@@ -131,13 +133,13 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     });
     if (!requested.ok) {
       setSubmitting(false);
-      navigate('/reservations/success', { state: { ok: false, message: requested.message } });
+      navigate(safePath('/reservations/success'), { state: { ok: false, message: requested.message } });
       return;
     }
 
     const status = await pollReserveStatus(requested.data.idx);
     setSubmitting(false);
-    navigate('/reservations/success', {
+    navigate(safePath('/reservations/success'), {
       state: {
         ok: status === 1,
         status,
@@ -173,7 +175,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
   return (
     <div className={styles.screen}>
-      <RoomHero room={room} onBack={() => navigate('/reservations')} />
+      <RoomHero room={room} onBack={() => navigate(safePath('/reservations'))} />
       <section className={styles.content}>
         {loadingRoom ? <LoadingState label="예약 정보를 불러오는 중" /> : null}
         <div className={styles.amenities}>

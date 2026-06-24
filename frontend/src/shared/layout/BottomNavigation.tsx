@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useSafeAreaPath } from '../routing/safeAreaParams';
 import { Icon, type IconName } from '../ui/Icon';
 import styles from './BottomNavigation.module.css';
 
@@ -9,6 +10,8 @@ const navItems = [
 ] satisfies Array<{ to: string; label: string; icon: IconName; primary?: boolean }>;
 
 export function BottomNavigation() {
+  const safePath = useSafeAreaPath();
+
   return (
     <nav className={styles.nav} aria-label="주요 메뉴">
       {navItems.map((item) => (
@@ -19,7 +22,7 @@ export function BottomNavigation() {
               .join(' ')
           }
           key={item.to}
-          to={item.to}
+          to={safePath(item.to)}
         >
           <Icon name={item.icon} />
           <span className={styles.label}>{item.label}</span>

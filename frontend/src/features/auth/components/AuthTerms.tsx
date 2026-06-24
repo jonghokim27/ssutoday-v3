@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../shared/ui/Button';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { getSsoLoginUrl } from '../config/sso';
@@ -136,6 +137,7 @@ const termsGroups = [
 
 export function AuthTerms() {
   const navigate = useNavigate();
+  const safePath = useSafeAreaPath();
   const [redirecting, setRedirecting] = useState(false);
 
   function redirectToSso() {
@@ -148,7 +150,7 @@ export function AuthTerms() {
   return (
     <div className={styles.screen}>
       <header className={styles.topbar}>
-        <IconButton aria-label="뒤로가기" onClick={() => navigate('/landing')} type="button"><Icon name="arrowLeft" /></IconButton>
+        <IconButton aria-label="뒤로가기" onClick={() => navigate(safePath('/landing'))} type="button"><Icon name="arrowLeft" /></IconButton>
       </header>
       <section className={styles.headline}>
         <h1>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { SafeAreaNavigate } from '../shared/routing/SafeAreaNavigate';
 import { LoadingState } from '../shared/ui/LoadingState';
 import { useAuthSession } from './authSessionContext';
 import styles from './routeGuards.module.css';
@@ -16,7 +17,7 @@ export function ProtectedRoute() {
   }, [hasTokens, session, setSession]);
 
   if (!hasTokens) {
-    return <Navigate to="/landing" replace state={{ from: location.pathname }} />;
+    return <SafeAreaNavigate to="/landing" replace state={{ from: location.pathname }} />;
   }
 
   if (session === 'checking') {
@@ -24,7 +25,7 @@ export function ProtectedRoute() {
   }
 
   if (session === 'anonymous') {
-    return <Navigate to="/landing" replace state={{ from: location.pathname }} />;
+    return <SafeAreaNavigate to="/landing" replace state={{ from: location.pathname }} />;
   }
 
   return <Outlet />;
@@ -39,7 +40,7 @@ export function PublicOnlyRoute() {
   }
 
   if (session === 'authenticated') {
-    return <Navigate to="/reservations" replace />;
+    return <SafeAreaNavigate to="/reservations" replace />;
   }
 
   return <Outlet />;

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { Card } from '../../../shared/ui/Card';
 import { bookedSlots, slotCount } from '../data/time';
@@ -14,11 +15,13 @@ type StudyRoomCardProps = {
 };
 
 export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }: StudyRoomCardProps) {
+  const safePath = useSafeAreaPath();
   const freeCount = slotCount - bookedSlots(room).size;
   const busy = freeCount < slotCount * 0.45;
+  const roomPath = date ? `/reservations/${room.id}?date=${date}` : `/reservations/${room.id}`;
 
   return (
-    <Link to={date ? `/reservations/${room.id}?date=${date}` : `/reservations/${room.id}`}>
+    <Link to={safePath(roomPath)}>
       <Card>
         <div className={styles.head}>
           <img alt={room.name} className={styles.thumb} src={room.thumbnail} />
