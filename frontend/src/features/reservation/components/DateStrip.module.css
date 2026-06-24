@@ -9,7 +9,7 @@
   overflow-x: auto;
   display: flex;
   gap: 9px;
-  padding: var(--space-6) var(--space-screen-x) var(--space-4);
+  padding: var(--space-5) var(--space-screen-x) var(--space-5);
   scrollbar-width: none;
 }
 
@@ -54,9 +54,11 @@
 
 .active {
   color: var(--color-surface-base);
-  background: var(--color-brand-gradient);
-  box-shadow: 0 12px 26px -10px rgba(106, 76, 255, 0.6);
-  transform: translateY(-2px) scale(1.04);
+  background: linear-gradient(135deg, #4f7cff 0%, #755dff 58%, #9b5cff 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 8px 14px -10px rgba(106, 76, 255, 0.58);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .active span {

@@ -10,8 +10,10 @@
     border-color 0.18s ease;
 }
 
-.card:hover {
-  border-color: #dcd9fb;
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: #dcd9fb;
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+  }
 }

@@ -213,8 +213,10 @@
     background 0.18s ease;
 }
 
-.item:hover {
-  background: #fbfcff;
+@media (hover: hover) and (pointer: fine) {
+  .item:hover {
+    background: #fbfcff;
+  }
 }
 
 .feed > *:nth-child(1) {
