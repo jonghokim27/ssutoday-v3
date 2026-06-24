@@ -1,0 +1,114 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  padding: 30px;
+  background: rgba(15, 18, 34, 0.42);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease both;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--radius-dialog);
+  background: var(--color-surface-base);
+  box-shadow: var(--shadow-dialog);
+  padding: 26px 22px 20px;
+  animation: scaleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.3) both;
+}
+
+.icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto var(--space-8);
+  border-radius: var(--radius-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primary {
+  color: var(--color-brand-blue);
+  background: rgba(79, 124, 255, 0.1);
+}
+
+.danger {
+  color: var(--color-danger);
+  background: rgba(255, 77, 99, 0.1);
+}
+
+.dialog h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  text-align: center;
+  font-size: var(--font-size-dialog-title);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.5px;
+}
+
+.dialog p {
+  margin: 11px 4px 0;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.55;
+}
+
+.textarea {
+  width: 100%;
+  margin-top: var(--space-9);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  background: var(--color-surface-panel);
+  padding: var(--space-7) var(--space-8);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  resize: none;
+}
+
+.textarea:focus {
+  outline: 0;
+  border-color: var(--color-brand-blue);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-placeholder);
+  font-weight: var(--font-weight-regular);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-5);
+  margin-top: var(--space-11);
+}
+
+.actions button {
+  flex: 1;
+  min-width: 0;
+}
+
+.dangerButton {
+  background: linear-gradient(135deg, #ff6b7e, #ff4d63);
+  box-shadow: 0 12px 24px -10px rgba(255, 77, 99, 0.55);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
