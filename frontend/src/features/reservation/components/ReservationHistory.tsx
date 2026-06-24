@@ -1,23 +1,58 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { Toast } from '../../../shared/ui/Toast';
-import { reservationHistory, type ReservationHistoryItem } from '../data/reservationData';
+import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { reserveToHistoryView } from '../api/reservationMappers';
+import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
+
+type HistoryViewItem = ReturnType<typeof reserveToHistoryView>;
 
 export function ReservationHistory() {
   const [tab, setTab] = useState<'active' | 'done'>('active');
-  const [items, setItems] = useState(reservationHistory);
-  const [cancelTarget, setCancelTarget] = useState<ReservationHistoryItem | null>(null);
+  const [items, setItems] = useState<HistoryViewItem[]>([]);
+  const [cancelTarget, setCancelTarget] = useState<HistoryViewItem | null>(null);
   const [toast, setToast] = useState('');
   const shown = items.filter((item) => item.kind === tab);
+
+  useEffect(() => {
+    void loadItems();
+  }, []);
 
   function flash(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(''), 1700);
+  }
+
+  async function loadItems() {
+    const [active, done] = await Promise.all([reservationRepository.listReserves(1, 1), reservationRepository.listReserves(0, 1)]);
+    const next = [
+      ...(active.ok ? active.data.reserves.map(reserveToHistoryView) : []),
+      ...(done.ok ? done.data.reserves.map((item) => ({ ...reserveToHistoryView(item), kind: 'done' as const, status: '이용 완료' as const })) : []),
+    ];
+    setItems(next);
+  }
+
+  async function cancelReserve(item: HistoryViewItem) {
+    const result = await reservationRepository.cancelReserve(item.id);
+    setCancelTarget(null);
+    if (!result.ok) {
+      flash(result.message);
+      return;
+    }
+
+    await loadItems();
+    flash('예약이 취소됐어요');
+  }
+
+  async function shootPhoto(item: HistoryViewItem) {
+    const result = await reservationRepository.uploadVerifyPhoto(item.id);
+    flash(result.ok ? '인증샷을 업로드했어요' : result.message);
+    await loadItems();
   }
 
   return (
@@ -49,11 +84,16 @@ export function ReservationHistory() {
             </div>
             <div className={styles.actions}>
               <div className={styles.statusCell}>
-                <Badge tone={item.status === '이용 중' ? 'blue' : item.status === '이용 대기' ? 'purple' : 'gray'}>{item.status}</Badge>
+                <Badge tone={item.status === '이용 대기' ? 'purple' : 'gray'}>{item.status}</Badge>
               </div>
-              {item.shotDeadline ? (
-                <button className={styles.shotButton} onClick={() => flash('인증샷 촬영 화면은 준비 중이에요')} type="button">
-                  인증샷 촬영<span>촬영 기한: {item.shotDeadline}</span>
+              {item.kind === 'active' && !item.verifyPhotoUrl && !item.isContinuous ? (
+                <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
+                  인증샷 촬영<span>촬영 기한: 곧 마감</span>
+                </button>
+              ) : null}
+              {item.verifyPhotoUrl ? (
+                <button className={styles.shotButton} onClick={() => void nativeBridge.openExternalUrl(item.verifyPhotoUrl ?? '')} type="button">
+                  인증샷 보기
                 </button>
               ) : null}
               {item.cancelable ? <button className={styles.danger} onClick={() => setCancelTarget(item)} type="button">예약 취소</button> : null}
@@ -75,9 +115,7 @@ export function ReservationHistory() {
           message="취소한 예약은 되돌릴 수 없어요."
           onCancel={() => setCancelTarget(null)}
           onConfirm={() => {
-            setItems((prev) => prev.filter((item) => item.id !== cancelTarget.id));
-            setCancelTarget(null);
-            flash('예약이 취소됐어요');
+            void cancelReserve(cancelTarget);
           }}
           title="예약을 취소할까요?"
           tone="danger"

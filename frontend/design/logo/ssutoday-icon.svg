@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ssuGrad" cx="0.28" cy="1.12" r="1.2">
+      <stop offset="0" stop-color="#1E9BD1"></stop>
+      <stop offset="0.34" stop-color="#4F7CFF"></stop>
+      <stop offset="0.86" stop-color="#9B5CFF"></stop>
+    </radialGradient>
+    
+  </defs>
+  <rect width="512" height="512" rx="150" ry="150" fill="url(#ssuGrad)"></rect>
+  <text x="256" y="284" font-family="Pretendard, -apple-system, Arial, sans-serif" font-size="184" font-weight="800" letter-spacing="-7" fill="#FFFFFF" text-anchor="middle">SSU</text>
+</svg>

@@ -5,7 +5,9 @@ import styles from './AppLayout.module.css';
 
 export function AppLayout() {
   const location = useLocation();
-  const showBottomNavigation = !location.pathname.match(/^\/reservations\/[^/]+$/);
+  const isReservationDetail = Boolean(location.pathname.match(/^\/reservations\/[^/]+$/));
+  const isAuthFlow = ['/landing', '/terms', '/sso_callback'].includes(location.pathname);
+  const showBottomNavigation = !isReservationDetail && !isAuthFlow;
 
   return (
     <div className={styles.viewport}>

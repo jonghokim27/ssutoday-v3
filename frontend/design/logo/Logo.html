@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fastly.jsdelivr.net">
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  *{box-sizing:border-box;margin:0;}
+  body{font-family:Pretendard,-apple-system,sans-serif;background:#F4F5FA;color:#0F1222;padding:48px;}
+  .grid{display:flex;flex-direction:column;gap:28px;max-width:760px;margin:0 auto;}
+  .card{background:#fff;border:1px solid #ECEDF3;border-radius:24px;padding:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 36px -22px rgba(40,30,90,.4);}
+  .card.dark{background:#0F1222;border-color:#0F1222;}
+  .label{font-size:13px;font-weight:700;color:#8A8F9C;letter-spacing:.2px;margin-bottom:10px;}
+  .icon{width:160px;height:160px;border-radius:47px;background:radial-gradient(circle at 28% 112%,#1E9BD1 0%,#4F7CFF 34%,#9B5CFF 86%);display:flex;align-items:center;justify-content:center;box-shadow:0 22px 44px -14px rgba(106,76,255,.55);}
+  .icon span{font-size:58px;font-weight:800;letter-spacing:-2px;color:#fff;}
+  .wordmark{font-size:64px;font-weight:800;letter-spacing:-2.4px;line-height:1;}
+  .lockup{display:flex;align-items:center;gap:22px;}
+  .lockup .icon{width:96px;height:96px;border-radius:28px;box-shadow:0 14px 28px -12px rgba(106,76,255,.5);}
+  .lockup .icon span{font-size:34px;letter-spacing:-1px;}
+  .blue{color:#4F7CFF;} .purple{color:#9B5CFF;}
+  #stage{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:transparent;padding:40px;}
+  #stage.on{display:flex;}
+  #stage.dark{background:#0F1222;}
+  body.shooting .grid{display:none;}
+  body.shooting{background:transparent;}
+  #stage .icon{width:460px;height:460px;border-radius:135px;box-shadow:none;}
+  #stage .icon span{font-size:168px;letter-spacing:-6px;}
+  #stage .wordmark{font-size:150px;letter-spacing:-6px;}
+  #stage .lockup{gap:38px;}
+  #stage .lockup .icon{width:188px;height:188px;border-radius:56px;}
+  #stage .lockup .icon span{font-size:70px;letter-spacing:-2px;}
+  #stage .lockup .wordmark{font-size:118px;letter-spacing:-5px;}
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div><div class="label">앱 아이콘</div><div class="card" data-shot="icon"><div class="icon"><span>SSU</span></div></div></div>
+    <div><div class="label">워드마크</div><div class="card" data-shot="wordmark"><div class="wordmark"><span class="blue">SSU</span><span class="purple">TODAY</span></div></div></div>
+    <div><div class="label">가로 락업</div><div class="card" data-shot="lockup"><div class="lockup"><div class="icon"><span>SSU</span></div><div class="wordmark"><span class="blue">SSU</span><span class="purple">TODAY</span></div></div></div></div>
+    <div><div class="label">워드마크 (다크)</div><div class="card dark" data-shot="wordmark-dark"><div class="wordmark"><span class="blue">SSU</span><span class="purple">TODAY</span></div></div></div>
+  </div>
+  <div id="stage"></div>
+  <script>
+    const ICON = '<div class="icon"><span>SSU</span></div>';
+    const WORD = '<div class="wordmark"><span class="blue">SSU</span><span class="purple">TODAY</span></div>';
+    const LOCK = '<div class="lockup"><div class="icon"><span>SSU</span></div>'+WORD+'</div>';
+    window.shot = function(kind){
+      const s = document.getElementById('stage');
+      s.innerHTML = kind==='icon'?ICON : kind==='lockup'?LOCK : WORD;
+      s.classList.toggle('dark', kind==='wordmark-dark');
+      s.classList.add('on');
+      document.body.classList.add('shooting');
+    };
+    window.shotOff = function(){ document.getElementById('stage').classList.remove('on'); document.body.classList.remove('shooting'); };
+  </script>
+</body>
+</html>

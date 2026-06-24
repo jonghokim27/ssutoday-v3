@@ -161,7 +161,7 @@
 }
 
 .dev {
-  padding: 2px var(--space-10) var(--space-8) 51px;
+  padding: 2px var(--space-10) var(--space-8);
   animation: floatUp 0.3s ease both;
 }
 

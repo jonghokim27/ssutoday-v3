@@ -22,7 +22,7 @@ export function BottomNavigation() {
           to={item.to}
         >
           <Icon name={item.icon} />
-          <span>{item.label}</span>
+          <span className={styles.label}>{item.label}</span>
         </NavLink>
       ))}
     </nav>

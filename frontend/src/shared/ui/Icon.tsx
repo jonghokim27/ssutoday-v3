@@ -10,6 +10,7 @@ export type IconName =
   | 'chevronRight'
   | 'clock'
   | 'home'
+  | 'lock'
   | 'logout'
   | 'refresh'
   | 'search'
@@ -61,6 +62,12 @@ const paths: Record<IconName, ReactElement> = {
     <>
       <path d="m3 10 9-7 9 7" />
       <path d="M5 9v11h14V9" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="3" y="11" width="18" height="11" rx="2.4" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </>
   ),
   logout: (

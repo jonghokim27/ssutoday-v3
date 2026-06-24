@@ -2,12 +2,14 @@ import roomThumb from '../../../../design/uploads/studyroom2a.jpeg';
 import roomHero from '../../../../design/uploads/studyroom2abig.jpeg';
 
 export type TimeBooking = {
+  idx?: number;
   start: string;
   end: string;
   name: string;
   studentId: string;
   department: string;
   people: number;
+  isMine?: boolean;
 };
 
 export type StudyRoom = {
@@ -134,6 +136,6 @@ export const reservationHistory: ReservationHistoryItem[] = [
   },
 ];
 
-export const startHour = 9;
+export const startHour = 6;
 export const endHour = 22;
 export const currentMinute = 18 * 60 + 40;
