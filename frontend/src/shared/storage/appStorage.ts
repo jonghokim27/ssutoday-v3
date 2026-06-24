@@ -5,7 +5,7 @@ export type StoredProfile = {
   isAdmin?: boolean;
 };
 
-export type ArticleProvider = 'ssuCatch' | 'stu' | 'major' | string;
+export type ArticleProvider = 'ssucatch' | 'stu' | 'major' | string;
 
 export type StorageState = {
   accessToken?: string;
@@ -28,7 +28,11 @@ export interface AppStorage {
   setProviders(providers: ArticleProvider[]): Promise<void>;
 }
 
-export const defaultProviders: ArticleProvider[] = ['ssuCatch', 'stu', 'major'];
+export const defaultProviders: ArticleProvider[] = ['ssucatch', 'stu', 'major'];
+
+export function normalizeProviders(providers: ArticleProvider[]) {
+  return providers.map((provider) => (provider === 'ssuCatch' ? 'ssucatch' : provider));
+}
 
 class LocalAppStorage implements AppStorage {
   async getItem(key: StorageKey) {
@@ -78,7 +82,11 @@ class LocalAppStorage implements AppStorage {
     }
 
     try {
-      return JSON.parse(raw) as ArticleProvider[];
+      const providers = normalizeProviders(JSON.parse(raw) as ArticleProvider[]);
+      if (JSON.stringify(providers) !== raw) {
+        await this.setProviders(providers);
+      }
+      return providers;
     } catch {
       await this.setProviders(defaultProviders);
       return defaultProviders;
@@ -86,7 +94,7 @@ class LocalAppStorage implements AppStorage {
   }
 
   async setProviders(providers: ArticleProvider[]) {
-    await this.setItem('provider', JSON.stringify(providers));
+    await this.setItem('provider', JSON.stringify(normalizeProviders(providers)));
   }
 }
 

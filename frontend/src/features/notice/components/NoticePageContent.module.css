@@ -145,6 +145,10 @@
   touch-action: pan-y;
 }
 
+.lastItem {
+  border-bottom: 0;
+}
+
 .swipeAction {
   position: absolute;
   inset: 0;
