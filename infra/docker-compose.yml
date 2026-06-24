@@ -21,6 +21,8 @@ services:
       context: ..
       args: { MODULE: ssutoday-api }
     env_file: ../.env
+    environment:
+      TZ: Asia/Seoul
     ports: ["8080:80"]
     depends_on:
       redis:
@@ -33,6 +35,8 @@ services:
       context: ..
       args: { MODULE: ssutoday-batch }
     env_file: ../.env
+    environment:
+      TZ: Asia/Seoul
     depends_on:
       kafka:
         condition: service_started
@@ -42,6 +46,8 @@ services:
       context: ..
       args: { MODULE: ssutoday-consumer }
     env_file: ../.env
+    environment:
+      TZ: Asia/Seoul
     volumes:
       - ../firebase.json:/run/secrets/firebase.json:ro
     depends_on:
