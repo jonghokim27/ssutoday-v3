@@ -103,8 +103,12 @@
   font-weight: var(--font-weight-medium);
 }
 
-.rowDisabled {
+.notice {
+  margin: 0;
+  padding: 4px 0 var(--space-7);
   color: var(--color-text-disabled);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
 }
 
 .switch {
