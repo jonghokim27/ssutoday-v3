@@ -1,5 +1,7 @@
 .viewport {
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
   background: var(--color-surface-subtle);
   color: var(--color-text-primary);
   display: flex;
@@ -10,8 +12,9 @@
 .device {
   position: relative;
   width: min(402px, 100vw);
-  height: 100vh;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
+  max-height: 100dvh;
   overflow: hidden;
   background: var(--color-surface-base);
   display: flex;
@@ -48,7 +51,7 @@
 
   .device {
     width: 100vw;
-    height: 100vh;
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
   }
 }

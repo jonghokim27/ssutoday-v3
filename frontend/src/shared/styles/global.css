@@ -10,14 +10,17 @@
 
 html {
   min-width: 320px;
+  height: 100%;
+  overflow: hidden;
   background: var(--color-surface-subtle);
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
 }
 
 body {
-  min-height: 100vh;
+  height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 button,
@@ -123,7 +126,8 @@ a {
 }
 
 #root {
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .scrollbar-hidden {
