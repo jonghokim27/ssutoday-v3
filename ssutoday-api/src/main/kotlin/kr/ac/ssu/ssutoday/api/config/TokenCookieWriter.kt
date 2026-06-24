@@ -35,6 +35,7 @@ class TokenCookieWriter {
             .httpOnly(true)
             .secure(true)
             .sameSite("Lax")
+            .domain("api.ssu.today")
             .path("/")
             .maxAge(maxAge)
             .build()

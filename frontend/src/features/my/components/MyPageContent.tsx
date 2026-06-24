@@ -9,7 +9,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { authRepository } from '../../auth/api/authRepository';
-import { nativeBridge, openLink } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
 import { appStorage, type StoredProfile } from '../../../shared/storage/appStorage';
 import { departmentCodeToName } from '../../../shared/utils/department';
 import { appInfo, notificationRows, profile as fallbackProfile } from '../data/myPageData';
@@ -73,7 +73,7 @@ export function MyPageContent() {
   }, []);
 
   async function toggle(key: string) {
-    if (!notificationEnabled) {
+    if (!requireNativeApp() || !notificationEnabled) {
       return;
     }
 
@@ -99,6 +99,10 @@ export function MyPageContent() {
   }
 
   async function toggleAll() {
+    if (!requireNativeApp()) {
+      return;
+    }
+
     const next = !notificationEnabled;
     setActionLoading(true);
     setNotificationEnabled(next);
@@ -120,14 +124,16 @@ export function MyPageContent() {
   async function logout() {
     setLogoutOpen(false);
     setActionLoading(true);
-    const enabled = await appStorage.getItem('notificationEnabled');
-    if (enabled !== 'false') {
-      await deviceRepository.unregister();
+    if (isNativeApp()) {
+      const enabled = await appStorage.getItem('notificationEnabled');
+      if (enabled !== 'false') {
+        await deviceRepository.unregister();
+      }
+      if (profile?.major) {
+        await nativeBridge.unsubscribePushTopic(profile.major);
+      }
+      await nativeBridge.unsubscribePushTopic('all');
     }
-    if (profile?.major) {
-      await nativeBridge.unsubscribePushTopic(profile.major);
-    }
-    await nativeBridge.unsubscribePushTopic('all');
     await authRepository.logout();
     setSession('anonymous');
     navigate(safePath('/landing'), { replace: true });
@@ -154,15 +160,16 @@ export function MyPageContent() {
       <section className={styles.card}>
         <div className={styles.cardTitle}>
           <strong>알림 설정</strong>
-          <Switch checked={notificationEnabled} onClick={() => void toggleAll()} />
+          <Switch checked={isNativeApp() && notificationEnabled} onClick={() => void toggleAll()} />
         </div>
         {loadingOptions ? <LoadingState compact label="알림 설정을 불러오는 중" /> : null}
-        {!loadingOptions && notificationRows.map((row) => (
-          <div className={[styles.row, !notificationEnabled ? styles.rowDisabled : ''].join(' ')} key={row.key}>
+        {!loadingOptions && isNativeApp() && notificationEnabled && notificationRows.map((row) => (
+          <div className={styles.row} key={row.key}>
             <span>{row.label}</span>
-            <Switch checked={notificationEnabled && notifications[row.key]} disabled={!notificationEnabled} onClick={() => void toggle(row.key)} />
+            <Switch checked={notifications[row.key]} onClick={() => void toggle(row.key)} />
           </div>
         ))}
+        {!isNativeApp() ? <p className={styles.notice}>슈투데이 앱에서만 알림을 켜고 끌 수 있어요</p> : null}
       </section>
 
       <section className={styles.menu}>

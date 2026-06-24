@@ -248,6 +248,15 @@ function showNativeOnlyModal() {
   nativeOnlyOverlay = overlay;
 }
 
+export function requireNativeApp() {
+  if (isNativeApp()) {
+    return true;
+  }
+
+  showNativeOnlyModal();
+  return false;
+}
+
 function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
   switch (method) {
     case 'getDeviceInfo':
