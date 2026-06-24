@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthSession } from '../../app/authSessionContext';
 import { authRepository } from '../../features/auth/api/authRepository';
 import { deviceRepository } from '../../features/my/api/deviceRepository';
-import { nativeBridge } from '../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge } from '../../shared/native/nativeBridge';
 import { useSafeAreaPath } from '../../shared/routing/safeAreaParams';
 import { Button } from '../../shared/ui/Button';
 import styles from './SsoCallbackPage.module.css';
@@ -25,10 +25,12 @@ export function SsoCallbackPage() {
 
     authRepository.login({ sToken, sIdno }).then(async (result) => {
       if (result.ok) {
-        await deviceRepository.register();
-        await nativeBridge.subscribePushTopic('all');
-        if (result.data.major) {
-          await nativeBridge.subscribePushTopic(result.data.major);
+        if (isNativeApp()) {
+          await deviceRepository.register();
+          await nativeBridge.subscribePushTopic('all');
+          if (result.data.major) {
+            await nativeBridge.subscribePushTopic(result.data.major);
+          }
         }
         setSession('authenticated');
         navigate(safePath('/notices'), { replace: true });

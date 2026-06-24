@@ -82,7 +82,7 @@ class MockNativeBridge implements NativeBridge {
   async logScreenView() {}
 }
 
-function isNativeApp() {
+export function isNativeApp() {
   return navigator.userAgent.startsWith('SSUTODAY');
 }
 
@@ -206,7 +206,7 @@ function showNativeOnlyModal() {
 
   const message = document.createElement('p');
   message.className = 'ssu-native-message';
-  message.textContent = '해당 기능은 슈투데이 앱에서만 이용하실 수 있어요';
+  message.innerHTML = '해당 기능은 슈투데이 앱에서만<br>이용하실 수 있어요';
 
   const sub = document.createElement('p');
   sub.className = 'ssu-native-sub';
