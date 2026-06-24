@@ -9,7 +9,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { authRepository } from '../../auth/api/authRepository';
-import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { nativeBridge, openLink } from '../../../shared/native/nativeBridge';
 import { appStorage, type StoredProfile } from '../../../shared/storage/appStorage';
 import { departmentCodeToName } from '../../../shared/utils/department';
 import { appInfo, notificationRows, profile as fallbackProfile } from '../data/myPageData';
@@ -166,7 +166,7 @@ export function MyPageContent() {
       </section>
 
       <section className={styles.menu}>
-        <button onClick={() => void nativeBridge.openExternalUrl(SUPPORT_URL)} type="button">
+        <button onClick={() => void openLink(SUPPORT_URL)} type="button">
           <span>지원</span>
           <Icon name="chevronRight" />
         </button>
@@ -177,7 +177,7 @@ export function MyPageContent() {
         {devOpen ? (
           <div className={styles.dev}>
             <p><span>개발/디자인</span><strong>제27대 컴퓨터학부 부학생회장 김종호</strong></p>
-            <p><span>기여하기</span><strong onClick={() => void nativeBridge.openExternalUrl(GITHUB_URL)}>{GITHUB_URL}</strong></p>
+            <p><span>기여하기</span><strong onClick={() => void openLink(GITHUB_URL)}>{GITHUB_URL}</strong></p>
           </div>
         ) : null}
         <button className={styles.logout} onClick={() => setLogoutOpen(true)} type="button">

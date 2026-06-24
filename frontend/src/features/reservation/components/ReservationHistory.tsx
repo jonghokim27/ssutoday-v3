@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { openLink } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -134,7 +134,7 @@ export function ReservationHistory() {
                 </div>
               ) : null}
               {item.canViewPhoto ? (
-                <button className={styles.shotButton} onClick={() => void nativeBridge.openExternalUrl(item.verifyPhotoUrl ?? '')} type="button">
+                <button className={styles.shotButton} onClick={() => void openLink(item.verifyPhotoUrl ?? '')} type="button">
                   인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
                 </button>
               ) : null}
