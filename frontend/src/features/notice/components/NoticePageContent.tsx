@@ -11,13 +11,21 @@ import { departmentCodeToName } from '../../../shared/utils/department';
 import { noticeRepository, type ArticleSummary } from '../api/noticeRepository';
 import styles from './NoticePageContent.module.css';
 
+const NOTICE_PAGE_SIZE = 20;
+
 export function NoticePageContent() {
   const screenRef = useRef<HTMLDivElement>(null);
+  const noticesRef = useRef<ArticleSummary[]>([]);
   const loadingMoreRef = useRef(false);
   const noticesLengthRef = useRef(0);
   const totalPagesRef = useRef(0);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(0);
+  const requestedPageRef = useRef<number | null>(null);
+  const requestSeqRef = useRef(0);
   const [query, setQuery] = useState('');
-  const [selectedProviders, setSelectedProviders] = useState<ArticleProvider[]>(defaultProviders);
+  const [selectedProviders, setSelectedProviders] = useState<ArticleProvider[]>([]);
+  const [providersReady, setProvidersReady] = useState(false);
   const [majorLabel, setMajorLabel] = useState('학부 공지');
   const [starredOnly, setStarredOnly] = useState(false);
   const [starred, setStarred] = useState<number[]>([1]);
@@ -27,62 +35,111 @@ export function NoticePageContent() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [opening, setOpening] = useState(false);
-  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [showTopButton, setShowTopButton] = useState(false);
 
   const feed = useMemo(() => {
-    return notices
-      .filter((notice) => !starredOnly || starred.includes(notice.idx))
-      .sort((a, b) => (latest ? b.idx - a.idx : a.idx - b.idx));
-  }, [latest, notices, starred, starredOnly]);
+    return notices.filter((notice) => !starredOnly || starred.includes(notice.idx));
+  }, [notices, starred, starredOnly]);
 
   const loadNotices = useCallback(
     async (nextPage: number, append = false) => {
+      if (!providersReady) {
+        return;
+      }
+
       if (append) {
-        if (loadingMoreRef.current || (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) || noticesLengthRef.current < 20) {
+        if (
+          loadingMoreRef.current ||
+          !hasMoreRef.current ||
+          requestedPageRef.current === nextPage ||
+          nextPage <= pageRef.current ||
+          (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) ||
+          noticesLengthRef.current < NOTICE_PAGE_SIZE
+        ) {
           return;
         }
 
         loadingMoreRef.current = true;
+        requestedPageRef.current = nextPage;
         setLoadingMore(true);
       } else {
         setLoading(true);
-        setPage(0);
+        setNotices([]);
+        noticesRef.current = [];
+        requestSeqRef.current += 1;
+        pageRef.current = 0;
+        requestedPageRef.current = 0;
+        noticesLengthRef.current = 0;
         totalPagesRef.current = 0;
+        hasMoreRef.current = true;
+        setHasMore(true);
+        setLoadingMore(false);
+        loadingMoreRef.current = false;
+        screenRef.current?.scrollTo({ top: 0, behavior: 'auto' });
       }
 
-      const storedProviders = await appStorage.getProviders();
-      const provider = selectedProviders.length > 0 ? selectedProviders : storedProviders ?? defaultProviders;
-      await appStorage.setProviders(provider);
-      const result = await noticeRepository.list({
-        page: nextPage,
-        orderBy: latest ? 'DESC' : 'ASC',
-        search: query,
-        provider,
-      });
+      const requestSeq = requestSeqRef.current;
+      const provider = selectedProviders;
 
-      if (result.ok) {
-        setNotices((prev) => {
-          const next = append ? [...prev, ...result.data.articles] : result.data.articles;
-          noticesLengthRef.current = next.length;
-          return next;
+      if (provider.length === 0) {
+        totalPagesRef.current = 0;
+        hasMoreRef.current = false;
+        setHasMore(false);
+        setLoading(false);
+        setLoadingMore(false);
+        loadingMoreRef.current = false;
+        requestedPageRef.current = null;
+        return;
+      }
+
+      try {
+        const result = await noticeRepository.list({
+          page: nextPage,
+          orderBy: latest ? 'DESC' : 'ASC',
+          search: query,
+          provider,
         });
-        totalPagesRef.current = result.data.totalPages;
-        setPage(nextPage);
-      } else {
-        flash(result.message);
-      }
 
-      setLoading(false);
-      setLoadingMore(false);
-      loadingMoreRef.current = false;
+        if (requestSeq !== requestSeqRef.current) {
+          return;
+        }
+
+        if (result.ok) {
+          const totalPages = result.data.totalPages;
+          const { articles, added } = mergeArticles(noticesRef.current, result.data.articles, append);
+
+          const hasNextPage = totalPages > 0 && nextPage + 1 < totalPages;
+          const hasUsefulNextPage = append ? added > 0 : result.data.articles.length >= NOTICE_PAGE_SIZE;
+          noticesRef.current = articles;
+          setNotices(articles);
+          totalPagesRef.current = totalPages;
+          hasMoreRef.current = hasNextPage && hasUsefulNextPage;
+          setHasMore(hasMoreRef.current);
+          pageRef.current = nextPage;
+          noticesLengthRef.current = articles.length;
+        } else {
+          flash(result.message);
+        }
+      } finally {
+        if (requestSeq === requestSeqRef.current && (!append || requestedPageRef.current === nextPage)) {
+          setLoading(false);
+          setLoadingMore(false);
+          loadingMoreRef.current = false;
+          requestedPageRef.current = null;
+        }
+      }
     },
-    [latest, query, selectedProviders],
+    [latest, providersReady, query, selectedProviders],
   );
 
   useEffect(() => {
+    if (!providersReady) {
+      return;
+    }
+
     void loadNotices(0);
-  }, [loadNotices]);
+  }, [loadNotices, providersReady]);
 
   function toggleStar(id: number) {
     setStarred((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -102,6 +159,7 @@ export function NoticePageContent() {
 
       setSelectedProviders(providers);
       setMajorLabel(departmentCodeToName(profile?.major) || '학부 공지');
+      setProvidersReady(true);
     });
 
     return () => {
@@ -113,6 +171,12 @@ export function NoticePageContent() {
     const next = selectedProviders.includes(provider)
       ? selectedProviders.filter((item) => item !== provider)
       : [...selectedProviders, provider];
+    setSelectedProviders(next);
+    await appStorage.setProviders(next);
+  }
+
+  async function selectAllProviders() {
+    const next = isAllProvidersSelected(selectedProviders) ? [] : defaultProviders;
     setSelectedProviders(next);
     await appStorage.setProviders(next);
   }
@@ -139,8 +203,15 @@ export function NoticePageContent() {
     setShowTopButton(screen.scrollTop >= 120);
 
     const distanceToBottom = screen.scrollHeight - screen.scrollTop - screen.clientHeight;
-    if (distanceToBottom <= 50) {
-      void loadNotices(page + 1, true);
+    if (distanceToBottom <= 50 && hasMoreRef.current && !loadingMoreRef.current) {
+      const nextPage = pageRef.current + 1;
+      if (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) {
+        hasMoreRef.current = false;
+        setHasMore(false);
+        return;
+      }
+
+      void loadNotices(nextPage, true);
     }
   }
 
@@ -165,7 +236,7 @@ export function NoticePageContent() {
             <Icon name="star" width="13" height="13" /> 별표 {starred.length}
           </button>
           <span className={styles.divider} />
-          <button className={selectedProviders.length === defaultProviders.length ? styles.filterOn : styles.filter} onClick={() => setSelectedProviders(defaultProviders)}>
+          <button className={isAllProvidersSelected(selectedProviders) ? styles.filterOn : styles.filter} onClick={() => void selectAllProviders()}>
             전체
           </button>
           {defaultProviders.map((provider) => (
@@ -178,9 +249,10 @@ export function NoticePageContent() {
 
       <section className={styles.feed}>
         {loading ? <LoadingState label="공지사항을 불러오는 중" /> : null}
-        {feed.map((notice) => (
+        {feed.map((notice, index) => (
           <NoticeItem
             isStarred={starred.includes(notice.idx)}
+            isLast={!loadingMore && index === feed.length - 1}
             key={notice.idx}
             notice={notice}
             onOpen={() => void openNotice(notice.idx)}
@@ -237,11 +309,12 @@ function NoticeEmptyState({ message, subMessage, starredOnly }: NoticeEmptyState
 type NoticeItemProps = {
   notice: ArticleSummary;
   isStarred: boolean;
+  isLast: boolean;
   onOpen: () => void;
   onToggleStar: () => void;
 };
 
-function NoticeItem({ notice, isStarred, onOpen, onToggleStar }: NoticeItemProps) {
+function NoticeItem({ notice, isStarred, isLast, onOpen, onToggleStar }: NoticeItemProps) {
   const itemRef = useRef<HTMLButtonElement>(null);
   const dragRef = useRef({ active: false, startX: 0, dx: 0, moved: false });
 
@@ -293,7 +366,7 @@ function NoticeItem({ notice, isStarred, onOpen, onToggleStar }: NoticeItemProps
   }
 
   return (
-    <article className={styles.itemWrap}>
+    <article className={[styles.itemWrap, isLast ? styles.lastItem : ''].join(' ')}>
       <div className={styles.swipeAction} aria-hidden="true">
         <Icon name="star" />
         <span>별표</span>
@@ -345,6 +418,29 @@ function toneByCategory(category: string) {
   if (category === 'stu' || category === '총학생회') return 'purple';
   if (category === 'major' || category === '사용자 학부 공지') return 'green';
   return 'blue';
+}
+
+function isAllProvidersSelected(providers: ArticleProvider[]) {
+  return defaultProviders.every((provider) => providers.includes(provider));
+}
+
+function mergeArticles(current: ArticleSummary[], incoming: ArticleSummary[], append: boolean) {
+  const base = append ? current : [];
+  const ids = new Set(base.map((article) => article.idx));
+  const articles = [...base];
+  let added = 0;
+
+  for (const article of incoming) {
+    if (ids.has(article.idx)) {
+      continue;
+    }
+
+    ids.add(article.idx);
+    articles.push(article);
+    added += 1;
+  }
+
+  return { articles, added };
 }
 
 function providerLabel(provider: string) {
