@@ -1,6 +1,7 @@
 import { apiClient } from '../../../shared/api/apiClient';
 import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
 import { reservationHistory, studyRooms } from '../data/reservationData';
 import { blockToTime, timeToBlock } from './reservationBlocks';
 
@@ -53,7 +54,7 @@ export type ReserveStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type ReservationRepository = {
   listRooms(date: string): Promise<ApiResult<{ rooms: RoomSummary[] }>>;
   getRoom(date: string, roomNo: number | string): Promise<ApiResult<{ room: RoomDetail }>>;
-  requestReserve(params: { roomNo: number | string; date: string; startBlock: number; endBlock: number }): Promise<ApiResult<{ idx: number }>>;
+  requestReserve(params: { recaptchaToken: string; roomNo: number | string; date: string; startBlock: number; endBlock: number }): Promise<ApiResult<{ idx: number }>>;
   getReserveStatus(idx: number): Promise<ApiResult<{ status: ReserveStatus }>>;
   listReserves(type: 0 | 1, page: number): Promise<ApiResult<{ reserves: ReserveHistory[]; totalPages: number }>>;
   cancelReserve(idx: number): Promise<ApiResult<null>>;
@@ -71,7 +72,7 @@ export class ApiReservationRepository implements ReservationRepository {
     return apiClient.post<{ date: string; roomNo: number | string }, { room: RoomDetail }>('room/get', { date, roomNo }, { authenticated: true });
   }
 
-  async requestReserve(params: { roomNo: number | string; date: string; startBlock: number; endBlock: number }) {
+  async requestReserve(params: { recaptchaToken: string; roomNo: number | string; date: string; startBlock: number; endBlock: number }) {
     return apiClient.post<typeof params, { idx: number }>('reserve/request', params, { authenticated: true });
   }
 
@@ -101,7 +102,10 @@ export class ApiReservationRepository implements ReservationRepository {
       return apiFailure('SSU0000', '사진 촬영이 취소되었습니다.');
     }
 
+    const recaptchaToken = await getRecaptchaToken('verify_photo_upload');
+
     const formData = new FormData();
+    formData.append('recaptchaToken', recaptchaToken);
     formData.append('idx', String(idx));
     formData.append('file', photo.blob ?? new Blob([], { type: photo.type }), photo.name);
 

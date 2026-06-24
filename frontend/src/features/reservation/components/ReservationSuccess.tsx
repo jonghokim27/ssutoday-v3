@@ -6,8 +6,7 @@ import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom } from '../data/reservationData';
 import styles from './ReservationSuccess.module.css';
 
-type ReservationResultState = {
-  ok?: boolean;
+type ReservationSuccessState = {
   room?: StudyRoom;
   date?: string;
   time?: string;
@@ -17,8 +16,7 @@ type ReservationResultState = {
 export function ReservationSuccess() {
   const safePath = useSafeAreaPath();
   const { state } = useLocation();
-  const result = (state ?? {}) as ReservationResultState;
-  const ok = result.ok ?? true;
+  const result = (state ?? {}) as ReservationSuccessState;
   const room = result.room ?? studyRooms[0];
   const dateLabel = formatDateLabel(result.date ?? todayString());
 
@@ -27,9 +25,9 @@ export function ReservationSuccess() {
       <div className={styles.confetti} aria-hidden="true">
         {Array.from({ length: 14 }, (_, index) => <span key={index} />)}
       </div>
-      <div className={styles.check}><Icon name={ok ? 'check' : 'x'} width="70" height="70" /></div>
-      <p className={styles.eyebrow}>{ok ? 'RESERVED' : 'FAILED'}</p>
-      <h1>{result.message ?? (ok ? '예약이 완료됐어요' : '예약에 실패했어요')}</h1>
+      <div className={styles.check}><Icon name="check" width="70" height="70" /></div>
+      <p className={styles.eyebrow}>RESERVED</p>
+      <h1>예약 성공</h1>
       <section className={styles.summary}>
         <div className={styles.room}>
           <img alt={room.name} src={room.thumbnail} />
@@ -44,7 +42,7 @@ export function ReservationSuccess() {
         </dl>
       </section>
       <div className={styles.buttons}>
-        {ok ? <Link to={safePath('/reservations/history')}><Button>예약 내역 보기</Button></Link> : null}
+        <Link to={safePath('/reservations/history')}><Button>예약 내역 보기</Button></Link>
         <Link to={safePath('/reservations')}><Button variant="secondary">예약 화면으로</Button></Link>
       </div>
     </div>

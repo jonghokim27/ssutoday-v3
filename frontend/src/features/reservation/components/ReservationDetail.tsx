@@ -9,6 +9,7 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { openLink } from '../../../shared/native/nativeBridge';
+import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
@@ -151,7 +152,18 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
     setSubmitting(true);
     setConfirmOpen(false);
+
+    let recaptchaToken: string;
+    try {
+      recaptchaToken = await getRecaptchaToken('reservation_request');
+    } catch {
+      setSubmitting(false);
+      navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요.', 'RECAPTCHA_FAILED');
+      return;
+    }
+
     const requested = await reservationRepository.requestReserve({
+      recaptchaToken,
       roomNo: roomId,
       date: selectedDate,
       startBlock: slotToBlock(selection.start),
@@ -159,22 +171,25 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     });
     if (!requested.ok) {
       setSubmitting(false);
-      navigate(safePath('/reservations/success'), { state: { ok: false, message: requested.message } });
+      navigateToFailure(requestFailureMessage(requested.statusCode, requested.message), requested.statusCode);
       return;
     }
 
     const status = await pollReserveStatus(requested.data.idx);
     setSubmitting(false);
+
+    if (status !== 1) {
+      navigateToFailure(reserveStatusMessage(status), `RESERVE_STATUS_${status}`);
+      return;
+    }
+
     navigate(safePath('/reservations/success'), {
-      state: {
-        ok: status === 1,
-        status,
-        room,
-        date: selectedDate,
-        time: summary,
-        message: reserveStatusMessage(status),
-      },
+      state: { room, date: selectedDate, time: summary, message: reserveStatusMessage(status) },
     });
+  }
+
+  function navigateToFailure(message: string, statusCode: string) {
+    navigate(safePath('/reservations/failed'), { state: { message, statusCode, roomId, date: selectedDate } });
   }
 
   async function reportBooking(booking: TimeBooking) {
@@ -356,14 +371,20 @@ async function pollReserveStatus(idx: number): Promise<ReserveStatus> {
 }
 
 function reserveStatusMessage(status: ReserveStatus) {
-  if (status === 1) return '예약이 완료됐어요';
-  if (status === 2) return '지난 날짜는 예약할 수 없어요';
-  if (status === 3) return '지난 시간은 예약할 수 없어요';
-  if (status === 4) return '예약 가능 시간이 아직 아니에요';
+  if (status === 1) return '성공적으로 스터디룸을 예약했어요';
+  if (status === 2) return '이미 지나간 날짜예요';
+  if (status === 3) return '이미 지나간 시간이에요';
+  if (status === 4) return '전날 20:00 부터 예약이 가능해요';
   if (status === 5) return '이미 예약된 시간이에요';
   if (status === 6) return '하루 최대 예약 가능 시간을 초과했어요';
-  if (status === 7) return '같은 시간대에 이미 예약한 스터디룸이 있어요';
-  return '예약 처리 중 문제가 발생했어요';
+  if (status === 7) return '동일한 시간에 예약하신 스터디룸이 존재해요';
+  return '예약 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
+}
+
+function requestFailureMessage(statusCode: string, fallback: string) {
+  if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요.';
+  if (statusCode === 'SSU4092') return 'reCAPTCHA 검증에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  return fallback;
 }
 
 function createReportUrl(roomName: string, date: string, time: string) {

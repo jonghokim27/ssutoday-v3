@@ -8,6 +8,7 @@ import { ComingSoonPage } from '../pages/coming-soon/ComingSoonPage';
 import { MyPage } from '../pages/my/MyPage';
 import { NoticesPage } from '../pages/notices/NoticesPage';
 import { ReservationDetailPage } from '../pages/reservations/ReservationDetailPage';
+import { ReservationFailedPage } from '../pages/reservations/ReservationFailedPage';
 import { ReservationHistoryPage } from '../pages/reservations/ReservationHistoryPage';
 import { ReservationHomePage } from '../pages/reservations/ReservationHomePage';
 import { ReservationSuccessPage } from '../pages/reservations/ReservationSuccessPage';
@@ -28,6 +29,7 @@ export function AppRouter() {
           <Route path="reservations" element={<ReservationHomePage />} />
           <Route path="reservations/:roomId" element={<ReservationDetailPage />} />
           <Route path="reservations/success" element={<ReservationSuccessPage />} />
+          <Route path="reservations/failed" element={<ReservationFailedPage />} />
           <Route path="reservations/history" element={<ReservationHistoryPage />} />
           <Route path="my" element={<MyPage />} />
           <Route path="coming-soon" element={<ComingSoonPage />} />
