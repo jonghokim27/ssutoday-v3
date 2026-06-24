@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { validateAuthSession, type AuthSessionResult } from './authSession';
-
-type GuardState = AuthSessionResult | 'checking';
+import { LoadingState } from '../shared/ui/LoadingState';
+import { useAuthSession } from './authSessionContext';
+import styles from './routeGuards.module.css';
 
 export function ProtectedRoute() {
   const location = useLocation();
-  const session = useAuthSession();
+  const { session, setSession } = useAuthSession();
+  const hasTokens = hasAuthTokens();
+
+  useEffect(() => {
+    if (!hasTokens && session !== 'anonymous') {
+      setSession('anonymous');
+    }
+  }, [hasTokens, session, setSession]);
+
+  if (!hasTokens) {
+    return <Navigate to="/landing" replace state={{ from: location.pathname }} />;
+  }
 
   if (session === 'checking') {
-    return <div style={{ padding: 24 }}>SSUTODAY를 준비하고 있어요.</div>;
+    return <RouteLoading />;
   }
 
   if (session === 'anonymous') {
@@ -20,10 +31,11 @@ export function ProtectedRoute() {
 }
 
 export function PublicOnlyRoute() {
-  const session = useAuthSession();
+  const { session } = useAuthSession();
+  const hasTokens = hasAuthTokens();
 
-  if (session === 'checking') {
-    return <div style={{ padding: 24 }}>SSUTODAY를 준비하고 있어요.</div>;
+  if (session === 'checking' && hasTokens) {
+    return <RouteLoading />;
   }
 
   if (session === 'authenticated') {
@@ -33,21 +45,10 @@ export function PublicOnlyRoute() {
   return <Outlet />;
 }
 
-function useAuthSession() {
-  const [session, setSession] = useState<GuardState>('checking');
+function RouteLoading() {
+  return <LoadingState className={styles.loading} label="로그인 상태를 확인하는 중" />;
+}
 
-  useEffect(() => {
-    let mounted = true;
-    void validateAuthSession().then((result) => {
-      if (mounted) {
-        setSession(result);
-      }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return session;
+function hasAuthTokens() {
+  return Boolean(window.localStorage.getItem('accessToken') && window.localStorage.getItem('refreshToken'));
 }

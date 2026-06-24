@@ -4,6 +4,11 @@
   overflow-y: auto;
   padding: var(--space-status-top) var(--space-9) calc(var(--space-bottom-nav-height) + var(--space-8));
   animation: slideInR 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  scrollbar-width: none;
+}
+
+.screen::-webkit-scrollbar {
+  display: none;
 }
 
 .screen > header {
@@ -98,6 +103,10 @@
   font-weight: var(--font-weight-medium);
 }
 
+.rowDisabled {
+  color: var(--color-text-disabled);
+}
+
 .switch {
   position: relative;
   flex: none;
@@ -107,6 +116,11 @@
   border-radius: var(--radius-full);
   background: #d9dce5;
   transition: background 0.25s ease, transform 0.18s ease;
+}
+
+.switch:disabled {
+  cursor: default;
+  opacity: 0.65;
 }
 
 .switch span {
@@ -198,4 +212,15 @@
 
 .footer p {
   margin: 3px 0 0;
+}
+
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

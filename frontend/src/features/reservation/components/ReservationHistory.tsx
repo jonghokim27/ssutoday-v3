@@ -4,6 +4,7 @@ import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
+import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
@@ -17,6 +18,8 @@ export function ReservationHistory() {
   const [items, setItems] = useState<HistoryViewItem[]>([]);
   const [cancelTarget, setCancelTarget] = useState<HistoryViewItem | null>(null);
   const [toast, setToast] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const shown = items.filter((item) => item.kind === tab);
 
   useEffect(() => {
@@ -29,30 +32,37 @@ export function ReservationHistory() {
   }
 
   async function loadItems() {
+    setLoading(true);
     const [active, done] = await Promise.all([reservationRepository.listReserves(1, 1), reservationRepository.listReserves(0, 1)]);
     const next = [
       ...(active.ok ? active.data.reserves.map(reserveToHistoryView) : []),
       ...(done.ok ? done.data.reserves.map((item) => ({ ...reserveToHistoryView(item), kind: 'done' as const, status: '이용 완료' as const })) : []),
     ];
     setItems(next);
+    setLoading(false);
   }
 
   async function cancelReserve(item: HistoryViewItem) {
+    setActionLoading(true);
     const result = await reservationRepository.cancelReserve(item.id);
     setCancelTarget(null);
     if (!result.ok) {
+      setActionLoading(false);
       flash(result.message);
       return;
     }
 
     await loadItems();
+    setActionLoading(false);
     flash('예약이 취소됐어요');
   }
 
   async function shootPhoto(item: HistoryViewItem) {
+    setActionLoading(true);
     const result = await reservationRepository.uploadVerifyPhoto(item.id);
     flash(result.ok ? '인증샷을 업로드했어요' : result.message);
     await loadItems();
+    setActionLoading(false);
   }
 
   return (
@@ -70,6 +80,7 @@ export function ReservationHistory() {
         </button>
       </div>
       <section className={styles.list}>
+        {loading ? <LoadingState label="예약 내역을 불러오는 중" /> : null}
         {shown.map((item) => (
           <article className={styles.historyCard} key={item.id}>
             <div className={styles.cardBody}>
@@ -103,6 +114,11 @@ export function ReservationHistory() {
         ))}
         {shown.length === 0 ? <div className={styles.empty}>표시할 예약이 없어요</div> : null}
       </section>
+      {actionLoading ? (
+        <div className={styles.loadingOverlay}>
+          <LoadingState compact label="요청을 처리하는 중" />
+        </div>
+      ) : null}
       {cancelTarget ? (
         <ConfirmDialog
           confirmLabel="예약 취소"

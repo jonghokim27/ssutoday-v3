@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { Icon } from '../../../shared/ui/Icon';
+import { LoadingState } from '../../../shared/ui/LoadingState';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { reservationRepository } from '../api/reservationRepository';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
@@ -18,11 +19,13 @@ export function ReservationHome() {
   const [timebarScrollLeft, setTimebarScrollLeft] = useState(0);
   const [rooms, setRooms] = useState<StudyRoom[]>(studyRooms);
   const [name, setName] = useState('숭실인');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
+      setLoading(true);
       const profile = await appStorage.getProfile();
       if (profile?.name && mounted) {
         setName(profile.name);
@@ -31,6 +34,9 @@ export function ReservationHome() {
       const result = await reservationRepository.listRooms(selectedDateString(selectedDay));
       if (mounted && result.ok) {
         setRooms(result.data.rooms.map(roomSummaryToStudyRoom));
+      }
+      if (mounted) {
+        setLoading(false);
       }
     }
 
@@ -58,6 +64,7 @@ export function ReservationHome() {
       </section>
       <DateStrip onOpenPicker={() => setPickerOpen(true)} onPickDay={setSelectedDay} selectedDay={selectedDay} />
       <section className={styles.list}>
+        {loading ? <LoadingState label="스터디룸 현황을 불러오는 중" /> : null}
         {rooms.map((room) => (
           <StudyRoomCard
             key={room.id}

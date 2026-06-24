@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthSession } from '../../app/authSessionContext';
 import { authRepository } from '../../features/auth/api/authRepository';
 import { deviceRepository } from '../../features/my/api/deviceRepository';
 import { nativeBridge } from '../../shared/native/nativeBridge';
@@ -10,6 +11,7 @@ export function SsoCallbackPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const { setSession } = useAuthSession();
 
   useEffect(() => {
     const sToken = params.get('sToken');
@@ -26,13 +28,14 @@ export function SsoCallbackPage() {
         if (result.data.major) {
           await nativeBridge.subscribePushTopic(result.data.major);
         }
+        setSession('authenticated');
         navigate('/notices', { replace: true });
         return;
       }
 
       setError(result.message);
     });
-  }, [navigate, params]);
+  }, [navigate, params, setSession]);
 
   if (error) {
     return (
@@ -52,7 +55,7 @@ export function SsoCallbackPage() {
   return (
     <div className={styles.loadingScreen} role="status" aria-live="polite">
       <span className={styles.loader} aria-hidden="true" />
-      <strong>유세인트로 이동 중</strong>
+      <strong>로그인 정보 확인 중</strong>
       <p>로그인 정보를 확인하고 있어요.</p>
     </div>
   );

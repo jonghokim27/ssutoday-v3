@@ -1,0 +1,41 @@
+.root {
+  min-height: 130px;
+  padding: var(--space-10);
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.compact {
+  min-height: 72px;
+  padding: var(--space-6);
+  flex-direction: row;
+  gap: var(--space-4);
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid rgba(106, 76, 255, 0.18);
+  border-top-color: var(--color-brand-purple);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.compact .spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
