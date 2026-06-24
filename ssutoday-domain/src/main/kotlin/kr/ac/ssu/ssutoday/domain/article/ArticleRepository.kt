@@ -23,4 +23,19 @@ interface ArticleRepository : JpaRepository<Article, Long> {
         search: String,
         pageable: Pageable,
     ): Page<Article>
+
+    @Query(
+        """
+            select a from Article a
+            where a.id in :articleIds
+              and a.provider in :providers
+              and (a.title like :search or a.content like :search)
+        """,
+    )
+    fun searchByIds(
+        articleIds: List<Long>,
+        providers: List<String>,
+        search: String,
+        pageable: Pageable,
+    ): Page<Article>
 }

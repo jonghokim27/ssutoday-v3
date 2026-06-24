@@ -30,10 +30,12 @@ class ArticleController(
         val result =
             articleApplicationService.listArticles(
                 ArticleQuery(
+                    student.id,
                     request.page,
                     request.orderBy == "ASC",
                     request.search,
                     request.provider.map { provider -> if (provider == "major") student.major else provider },
+                    request.starredOnly,
                 ),
             )
         return ArticleListResponse(result.articles, result.totalPages)
@@ -44,4 +46,22 @@ class ArticleController(
     fun getArticle(
         @Valid @RequestBody request: ArticleIdRequest,
     ) = ArticleResponse(articleApplicationService.getArticle(request.idx))
+
+    @PostMapping("/star")
+    @ResponseStatus(StatusCode.SSU2000)
+    fun starArticle(
+        @LoginStudent student: StudentView,
+        @Valid @RequestBody request: ArticleIdRequest,
+    ) {
+        articleApplicationService.starArticle(student.id, request.idx)
+    }
+
+    @PostMapping("/unstar")
+    @ResponseStatus(StatusCode.SSU2000)
+    fun unstarArticle(
+        @LoginStudent student: StudentView,
+        @Valid @RequestBody request: ArticleIdRequest,
+    ) {
+        articleApplicationService.unstarArticle(student.id, request.idx)
+    }
 }

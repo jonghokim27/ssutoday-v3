@@ -9,4 +9,5 @@ data class ArticleListRequest(
     @field:Pattern(regexp = "ASC|DESC") val orderBy: String,
     val search: String,
     val provider: List<@NotEmpty String>,
+    val starredOnly: Boolean = false,
 )

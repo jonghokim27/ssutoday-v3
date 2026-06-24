@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.application.article
 
 import kr.ac.ssu.ssutoday.application.article.dto.ArticlePageResult
 import kr.ac.ssu.ssutoday.application.article.dto.ArticleQuery
+import kr.ac.ssu.ssutoday.application.article.dto.toSummary
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
@@ -23,12 +24,31 @@ class ArticleApplicationService(
     @Transactional(readOnly = true)
     fun listArticles(query: ArticleQuery): ArticlePageResult {
         val sort = Sort.by("createdAt", "id").let { if (query.ascending) it.ascending() else it.descending() }
-        val page = articleService.search(query.providers, "%${query.search}%", PageRequest.of(query.page, 20, sort))
-        return ArticlePageResult(page.content, page.totalPages)
+        val pageable = PageRequest.of(query.page, 20, sort)
+        val page =
+            if (query.starredOnly) {
+                articleService.searchStarred(query.studentId, query.providers, "%${query.search}%", pageable)
+            } else {
+                articleService.search(query.providers, "%${query.search}%", pageable)
+            }
+        val starredArticleIds = articleService.findStarredArticleIds(query.studentId).toSet()
+        return ArticlePageResult(page.content.map { it.toSummary(it.idx in starredArticleIds) }, page.totalPages)
     }
 
     @Transactional(readOnly = true)
     fun getArticle(id: Long): ArticleView = articleService.get(id)
+
+    @Transactional
+    fun starArticle(
+        studentId: Int,
+        articleId: Long,
+    ) = articleService.star(studentId, articleId)
+
+    @Transactional
+    fun unstarArticle(
+        studentId: Int,
+        articleId: Long,
+    ) = articleService.unstar(studentId, articleId)
 
     @Transactional
     fun upsertArticle(

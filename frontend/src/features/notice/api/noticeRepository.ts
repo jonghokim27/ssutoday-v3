@@ -8,6 +8,7 @@ export type ArticleListRequest = {
   orderBy: 'DESC' | 'ASC';
   search: string;
   provider: ArticleProvider[];
+  starredOnly?: boolean;
 };
 
 export type ArticleSummary = {
@@ -16,6 +17,7 @@ export type ArticleSummary = {
   content: string;
   createdAt: string;
   provider: string;
+  starred: boolean;
 };
 
 export type ArticleListData = {
@@ -33,6 +35,8 @@ export type ArticleDetail = {
 export type NoticeRepository = {
   list(request: ArticleListRequest): Promise<ApiResult<ArticleListData>>;
   get(idx: number): Promise<ApiResult<{ article: ArticleDetail }>>;
+  star(idx: number): Promise<ApiResult<null>>;
+  unstar(idx: number): Promise<ApiResult<null>>;
 };
 
 export class ApiNoticeRepository implements NoticeRepository {
@@ -42,6 +46,14 @@ export class ApiNoticeRepository implements NoticeRepository {
 
   async get(idx: number) {
     return apiClient.post<{ idx: number }, { article: ArticleDetail }>('article/get', { idx }, { authenticated: true });
+  }
+
+  async star(idx: number) {
+    return apiClient.post<{ idx: number }, null>('article/star', { idx }, { authenticated: true });
+  }
+
+  async unstar(idx: number) {
+    return apiClient.post<{ idx: number }, null>('article/unstar', { idx }, { authenticated: true });
   }
 }
 
@@ -55,6 +67,7 @@ export class MockNoticeRepository implements NoticeRepository {
         content: notice.body,
         createdAt: notice.date,
         provider: notice.source,
+        starred: false,
       }));
 
     return apiSuccess('SSU2060', { articles: filtered, totalPages: 1 });
@@ -74,6 +87,14 @@ export class MockNoticeRepository implements NoticeRepository {
         url: `https://ssu.today/articles/${notice.id}`,
       },
     });
+  }
+
+  async star(_idx: number) {
+    return apiSuccess('SSU2000', null);
+  }
+
+  async unstar(_idx: number) {
+    return apiSuccess('SSU2000', null);
   }
 }
 
