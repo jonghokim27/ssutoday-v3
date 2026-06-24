@@ -1,5 +1,5 @@
 .scroller {
-  margin-top: var(--space-6);
+  margin-top: 6px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding-bottom: 2px;

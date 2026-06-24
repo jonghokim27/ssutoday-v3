@@ -44,12 +44,9 @@ export function formatDateLabel(dateString: string) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일(${weekdayLabels[date.getDay()]})`;
 }
 
-export function getDateStrip(selectedDate: string, length = 7): DateStripItem[] {
-  const today = parseDate(todayString());
+export function getDateStrip(selectedDate: string, length = 5): DateStripItem[] {
   const selected = parseDate(selectedDate);
-  const daysFromToday = Math.floor((startOfDay(selected).getTime() - startOfDay(today).getTime()) / 86_400_000);
-  const startOffset = daysFromToday >= 0 && daysFromToday < length ? 0 : daysFromToday - Math.floor(length / 2);
-  const startDate = addDays(today, startOffset);
+  const startDate = addDays(selected, -Math.floor(length / 2));
 
   return Array.from({ length }, (_, index) => {
     const date = addDays(startDate, index);
@@ -63,8 +60,3 @@ export function getDateStrip(selectedDate: string, length = 7): DateStripItem[] 
   });
 }
 
-function startOfDay(date: Date) {
-  const value = new Date(date);
-  value.setHours(0, 0, 0, 0);
-  return value;
-}

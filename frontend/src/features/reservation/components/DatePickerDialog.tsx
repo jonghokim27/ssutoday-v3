@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../../../shared/ui/Icon';
-import { formatDate, parseDate } from '../data/dates';
+import { formatDate, parseDate, todayString } from '../data/dates';
 import styles from './DatePickerDialog.module.css';
 
 type DatePickerDialogProps = {
@@ -46,10 +46,10 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
     <div className={[styles.backdrop, closing ? styles.closing : ''].join(' ')} onClick={closeWithAnimation}>
       <div className={[styles.dialog, closing ? styles.dialogClosing : ''].join(' ')} onClick={(event) => event.stopPropagation()}>
         <header>
-          <button aria-label="이전 달" onClick={() => moveMonth(-1)} type="button"><Icon name="arrowLeft" /></button>
+          <button aria-label="이전 달" onClick={() => moveMonth(-1)} type="button"><Icon name="chevronLeft" /></button>
           <h2>{viewYear}년 {monthNames[viewMonth]}</h2>
           <div className={styles.headerActions}>
-            <button aria-label="다음 달" onClick={() => moveMonth(1)} type="button"><Icon name="arrowRight" /></button>
+            <button aria-label="다음 달" onClick={() => moveMonth(1)} type="button"><Icon name="chevronRight" /></button>
             <button aria-label="닫기" onClick={closeWithAnimation} type="button"><Icon name="x" /></button>
           </div>
         </header>
@@ -62,9 +62,10 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
             const day = index + 1;
             const date = formatDate(new Date(viewYear, viewMonth, day));
             const selected = date === pendingDate;
+            const today = date === todayString();
             return (
               <button
-                className={selected ? styles.selected : ''}
+                className={[selected ? styles.selected : '', today && !selected ? styles.today : ''].filter(Boolean).join(' ')}
                 key={date}
                 onClick={() => pickDay(day)}
                 type="button"
