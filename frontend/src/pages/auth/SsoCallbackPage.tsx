@@ -40,7 +40,7 @@ export function SsoCallbackPage() {
       } else if (result.statusCode === "SSU4011") {
         setError('지원하지 않는 학과(부)에요');
       } else if (result.statusCode === "SSU4012") {
-        setError('학사과정 재/휴학 상태가 아니에요');
+        setError('학사과정 재학/휴학/졸업 상태가 아니에요');
       } else {
         setError(result.message);
       }
