@@ -5,9 +5,16 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.sql.Timestamp
 
 @Entity
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(name = "device_student_id_os_type_uuid_uindex", columnNames = ["student_id", "os_type", "uuid"]),
+    ],
+)
 class Device(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
