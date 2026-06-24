@@ -149,6 +149,8 @@ class ApiResponseContractTest {
                 "/device/updateOption",
                 "/article/list",
                 "/article/get",
+                "/article/star",
+                "/article/unstar",
                 "/reserve/request",
                 "/reserve/status",
                 "/reserve/list",

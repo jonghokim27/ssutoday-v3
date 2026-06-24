@@ -12,7 +12,6 @@ export type StorageState = {
   refreshToken?: string;
   profile?: string;
   provider?: string;
-  starredArticles?: string;
   notificationEnabled?: 'true' | 'false';
 };
 
@@ -27,8 +26,6 @@ export interface AppStorage {
   setProfile(profile: StoredProfile): Promise<void>;
   getProviders(): Promise<ArticleProvider[]>;
   setProviders(providers: ArticleProvider[]): Promise<void>;
-  getStarredArticles(): Promise<number[]>;
-  setStarredArticles(articleIds: number[]): Promise<void>;
 }
 
 export const defaultProviders: ArticleProvider[] = ['ssucatch', 'stu', 'major'];
@@ -98,30 +95,6 @@ class LocalAppStorage implements AppStorage {
 
   async setProviders(providers: ArticleProvider[]) {
     await this.setItem('provider', JSON.stringify(normalizeProviders(providers)));
-  }
-
-  async getStarredArticles() {
-    const raw = await this.getItem('starredArticles');
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      const articleIds = JSON.parse(raw) as unknown;
-      if (!Array.isArray(articleIds)) {
-        await this.removeItem('starredArticles');
-        return [];
-      }
-
-      return articleIds.filter((articleId): articleId is number => Number.isInteger(articleId));
-    } catch {
-      await this.removeItem('starredArticles');
-      return [];
-    }
-  }
-
-  async setStarredArticles(articleIds: number[]) {
-    await this.setItem('starredArticles', JSON.stringify(articleIds));
   }
 }
 

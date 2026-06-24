@@ -28,7 +28,6 @@ export function NoticePageContent() {
   const [providersReady, setProvidersReady] = useState(false);
   const [majorLabel, setMajorLabel] = useState('학부 공지');
   const [starredOnly, setStarredOnly] = useState(false);
-  const [starred, setStarred] = useState<number[]>([]);
   const [latest, setLatest] = useState(true);
   const [toast, setToast] = useState('');
   const [notices, setNotices] = useState<ArticleSummary[]>([]);
@@ -38,9 +37,7 @@ export function NoticePageContent() {
   const [hasMore, setHasMore] = useState(true);
   const [showTopButton, setShowTopButton] = useState(false);
 
-  const feed = useMemo(() => {
-    return notices.filter((notice) => !starredOnly || starred.includes(notice.idx));
-  }, [notices, starred, starredOnly]);
+  const starredCount = useMemo(() => notices.filter((notice) => notice.starred).length, [notices]);
 
   const loadNotices = useCallback(
     async (nextPage: number, append = false) => {
@@ -99,6 +96,7 @@ export function NoticePageContent() {
           orderBy: latest ? 'DESC' : 'ASC',
           search: query,
           provider,
+          starredOnly,
         });
 
         if (requestSeq !== requestSeqRef.current) {
@@ -130,7 +128,7 @@ export function NoticePageContent() {
         }
       }
     },
-    [latest, providersReady, query, selectedProviders],
+    [latest, providersReady, query, selectedProviders, starredOnly],
   );
 
   useEffect(() => {
@@ -141,12 +139,20 @@ export function NoticePageContent() {
     void loadNotices(0);
   }, [loadNotices, providersReady]);
 
-  function toggleStar(id: number) {
-    setStarred((prev) => {
-      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
-      void appStorage.setStarredArticles(next);
-      return next;
-    });
+  async function toggleStar(notice: ArticleSummary) {
+    const result = notice.starred ? await noticeRepository.unstar(notice.idx) : await noticeRepository.star(notice.idx);
+    if (!result.ok) {
+      flash(result.message);
+      return;
+    }
+
+    const nextNotices = noticesRef.current
+      .map((item) => (item.idx === notice.idx ? { ...item, starred: !notice.starred } : item))
+      .filter((item) => !starredOnly || item.starred);
+
+    noticesRef.current = nextNotices;
+    setNotices(nextNotices);
+    noticesLengthRef.current = nextNotices.length;
   }
 
   function flash(message: string) {
@@ -156,13 +162,12 @@ export function NoticePageContent() {
 
   useEffect(() => {
     let mounted = true;
-    void Promise.all([appStorage.getProviders(), appStorage.getProfile(), appStorage.getStarredArticles()]).then(([providers, profile, starredArticles]) => {
+    void Promise.all([appStorage.getProviders(), appStorage.getProfile()]).then(([providers, profile]) => {
       if (!mounted) {
         return;
       }
 
       setSelectedProviders(providers);
-      setStarred(starredArticles);
       setMajorLabel(departmentCodeToName(profile?.major) || '학부 공지');
       setProvidersReady(true);
     });
@@ -251,7 +256,7 @@ export function NoticePageContent() {
         </label>
         <div className={styles.filters}>
           <button className={starredOnly ? styles.starOn : styles.star} onClick={() => setStarredOnly((value) => !value)}>
-            <Icon name="star" width="13" height="13" /> 별표 {starred.length}
+            <Icon name="star" width="13" height="13" /> 별표 {starredCount}
           </button>
           <span className={styles.divider} />
           <button className={isAllProvidersSelected(selectedProviders) ? styles.filterOn : styles.filter} onClick={() => void selectAllProviders()}>
@@ -267,17 +272,17 @@ export function NoticePageContent() {
 
       <section className={styles.feed}>
         {loading ? <LoadingState label="공지사항을 불러오는 중" /> : null}
-        {feed.map((notice, index) => (
+        {notices.map((notice, index) => (
           <NoticeItem
-            isStarred={starred.includes(notice.idx)}
-            isLast={!loadingMore && index === feed.length - 1}
+            isStarred={notice.starred}
+            isLast={!loadingMore && index === notices.length - 1}
             key={notice.idx}
             notice={notice}
             onOpen={() => void openNotice(notice.idx)}
-            onToggleStar={() => toggleStar(notice.idx)}
+            onToggleStar={() => void toggleStar(notice)}
           />
         ))}
-        {!loading && feed.length === 0 ? (
+        {!loading && notices.length === 0 ? (
           <NoticeEmptyState
             message={starredOnly ? '별표한 공지가 없어요' : '조건에 맞는 공지가 없어요'}
             starredOnly={starredOnly}
