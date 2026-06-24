@@ -3,7 +3,7 @@ import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Button } from '../../../shared/ui/Button';
 import { Icon } from '../../../shared/ui/Icon';
 import { formatDateLabel, todayString } from '../data/dates';
-import { studyRooms, type StudyRoom } from '../data/reservationData';
+import { emptyStudyRoom, type StudyRoom } from '../data/reservationData';
 import styles from './ReservationSuccess.module.css';
 
 type ReservationSuccessState = {
@@ -17,7 +17,7 @@ export function ReservationSuccess() {
   const safePath = useSafeAreaPath();
   const { state } = useLocation();
   const result = (state ?? {}) as ReservationSuccessState;
-  const room = result.room ?? studyRooms[0];
+  const room = result.room ?? emptyStudyRoom;
   const dateLabel = formatDateLabel(result.date ?? todayString());
 
   return (

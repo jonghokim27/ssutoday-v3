@@ -1,7 +1,6 @@
 import { apiClient } from '../../../shared/api/apiClient';
-import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
+import { type ApiResult } from '../../../shared/api/types';
 import { type ArticleProvider } from '../../../shared/storage/appStorage';
-import { notices } from '../data/notices';
 
 export type ArticleListRequest = {
   page: number;
@@ -59,51 +58,6 @@ export class ApiNoticeRepository implements NoticeRepository {
 
   async starredCount() {
     return apiClient.post<Record<string, never>, { count: number }>('article/starred-count', {}, { authenticated: true });
-  }
-}
-
-export class MockNoticeRepository implements NoticeRepository {
-  async list(request: ArticleListRequest) {
-    const filtered = notices
-      .filter((notice) => !request.search || `${notice.title} ${notice.body}`.includes(request.search))
-      .map((notice) => ({
-        idx: notice.id,
-        title: notice.title,
-        content: notice.body,
-        createdAt: notice.date,
-        provider: notice.source,
-        starred: false,
-      }));
-
-    return apiSuccess('SSU2060', { articles: filtered, totalPages: 1 });
-  }
-
-  async get(idx: number) {
-    const notice = notices.find((item) => item.id === idx);
-    if (!notice) {
-      return apiFailure('SSU4080', '게시글이 없습니다.');
-    }
-
-    return apiSuccess('SSU2080', {
-      article: {
-        idx: notice.id,
-        title: notice.title,
-        content: notice.body,
-        url: `https://ssu.today/articles/${notice.id}`,
-      },
-    });
-  }
-
-  async star(_idx: number) {
-    return apiSuccess('SSU2000', null);
-  }
-
-  async unstar(_idx: number) {
-    return apiSuccess('SSU2000', null);
-  }
-
-  async starredCount() {
-    return apiSuccess('SSU2240', { count: 0 });
   }
 }
 

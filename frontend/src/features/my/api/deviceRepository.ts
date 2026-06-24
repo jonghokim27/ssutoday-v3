@@ -1,5 +1,5 @@
 import { apiClient } from '../../../shared/api/apiClient';
-import { apiSuccess, type ApiResult } from '../../../shared/api/types';
+import { type ApiResult } from '../../../shared/api/types';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 
 export type NotificationOptions = {
@@ -52,29 +52,6 @@ export class ApiDeviceRepository implements DeviceRepository {
       { osType: device.osType, uuid: device.uuid, option, value },
       { authenticated: true },
     );
-  }
-}
-
-export class MockDeviceRepository implements DeviceRepository {
-  private options: NotificationOptions = { notice: false, reserve: true, lms: false };
-
-  async register() {
-    await nativeBridge.requestPushPermission();
-    await nativeBridge.getPushToken();
-    return apiSuccess('SSU2040', null);
-  }
-
-  async unregister() {
-    return apiSuccess('SSU2040', null);
-  }
-
-  async getOptions() {
-    return apiSuccess('SSU2170', this.options);
-  }
-
-  async updateOption(option: keyof NotificationOptions, value: boolean) {
-    this.options = { ...this.options, [option]: value };
-    return apiSuccess('SSU2180', null);
   }
 }
 
