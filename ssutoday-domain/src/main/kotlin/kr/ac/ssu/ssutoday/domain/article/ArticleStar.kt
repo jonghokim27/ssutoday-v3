@@ -12,7 +12,7 @@ import java.sql.Timestamp
 @Entity
 @Table(
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["student_id", "article_id"]),
+        UniqueConstraint(name = "uk_article_star_student_article", columnNames = ["student_id", "article_id"]),
     ],
 )
 class ArticleStar(
