@@ -50,10 +50,11 @@ class ApiResponseContractTest {
     @Test
     fun `BusinessException은 SSU 코드에 맞는 HTTP 상태를 반환한다`() {
         val badRequest = advice.business(BusinessException(StatusCode.SSU4080))
-        val serverError = advice.business(BusinessException(StatusCode.SSU5000))
+        val serverError = advice.internal(RuntimeException("unhandled"))
 
         assertEquals(HttpStatus.BAD_REQUEST, badRequest.statusCode)
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, serverError.statusCode)
+        assertEquals("SSU5000", serverError.body?.statusCode)
     }
 
     @Test
@@ -99,7 +100,7 @@ class ApiResponseContractTest {
                             tags = "tags",
                             image = "image",
                             bigImage = "bigImage",
-                            isAvailable = 1,
+                            isAvailable = true,
                         ),
                     verifyPhotosByIdx = emptyList(),
                     isContinuous = false,

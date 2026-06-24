@@ -1,5 +1,6 @@
 package kr.ac.ssu.ssutoday.api.config
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -25,17 +26,21 @@ class AuthenticationFilter(
                 ?.removePrefix(BEARER_PREFIX)
         val refresh = request.getHeader("Refresh-Token")
         if (!access.isNullOrBlank() && !refresh.isNullOrBlank()) {
-            runCatching { studentApplicationService.validate(access, refresh) }.onSuccess {
-                it.accessToken?.let { token -> response.setHeader("Access-Token", token) }
-                it.refreshToken?.let { token -> response.setHeader("Refresh-Token", token) }
-                SecurityContextHolder.getContext().authentication =
-                    UsernamePasswordAuthenticationToken(it.student, null, emptyList())
-            }
+            runCatching { studentApplicationService.validate(access, refresh) }
+                .onSuccess {
+                    it.accessToken?.let { token -> response.setHeader("Access-Token", token) }
+                    it.refreshToken?.let { token -> response.setHeader("Refresh-Token", token) }
+                    SecurityContextHolder.getContext().authentication =
+                        UsernamePasswordAuthenticationToken(it.student, null, emptyList())
+                }.onFailure {
+                    log.debug(it) { "Authentication token validation failed" }
+                }
         }
         chain.doFilter(request, response)
     }
 
     private companion object {
         const val BEARER_PREFIX = "Bearer "
+        val log = KotlinLogging.logger {}
     }
 }
