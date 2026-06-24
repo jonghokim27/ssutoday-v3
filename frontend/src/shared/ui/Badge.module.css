@@ -43,3 +43,22 @@
   color: var(--color-warning-dark);
   background: #fff6e6;
 }
+
+.strong {
+  font-weight: var(--font-weight-extra-bold);
+}
+
+.strong.blue {
+  color: #0b3fd6;
+  background: #dbe3ff;
+}
+
+.strong.green {
+  color: #157a3d;
+  background: #d3f3df;
+}
+
+.strong.red {
+  color: #d6271e;
+  background: #ffdcda;
+}

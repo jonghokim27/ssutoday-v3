@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog';
@@ -13,36 +13,133 @@ import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
 
 type HistoryViewItem = ReturnType<typeof reserveToHistoryView>;
+type HistoryTab = 'active' | 'done';
+
+const RESERVE_PAGE_SIZE = 10;
 
 export function ReservationHistory() {
   const safePath = useSafeAreaPath();
-  const [tab, setTab] = useState<'active' | 'done'>('active');
+  const screenRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HistoryViewItem[]>([]);
+  const loadingMoreRef = useRef(false);
+  const itemsLengthRef = useRef(0);
+  const totalPagesRef = useRef(0);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(0);
+  const requestedPageRef = useRef<number | null>(null);
+  const requestSeqRef = useRef(0);
+  const tabRef = useRef<HistoryTab>('active');
+  const [tab, setTab] = useState<HistoryTab>('active');
   const [items, setItems] = useState<HistoryViewItem[]>([]);
   const [cancelTarget, setCancelTarget] = useState<HistoryViewItem | null>(null);
   const [doneTarget, setDoneTarget] = useState<HistoryViewItem | null>(null);
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const shown = items.filter((item) => item.kind === tab);
+  const [showTopButton, setShowTopButton] = useState(false);
+
+  const loadItems = useCallback(
+    async (nextPage: number, append = false) => {
+      if (append) {
+        if (
+          loadingMoreRef.current ||
+          !hasMoreRef.current ||
+          requestedPageRef.current === nextPage ||
+          nextPage <= pageRef.current ||
+          (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) ||
+          itemsLengthRef.current < RESERVE_PAGE_SIZE
+        ) {
+          return;
+        }
+
+        loadingMoreRef.current = true;
+        requestedPageRef.current = nextPage;
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setItems([]);
+        itemsRef.current = [];
+        requestSeqRef.current += 1;
+        pageRef.current = 0;
+        requestedPageRef.current = 0;
+        itemsLengthRef.current = 0;
+        totalPagesRef.current = 0;
+        hasMoreRef.current = true;
+        setHasMore(true);
+        setLoadingMore(false);
+        loadingMoreRef.current = false;
+        screenRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      }
+
+      const requestSeq = requestSeqRef.current;
+      const type = tabRef.current === 'active' ? 1 : 0;
+
+      try {
+        const result = await reservationRepository.listReserves(type, nextPage);
+
+        if (requestSeq !== requestSeqRef.current) {
+          return;
+        }
+
+        if (result.ok) {
+          const totalPages = result.data.totalPages;
+          const { reserves, added } = mergeReserves(itemsRef.current, result.data.reserves.map(reserveToHistoryView), append);
+
+          const hasNextPage = totalPages > 0 && nextPage + 1 < totalPages;
+          const hasUsefulNextPage = append ? added > 0 : result.data.reserves.length >= RESERVE_PAGE_SIZE;
+          itemsRef.current = reserves;
+          setItems(reserves);
+          totalPagesRef.current = totalPages;
+          hasMoreRef.current = hasNextPage && hasUsefulNextPage;
+          setHasMore(hasMoreRef.current);
+          pageRef.current = nextPage;
+          itemsLengthRef.current = reserves.length;
+        } else {
+          flash(result.message);
+        }
+      } finally {
+        if (requestSeq === requestSeqRef.current && (!append || requestedPageRef.current === nextPage)) {
+          setLoading(false);
+          setLoadingMore(false);
+          loadingMoreRef.current = false;
+          requestedPageRef.current = null;
+        }
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
-    void loadItems();
-  }, []);
+    tabRef.current = tab;
+    void loadItems(0);
+  }, [loadItems, tab]);
 
   function flash(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(''), 1700);
   }
 
-  async function loadItems() {
-    setLoading(true);
-    const [active, done] = await Promise.all([reservationRepository.listReserves(1, 1), reservationRepository.listReserves(0, 1)]);
-    const next = [
-      ...(active.ok ? active.data.reserves.map(reserveToHistoryView) : []),
-      ...(done.ok ? done.data.reserves.map(reserveToHistoryView) : []),
-    ];
-    setItems(next);
-    setLoading(false);
+  function handleScroll() {
+    const screen = screenRef.current;
+    if (!screen) {
+      return;
+    }
+
+    setShowTopButton(screen.scrollTop >= 120);
+
+    const distanceToBottom = screen.scrollHeight - screen.scrollTop - screen.clientHeight;
+    if (distanceToBottom <= 50 && hasMoreRef.current && !loadingMoreRef.current) {
+      const nextPage = pageRef.current + 1;
+      if (totalPagesRef.current > 0 && nextPage >= totalPagesRef.current) {
+        hasMoreRef.current = false;
+        setHasMore(false);
+        return;
+      }
+
+      void loadItems(nextPage, true);
+    }
   }
 
   async function cancelReserve(item: HistoryViewItem) {
@@ -55,7 +152,7 @@ export function ReservationHistory() {
       return;
     }
 
-    await loadItems();
+    await loadItems(0);
     setActionLoading(false);
     flash('예약이 취소됐어요');
   }
@@ -70,7 +167,7 @@ export function ReservationHistory() {
       return;
     }
 
-    await loadItems();
+    await loadItems(0);
     setActionLoading(false);
     flash('이용을 종료했어요');
   }
@@ -79,27 +176,27 @@ export function ReservationHistory() {
     setActionLoading(true);
     const result = await reservationRepository.uploadVerifyPhoto(item.id);
     flash(result.ok ? '인증샷을 업로드했어요' : result.message);
-    await loadItems();
+    await loadItems(0);
     setActionLoading(false);
   }
 
   return (
-    <div className={styles.screen}>
+    <div className={styles.screen} onScroll={handleScroll} ref={screenRef}>
       <header className={styles.header}>
         <Link to={safePath('/reservations')}><IconButton><Icon name="arrowLeft" /></IconButton></Link>
         <h1>예약 내역</h1>
       </header>
       <div className={styles.tabs}>
         <button className={tab === 'active' ? styles.active : ''} onClick={() => setTab('active')} type="button">
-          이용 중 · 대기 {items.filter((item) => item.kind === 'active').length}
+          이용 중 · 대기
         </button>
         <button className={tab === 'done' ? styles.active : ''} onClick={() => setTab('done')} type="button">
-          이용 완료 {items.filter((item) => item.kind === 'done').length}
+          이용 완료
         </button>
       </div>
       <section className={styles.list}>
         {loading ? <LoadingState label="예약 내역을 불러오는 중" /> : null}
-        {shown.map((item) => (
+        {items.map((item) => (
           <article className={styles.historyCard} key={item.id}>
             <div className={styles.cardBody}>
               <div className={styles.cardHead}>
@@ -114,7 +211,7 @@ export function ReservationHistory() {
             </div>
             <div className={styles.actions}>
               <div className={styles.statusCell}>
-                <Badge tone={statusTone(item.state)}>{item.status}</Badge>
+                <Badge strong={item.state !== 'waiting'} tone={statusTone(item.state)}>{item.status}</Badge>
                 {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
               </div>
               {item.canDone ? (
@@ -148,8 +245,24 @@ export function ReservationHistory() {
             </div>
           </article>
         ))}
-        {!loading && shown.length === 0 ? <div className={styles.empty}>표시할 예약이 없어요</div> : null}
+        {!loading && items.length === 0 ? (
+          <ReservationEmptyState
+            message={tab === 'active' ? '이용중이거나 대기 중인 예약이 없어요' : '이용 완료한 예약이 없어요'}
+            subMessage={tab === 'active' ? '스터디룸을 예약하면 여기에 표시돼요' : '이용을 마친 예약 내역이 모이는 곳이에요'}
+          />
+        ) : null}
+        {loadingMore ? <LoadingState compact label="예약 내역을 더 불러오는 중" /> : null}
       </section>
+      {showTopButton ? (
+        <button
+          className={styles.topButton}
+          onClick={() => screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          type="button"
+          aria-label="맨 위로 이동"
+        >
+          <Icon className={styles.topIcon} name="arrowDown" />
+        </button>
+      ) : null}
       {actionLoading ? (
         <div className={styles.loadingOverlay}>
           <LoadingState compact label="요청을 처리하는 중" />
@@ -193,6 +306,42 @@ export function ReservationHistory() {
       <Toast message={toast} />
     </div>
   );
+}
+
+type ReservationEmptyStateProps = {
+  message: string;
+  subMessage: string;
+};
+
+function ReservationEmptyState({ message, subMessage }: ReservationEmptyStateProps) {
+  return (
+    <div className={styles.empty}>
+      <div className={styles.emptyIcon} aria-hidden="true">
+        <Icon name="calendar" />
+      </div>
+      <strong>{message}</strong>
+      <p>{subMessage}</p>
+    </div>
+  );
+}
+
+function mergeReserves(current: HistoryViewItem[], incoming: HistoryViewItem[], append: boolean) {
+  const base = append ? current : [];
+  const ids = new Set(base.map((item) => item.id));
+  const reserves = [...base];
+  let added = 0;
+
+  for (const item of incoming) {
+    if (ids.has(item.id)) {
+      continue;
+    }
+
+    ids.add(item.id);
+    reserves.push(item);
+    added += 1;
+  }
+
+  return { reserves, added };
 }
 
 function statusTone(state: HistoryViewItem['state']) {

@@ -6,8 +6,9 @@ type BadgeTone = 'blue' | 'purple' | 'gray' | 'green' | 'orange' | 'red' | 'yell
 type BadgeProps = {
   children: ReactNode;
   tone?: BadgeTone;
+  strong?: boolean;
 };
 
-export function Badge({ children, tone = 'gray' }: BadgeProps) {
-  return <span className={[styles.badge, styles[tone]].join(' ')}>{children}</span>;
+export function Badge({ children, tone = 'gray', strong = false }: BadgeProps) {
+  return <span className={[styles.badge, styles[tone], strong ? styles.strong : ''].join(' ')}>{children}</span>;
 }
