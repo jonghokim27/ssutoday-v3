@@ -2,7 +2,7 @@
   position: relative;
   height: 100%;
   overflow-y: auto;
-  padding: var(--space-status-top) var(--space-9) calc(var(--space-bottom-nav-height) + var(--space-8));
+  padding: 0 var(--space-9) calc(var(--space-bottom-nav-height) + var(--space-8));
   animation: slideInR 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   scrollbar-width: none;
 }
@@ -12,7 +12,7 @@
 }
 
 .screen > header {
-  padding: 0 4px;
+  margin: 0 calc(var(--space-9) * -1);
 }
 
 .profile {
