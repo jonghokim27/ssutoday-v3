@@ -20,7 +20,7 @@ class ReservationRequestPolicy {
         if (reservationDate.isBefore(now.toLocalDate())) return ReservationRequestStatus.DATE_PASSED
         if (!endAt.isAfter(now)) return ReservationRequestStatus.TIME_PASSED
         if (startAt.plusMinutes(15).isBefore(now)) return ReservationRequestStatus.TIME_PASSED
-        if (!admin && startAt.minusHours(4).isAfter(now)) return ReservationRequestStatus.TOO_EARLY
+        if (!admin && reservationDate.atStartOfDay().minusHours(4).isAfter(now)) return ReservationRequestStatus.TOO_EARLY
         if (roomConflict) return ReservationRequestStatus.ROOM_CONFLICT
 
         val requestedBlocks = request.endBlock - request.startBlock + 1

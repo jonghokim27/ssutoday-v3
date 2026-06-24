@@ -37,6 +37,29 @@ class ReservationRequestPolicyTest {
         )
     }
 
+    @Test
+    fun `오늘 날짜의 늦은 시간대는 4시간 전 제한 없이 예약할 수 있다`() {
+        assertNull(
+            policy.rejectionStatus(request("2026-06-22", 36, 37), false, false, 0, false, now),
+        )
+    }
+
+    @Test
+    fun `내일 날짜는 전날 20시 이전에는 예약할 수 없다`() {
+        assertEquals(
+            ReservationRequestStatus.TOO_EARLY,
+            policy.rejectionStatus(request("2026-06-23", 0, 1), false, false, 0, false, now),
+        )
+    }
+
+    @Test
+    fun `내일 날짜는 전날 20시부터 예약할 수 있다`() {
+        val twentyToday = LocalDateTime.of(2026, 6, 22, 20, 0)
+        assertNull(
+            policy.rejectionStatus(request("2026-06-23", 0, 1), false, false, 0, false, twentyToday),
+        )
+    }
+
     private fun request(
         date: String,
         startBlock: Int,

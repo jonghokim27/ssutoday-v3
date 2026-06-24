@@ -143,9 +143,9 @@ export function ReservationHistory() {
   }
 
   async function cancelReserve(item: HistoryViewItem) {
+    setCancelTarget(null);
     setActionLoading(true);
     const result = await reservationRepository.cancelReserve(item.id);
-    setCancelTarget(null);
     if (!result.ok) {
       setActionLoading(false);
       flash(cancelFailureMessage(result.statusCode, result.message));
