@@ -35,7 +35,7 @@ class ReservationCommandApplicationService(
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
         if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
-            throw BusinessException(StatusCode.SSU4003)
+            throw BusinessException(StatusCode.SSU4092)
         }
         reservationService.validate(command.startBlock, command.endBlock)
         val room = roomService.get(command.roomNo, command.major, command.admin)

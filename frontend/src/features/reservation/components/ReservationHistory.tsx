@@ -346,7 +346,7 @@ function mergeReserves(current: HistoryViewItem[], incoming: HistoryViewItem[], 
 
 function statusTone(state: HistoryViewItem['state']) {
   if (state === 'cancelled') return 'red';
-  if (state === 'waiting') return 'purple';
+  if (state === 'waiting') return 'gray';
   if (state === 'using') return 'blue';
   return 'green';
 }
