@@ -63,11 +63,13 @@ export function AvailabilityBars({
         <div className={large ? styles.largeBars : styles.bars}>
           {Array.from({ length: slotCount }, (_, index) => {
             const isBooked = booked.has(index);
+            const isMine = Boolean(booked.get(index)?.isMine);
             const slotState = getSlotTimeState(date, index);
             const selected = selectedStart !== null && selectedEnd !== null && index >= selectedStart && index <= selectedEnd;
             const className = [
               large ? styles.largeBar : styles.bar,
               isBooked ? styles.booked : styles.available,
+              isMine ? styles.mine : '',
               slotState === 'past' ? styles.past : '',
               slotState === 'current' ? styles.current : '',
               selected ? styles.selected : '',
