@@ -148,6 +148,7 @@ class ApiResponseContractTest {
                 "/device/getOption",
                 "/device/updateOption",
                 "/article/list",
+                "/article/starred-count",
                 "/article/get",
                 "/article/star",
                 "/article/unstar",

@@ -37,6 +37,7 @@ export type NoticeRepository = {
   get(idx: number): Promise<ApiResult<{ article: ArticleDetail }>>;
   star(idx: number): Promise<ApiResult<null>>;
   unstar(idx: number): Promise<ApiResult<null>>;
+  starredCount(): Promise<ApiResult<{ count: number }>>;
 };
 
 export class ApiNoticeRepository implements NoticeRepository {
@@ -54,6 +55,10 @@ export class ApiNoticeRepository implements NoticeRepository {
 
   async unstar(idx: number) {
     return apiClient.post<{ idx: number }, null>('article/unstar', { idx }, { authenticated: true });
+  }
+
+  async starredCount() {
+    return apiClient.post<Record<string, never>, { count: number }>('article/starred-count', {}, { authenticated: true });
   }
 }
 
@@ -95,6 +100,10 @@ export class MockNoticeRepository implements NoticeRepository {
 
   async unstar(_idx: number) {
     return apiSuccess('SSU2000', null);
+  }
+
+  async starredCount() {
+    return apiSuccess('SSU2240', { count: 0 });
   }
 }
 

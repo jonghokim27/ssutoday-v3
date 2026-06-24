@@ -38,6 +38,9 @@ class ArticleApplicationService(
     @Transactional(readOnly = true)
     fun getArticle(id: Long): ArticleView = articleService.get(id)
 
+    @Transactional(readOnly = true)
+    fun countStarredArticles(studentId: Int): Long = articleService.countStarredArticles(studentId)
+
     @Transactional
     fun starArticle(
         studentId: Int,

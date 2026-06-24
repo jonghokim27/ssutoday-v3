@@ -68,6 +68,8 @@ class ArticleService(
 
     fun findStarredArticleIds(studentId: Int): List<Long> = starRepository.findArticleIdsByStudentId(studentId)
 
+    fun countStarredArticles(studentId: Int): Long = starRepository.countByStudentId(studentId)
+
     fun star(
         studentId: Int,
         articleId: Long,

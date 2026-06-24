@@ -21,4 +21,6 @@ interface ArticleStarRepository : JpaRepository<ArticleStar, Long> {
         """,
     )
     fun findArticleIdsByStudentId(studentId: Int): List<Long>
+
+    fun countByStudentId(studentId: Int): Long
 }

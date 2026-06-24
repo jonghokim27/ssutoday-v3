@@ -5,6 +5,7 @@ import kr.ac.ssu.ssutoday.api.article.dto.ArticleIdRequest
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleListRequest
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleListResponse
 import kr.ac.ssu.ssutoday.api.article.dto.ArticleResponse
+import kr.ac.ssu.ssutoday.api.article.dto.ArticleStarredCountResponse
 import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.application.article.ArticleApplicationService
@@ -40,6 +41,12 @@ class ArticleController(
             )
         return ArticleListResponse(result.articles, result.totalPages)
     }
+
+    @PostMapping("/starred-count")
+    @ResponseStatus(StatusCode.SSU2240)
+    fun getStarredCount(
+        @LoginStudent student: StudentView,
+    ) = ArticleStarredCountResponse(articleApplicationService.countStarredArticles(student.id))
 
     @PostMapping("/get")
     @ResponseStatus(StatusCode.SSU2080)
