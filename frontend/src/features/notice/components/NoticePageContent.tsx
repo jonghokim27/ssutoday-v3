@@ -229,7 +229,7 @@ export function NoticePageContent() {
         />
         <label className={styles.search}>
           <Icon name="search" />
-          <input onChange={(event) => setQuery(event.target.value)} placeholder="공지 검색" value={query} />
+          <input onChange={(event) => setQuery(event.target.value)} placeholder="제목 및 내용 검색" value={query} />
         </label>
         <div className={styles.filters}>
           <button className={starredOnly ? styles.starOn : styles.star} onClick={() => setStarredOnly((value) => !value)}>
