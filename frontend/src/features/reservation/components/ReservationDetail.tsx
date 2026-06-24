@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '../../../shared/ui/Badge';
 import { Button } from '../../../shared/ui/Button';
@@ -12,7 +12,7 @@ import { openLink } from '../../../shared/native/nativeBridge';
 import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
-import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
+import { emptyStudyRoom, type StudyRoom, type TimeBooking } from '../data/reservationData';
 import { bookedSlots, slotLabel } from '../data/time';
 import { usageRules } from '../data/usageRules';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
@@ -31,8 +31,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const navigate = useNavigate();
   const safePath = useSafeAreaPath();
   const [searchParams] = useSearchParams();
-  const fallbackRoom = useMemo(() => studyRooms.find((item) => item.id === roomId) ?? studyRooms[0], [roomId]);
-  const [room, setRoom] = useState<StudyRoom>(fallbackRoom);
+  const [room, setRoom] = useState<StudyRoom>(emptyStudyRoom);
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date') ?? todayString());
   const [pickerOpen, setPickerOpen] = useState(false);

@@ -2,7 +2,6 @@ import { apiClient } from '../../../shared/api/apiClient';
 import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
-import { reservationHistory, studyRooms } from '../data/reservationData';
 import { blockToTime, timeToBlock } from './reservationBlocks';
 
 export type ReserveInRoom = {
