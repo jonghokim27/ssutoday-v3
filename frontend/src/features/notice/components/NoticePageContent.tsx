@@ -28,7 +28,7 @@ export function NoticePageContent() {
   const [providersReady, setProvidersReady] = useState(false);
   const [majorLabel, setMajorLabel] = useState('학부 공지');
   const [starredOnly, setStarredOnly] = useState(false);
-  const [starred, setStarred] = useState<number[]>([1]);
+  const [starred, setStarred] = useState<number[]>([]);
   const [latest, setLatest] = useState(true);
   const [toast, setToast] = useState('');
   const [notices, setNotices] = useState<ArticleSummary[]>([]);
@@ -142,7 +142,11 @@ export function NoticePageContent() {
   }, [loadNotices, providersReady]);
 
   function toggleStar(id: number) {
-    setStarred((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+    setStarred((prev) => {
+      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      void appStorage.setStarredArticles(next);
+      return next;
+    });
   }
 
   function flash(message: string) {
@@ -152,12 +156,13 @@ export function NoticePageContent() {
 
   useEffect(() => {
     let mounted = true;
-    void Promise.all([appStorage.getProviders(), appStorage.getProfile()]).then(([providers, profile]) => {
+    void Promise.all([appStorage.getProviders(), appStorage.getProfile(), appStorage.getStarredArticles()]).then(([providers, profile, starredArticles]) => {
       if (!mounted) {
         return;
       }
 
       setSelectedProviders(providers);
+      setStarred(starredArticles);
       setMajorLabel(departmentCodeToName(profile?.major) || '학부 공지');
       setProvidersReady(true);
     });
@@ -230,6 +235,19 @@ export function NoticePageContent() {
         <label className={styles.search}>
           <Icon name="search" />
           <input onChange={(event) => setQuery(event.target.value)} placeholder="제목 및 내용 검색" value={query} />
+          {query ? (
+            <button
+              aria-label="검색어 지우기"
+              className={styles.clearSearchButton}
+              onClick={(event) => {
+                event.preventDefault();
+                setQuery('');
+              }}
+              type="button"
+            >
+              <Icon name="x" />
+            </button>
+          ) : null}
         </label>
         <div className={styles.filters}>
           <button className={starredOnly ? styles.starOn : styles.star} onClick={() => setStarredOnly((value) => !value)}>
