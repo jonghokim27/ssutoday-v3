@@ -1,6 +1,9 @@
-import { currentMinute, endHour, startHour, type StudyRoom, type TimeBooking } from './reservationData';
+import { endHour, startHour, type StudyRoom, type TimeBooking } from './reservationData';
+import { isToday } from './dates';
 
 export const slotCount = (endHour - startHour) * 2;
+export const smallSlotWidth = 17;
+export const smallSlotGap = 3;
 
 export function toSlot(time: string) {
   const [hour, minute] = time.split(':').map(Number);
@@ -30,4 +33,21 @@ export const hourTicks = Array.from({ length: endHour - startHour }, (_, index) 
   return `${String(startHour + index).padStart(2, '0')}:00`;
 });
 
-export const nowPositionRatio = (currentMinute - startHour * 60) / ((endHour - startHour) * 60);
+export function getCurrentMinute() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+export function getNowPositionRatio() {
+  const ratio = (getCurrentMinute() - startHour * 60) / ((endHour - startHour) * 60);
+  return Math.min(Math.max(ratio, 0), 1);
+}
+
+export function getDefaultTimebarScrollLeft(date: string | undefined, viewportWidth = 0) {
+  if (!isToday(date)) {
+    return 0;
+  }
+
+  const trackWidth = slotCount * smallSlotWidth + (slotCount - 1) * smallSlotGap;
+  return Math.max(0, getNowPositionRatio() * trackWidth - viewportWidth / 2);
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { bookedSlots, hourTicks, nowPositionRatio, slotCount } from '../data/time';
+import { isToday } from '../data/dates';
+import { bookedSlots, getNowPositionRatio, hourTicks, smallSlotGap, smallSlotWidth, slotCount } from '../data/time';
 import { type StudyRoom, type TimeBooking } from '../data/reservationData';
 import styles from './AvailabilityBars.module.css';
 
@@ -28,19 +29,25 @@ export function AvailabilityBars({
 }: AvailabilityBarsProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const booked = bookedSlots(room);
-  const width = large ? 58 : 17;
-  const gap = large ? 4 : 3;
+  const width = large ? 58 : smallSlotWidth;
+  const gap = large ? 4 : smallSlotGap;
   const trackWidth = slotCount * width + (slotCount - 1) * gap;
+  const nowPositionRatio = getNowPositionRatio();
 
   useEffect(() => {
-    if (large || scrollLeft === undefined || !scrollerRef.current) {
+    if (!scrollerRef.current) {
+      return;
+    }
+
+    if (scrollLeft === undefined) {
+      scrollerRef.current.scrollLeft = isToday(date) ? Math.max(0, nowPositionRatio * trackWidth - scrollerRef.current.clientWidth / 2) : 0;
       return;
     }
 
     if (Math.abs(scrollerRef.current.scrollLeft - scrollLeft) > 1) {
       scrollerRef.current.scrollLeft = scrollLeft;
     }
-  }, [large, scrollLeft]);
+  }, [date, nowPositionRatio, scrollLeft, trackWidth]);
 
   return (
     <div
@@ -128,14 +135,6 @@ function getSlotTimeState(date: string | undefined, index: number) {
   }
 
   return 'future';
-}
-
-function isToday(date: string | undefined) {
-  if (!date) {
-    return true;
-  }
-
-  return startOfDay(new Date(date)).getTime() === startOfDay(new Date()).getTime();
 }
 
 function startOfDay(date: Date) {

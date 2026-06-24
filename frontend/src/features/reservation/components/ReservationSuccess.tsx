@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Button } from '../../../shared/ui/Button';
 import { Icon } from '../../../shared/ui/Icon';
+import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom } from '../data/reservationData';
 import styles from './ReservationSuccess.module.css';
 
@@ -20,6 +20,7 @@ export function ReservationSuccess() {
   const result = (state ?? {}) as ReservationResultState;
   const ok = result.ok ?? true;
   const room = result.room ?? studyRooms[0];
+  const dateLabel = formatDateLabel(result.date ?? todayString());
 
   return (
     <div className={styles.screen}>
@@ -38,7 +39,7 @@ export function ReservationSuccess() {
           </div>
         </div>
         <dl>
-          <div><dt>날짜</dt><dd>{result.date ?? '2023년 9월 8일(금)'}</dd></div>
+          <div><dt>날짜</dt><dd>{dateLabel}</dd></div>
           <div><dt>시간</dt><dd>{result.time ?? '17:30 ~ 18:30'}</dd></div>
         </dl>
       </section>

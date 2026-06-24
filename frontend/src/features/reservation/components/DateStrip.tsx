@@ -1,25 +1,24 @@
 import { Icon } from '../../../shared/ui/Icon';
-import { dateStrip } from '../data/reservationData';
+import { formatDateLabel, getDateStrip } from '../data/dates';
 import styles from './DateStrip.module.css';
 
 type DateStripProps = {
-  selectedDay: number;
+  selectedDate: string;
   onOpenPicker: () => void;
-  onPickDay: (day: number) => void;
+  onPickDate: (date: string) => void;
 };
 
-export function DateStrip({ selectedDay, onOpenPicker, onPickDay }: DateStripProps) {
-  const selectedIndex = dateStrip.findIndex((date) => Number(date.day) === selectedDay);
-  const activeIndex = selectedIndex >= 0 ? selectedIndex : 2;
+export function DateStrip({ selectedDate, onOpenPicker, onPickDate }: DateStripProps) {
+  const dates = getDateStrip(selectedDate);
 
   return (
     <div className={styles.wrap}>
       <div className={styles.dates}>
-        {dateStrip.map((date, index) => (
+        {dates.map((date) => (
           <button
-            className={[styles.date, index === activeIndex ? styles.active : ''].join(' ')}
-            key={date.day}
-            onClick={() => onPickDay(Number(date.day))}
+            className={[styles.date, date.date === selectedDate ? styles.active : ''].join(' ')}
+            key={date.date}
+            onClick={() => onPickDate(date.date)}
             type="button"
           >
             <span>{date.dow}</span>
@@ -29,7 +28,7 @@ export function DateStrip({ selectedDay, onOpenPicker, onPickDay }: DateStripPro
       </div>
       <div className={styles.meta}>
         <button className={styles.dateFull} onClick={onOpenPicker} type="button">
-          <Icon name="calendar" /> 2023년 9월 {selectedDay}일({dateStrip[activeIndex]?.dow ?? '금'})
+          <Icon name="calendar" /> {formatDateLabel(selectedDate)}
           <Icon name="chevronDown" width="14" height="14" />
         </button>
         <span className={styles.live}><i /> 실시간 현황</span>
