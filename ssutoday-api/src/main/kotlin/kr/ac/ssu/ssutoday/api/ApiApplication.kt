@@ -1,6 +1,5 @@
 package kr.ac.ssu.ssutoday.api
 
-import jakarta.annotation.PostConstruct
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
@@ -18,10 +17,6 @@ import java.util.TimeZone
 class ApiApplication
 
 fun main(args: Array<String>) {
-    runApplication<ApiApplication>(*args)
-}
-
-@PostConstruct
-fun setDefaultTimeZone() {
     TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Asia/Seoul")))
+    runApplication<ApiApplication>(*args)
 }

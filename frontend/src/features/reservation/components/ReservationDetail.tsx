@@ -179,7 +179,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     setSubmitting(false);
 
     if (status !== 1) {
-      navigateToFailure(reserveStatusMessage(status), `RESERVE_STATUS_${status}`);
+      navigateToFailure(reserveStatusMessage(status));
       return;
     }
 
@@ -188,7 +188,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     });
   }
 
-  function navigateToFailure(message: string, statusCode: string) {
+  function navigateToFailure(message: string, statusCode?: string) {
     navigate(safePath('/reservations/failed'), { state: { message, statusCode, roomId, date: selectedDate } });
   }
 

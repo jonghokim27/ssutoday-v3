@@ -6,6 +6,8 @@ import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.time.ZoneId
+import java.util.TimeZone
 
 @EnableScheduling
 @EntityScan("kr.ac.ssu.ssutoday.domain")
@@ -15,5 +17,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class BatchApplication
 
 fun main(args: Array<String>) {
+    TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Asia/Seoul")))
     runApplication<BatchApplication>(*args)
 }
