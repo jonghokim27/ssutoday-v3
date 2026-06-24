@@ -39,11 +39,20 @@ export function MyPageContent() {
 
     async function load() {
       const storedProfile = await appStorage.getProfile();
-      const enabled = await appStorage.getItem('notificationEnabled');
       if (mounted) {
         setProfile(storedProfile);
       }
 
+      if (!isNativeApp()) {
+        if (mounted) {
+          setNotificationEnabled(false);
+          setNotifications(allNotificationRows(false));
+          setLoadingOptions(false);
+        }
+        return;
+      }
+
+      const enabled = await appStorage.getItem('notificationEnabled');
       if (enabled === 'false') {
         if (mounted) {
           setNotificationEnabled(false);
@@ -169,7 +178,6 @@ export function MyPageContent() {
             <Switch checked={notifications[row.key]} onClick={() => void toggle(row.key)} />
           </div>
         ))}
-        {!isNativeApp() ? <p className={styles.notice}>슈투데이 앱에서만 알림을 켜고 끌 수 있어요</p> : null}
       </section>
 
       <section className={styles.menu}>
