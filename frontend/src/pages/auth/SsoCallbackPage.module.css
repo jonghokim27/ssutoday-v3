@@ -1,5 +1,7 @@
 .loadingScreen {
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: var(--space-status-top) var(--space-screen-x) var(--space-14);
   background: var(--color-surface-base);
   color: var(--color-text-primary);
@@ -14,6 +16,8 @@
 
 .errorScreen {
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: var(--space-status-top) var(--space-screen-x) var(--space-14);
   background:
     radial-gradient(circle at 50% 18%, rgba(255, 78, 98, 0.1), transparent 30%),
@@ -68,6 +72,8 @@
 
 .actions {
   width: 100%;
+  max-width: 320px;
+  flex: none;
   display: grid;
   gap: var(--space-5);
   margin-top: var(--space-11);
