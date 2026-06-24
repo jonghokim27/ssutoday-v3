@@ -108,9 +108,17 @@ class ReservationQueryApplicationService(
                 idx = reservation.id.takeIf { admin },
                 studentInfo =
                     if (admin) {
-                        "${student.name} (${student.id}/${majorShortName(student.major)})"
+                        RoomReservation.StudentInfo(
+                            studentId = student.id.toString(),
+                            name = student.name,
+                            major = student.major
+                        )
                     } else {
-                        "${maskName(student.name)} (${student.id.toString().takeLast(2)})"
+                        RoomReservation.StudentInfo(
+                            studentId = maskStudentId(student.id),
+                            name = maskName(student.name),
+                            major = student.major
+                        )
                     },
                 startBlock = reservation.startBlock,
                 endBlock = reservation.endBlock,
@@ -132,15 +140,9 @@ class ReservationQueryApplicationService(
         return "${name.first()}${"*".repeat(name.length - 2)}${name.last()}"
     }
 
-    private fun majorShortName(major: String): String =
-        when (major) {
-            "cse" -> "컴"
-            "sw" -> "솦"
-            "media" -> "글"
-            "mediamba" -> "미경"
-            "sec" -> "정"
-            else -> ""
-        }
+    private fun maskStudentId(studentId: Int): String {
+        return "${studentId.toString().take(2)}****${studentId.toString().takeLast(2)}"
+    }
 
     private companion object {
         const val PAGE_SIZE = 10

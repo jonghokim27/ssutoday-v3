@@ -1,5 +1,5 @@
 import { Icon } from '../../../shared/ui/Icon';
-import { formatDateLabel, getDateStrip } from '../data/dates';
+import { formatDateLabel, getDateStrip, parseDate, todayString } from '../data/dates';
 import styles from './DateStrip.module.css';
 
 type DateStripProps = {
@@ -10,21 +10,27 @@ type DateStripProps = {
 
 export function DateStrip({ selectedDate, onOpenPicker, onPickDate }: DateStripProps) {
   const dates = getDateStrip(selectedDate);
+  const selectedMonth = parseDate(selectedDate).getMonth() + 1;
+  const today = todayString();
 
   return (
     <div className={styles.wrap}>
       <div className={styles.dates}>
-        {dates.map((date) => (
-          <button
-            className={[styles.date, date.date === selectedDate ? styles.active : ''].join(' ')}
-            key={date.date}
-            onClick={() => onPickDate(date.date)}
-            type="button"
-          >
-            <span>{date.dow}</span>
-            <strong>{date.day}</strong>
-          </button>
-        ))}
+        {dates.map((date) => {
+          const active = date.date === selectedDate;
+          const isToday = date.date === today;
+          return (
+            <button
+              className={[styles.date, active ? styles.active : '', isToday && !active ? styles.today : ''].filter(Boolean).join(' ')}
+              key={date.date}
+              onClick={() => onPickDate(date.date)}
+              type="button"
+            >
+              <span>{date.month !== selectedMonth ? `${date.month}월` : date.dow}</span>
+              <strong>{date.day}</strong>
+            </button>
+          );
+        })}
       </div>
       <div className={styles.meta}>
         <button className={styles.dateFull} onClick={onOpenPicker} type="button">

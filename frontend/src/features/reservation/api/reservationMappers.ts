@@ -1,3 +1,4 @@
+import { departmentCodeToName } from '../../../shared/utils/department';
 import { type StudyRoom, type TimeBooking } from '../data/reservationData';
 import { blockToTime } from './reservationBlocks';
 import { type ReserveHistory, type RoomDetail, type RoomSummary } from './reservationRepository';
@@ -17,9 +18,9 @@ export function roomSummaryToStudyRoom(room: RoomSummary | RoomDetail): StudyRoo
       idx: reserve.idx,
       start: blockToTime(reserve.startBlock),
       end: blockToTime(reserve.endBlock + 1),
-      name: reserve.studentInfo,
-      studentId: '',
-      department: '',
+      name: reserve.studentInfo.name,
+      studentId: reserve.studentInfo.studentId,
+      department: departmentCodeToName(reserve.studentInfo.major),
       people: 0,
       isMine: reserve.isMine,
     })),

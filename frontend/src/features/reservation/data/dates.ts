@@ -4,6 +4,7 @@ export type DateStripItem = {
   date: string;
   day: string;
   dow: string;
+  month: number;
   label: string;
 };
 
@@ -55,6 +56,7 @@ export function getDateStrip(selectedDate: string, length = 5): DateStripItem[] 
       date: formatted,
       day: String(date.getDate()),
       dow: weekdayLabels[date.getDay()],
+      month: date.getMonth() + 1,
       label: formatDateLabel(formatted),
     };
   });

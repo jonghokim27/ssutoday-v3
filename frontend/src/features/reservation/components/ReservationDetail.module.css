@@ -9,7 +9,7 @@
 
 .hero {
   position: relative;
-  flex: none;
+  margin: -6px calc(var(--space-screen-x) * -1) 6px;
   height: 280px;
 }
 
@@ -30,7 +30,8 @@
 }
 
 .back {
-  position: absolute;
+  position: fixed;
+  z-index: 20;
   top: calc(var(--space-status-top) + var(--space-6));
   left: 20px;
   background: rgba(255, 255, 255, 0.85);
@@ -52,7 +53,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 6px var(--space-screen-x) 136px;
+  padding: 6px var(--space-screen-x) 95px;
   scrollbar-width: none;
 }
 
@@ -82,6 +83,9 @@
   font-size: 17px;
   font-weight: var(--font-weight-extra-bold);
   letter-spacing: -0.4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .live {
