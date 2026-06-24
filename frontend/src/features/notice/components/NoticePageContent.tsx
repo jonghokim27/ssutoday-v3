@@ -339,10 +339,10 @@ type NoticeItemProps = {
 
 function NoticeItem({ notice, isStarred, isLast, onOpen, onToggleStar }: NoticeItemProps) {
   const itemRef = useRef<HTMLButtonElement>(null);
-  const dragRef = useRef({ active: false, startX: 0, dx: 0, moved: false });
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, dx: 0, moved: false, swiping: false });
 
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
-    dragRef.current = { active: true, startX: event.clientX, dx: 0, moved: false };
+    dragRef.current = { active: true, startX: event.clientX, startY: event.clientY, dx: 0, moved: false, swiping: false };
     itemRef.current?.setPointerCapture(event.pointerId);
     if (itemRef.current) {
       itemRef.current.style.transition = 'none';
@@ -355,9 +355,26 @@ function NoticeItem({ notice, isStarred, isLast, onOpen, onToggleStar }: NoticeI
       return;
     }
 
-    const dx = Math.max(-150, Math.min(0, event.clientX - drag.startX));
+    const rawDx = event.clientX - drag.startX;
+    const rawDy = event.clientY - drag.startY;
+    const absDx = Math.abs(rawDx);
+    const absDy = Math.abs(rawDy);
+
+    if (absDy > 8 || absDx > 8) {
+      drag.moved = true;
+    }
+
+    if (!drag.swiping && absDy > absDx) {
+      return;
+    }
+
+    drag.swiping = rawDx < -6 && absDx > absDy;
+    if (!drag.swiping) {
+      return;
+    }
+
+    const dx = Math.max(-150, Math.min(0, rawDx));
     drag.dx = dx;
-    drag.moved = Math.abs(dx) > 5;
 
     if (itemRef.current) {
       itemRef.current.style.transform = `translateX(${dx}px)`;

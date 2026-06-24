@@ -1,3 +1,7 @@
+.link {
+  display: block;
+}
+
 .head {
   display: flex;
   align-items: center;
