@@ -4,6 +4,8 @@
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 html {
@@ -36,6 +38,12 @@ button:disabled {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+img,
+a,
+button {
+  -webkit-user-drag: none;
 }
 
 button:not(:disabled),

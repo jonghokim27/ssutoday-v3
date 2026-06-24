@@ -1,5 +1,5 @@
-import roomThumb from '../../../../design/uploads/studyroom2a.jpeg';
-import roomHero from '../../../../design/uploads/studyroom2abig.jpeg';
+const roomThumb = '';
+const roomHero = '';
 
 export type TimeBooking = {
   idx?: number;

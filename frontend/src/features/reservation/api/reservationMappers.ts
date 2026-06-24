@@ -1,5 +1,3 @@
-import roomHero from '../../../../design/uploads/studyroom2abig.jpeg';
-import roomThumb from '../../../../design/uploads/studyroom2a.jpeg';
 import { type StudyRoom, type TimeBooking } from '../data/reservationData';
 import { blockToTime } from './reservationBlocks';
 import { type ReserveHistory, type RoomDetail, type RoomSummary } from './reservationRepository';
@@ -13,8 +11,8 @@ export function roomSummaryToStudyRoom(room: RoomSummary | RoomDetail): StudyRoo
     capacity: `${room.capacity}인실`,
     location: room.location,
     amenities: 'tags' in room && room.tags ? room.tags.split(',').filter(Boolean) : [`${room.capacity}인실`, room.location],
-    thumbnail: room.image || roomThumb,
-    heroImage: 'bigImage' in room && room.bigImage ? room.bigImage : roomHero,
+    thumbnail: room.image || '',
+    heroImage: 'bigImage' in room && room.bigImage ? room.bigImage : room.image || '',
     bookings: room.reserves.map((reserve): TimeBooking => ({
       idx: reserve.idx,
       start: blockToTime(reserve.startBlock),
