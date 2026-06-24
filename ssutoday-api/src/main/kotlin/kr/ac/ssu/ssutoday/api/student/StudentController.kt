@@ -1,9 +1,12 @@
 package kr.ac.ssu.ssutoday.api.student
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
+import kr.ac.ssu.ssutoday.api.config.TokenCookieWriter
+import kr.ac.ssu.ssutoday.api.config.readCookie
 import kr.ac.ssu.ssutoday.api.student.dto.StudentLoginRequest
 import kr.ac.ssu.ssutoday.api.student.dto.StudentProfileResponse
 import kr.ac.ssu.ssutoday.api.student.dto.StudentUpdateTokenRequest
@@ -20,12 +23,18 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/student")
 class StudentController(
     private val studentApplicationService: StudentApplicationService,
+    private val tokenCookieWriter: TokenCookieWriter,
 ) {
     @PostMapping("/login")
     @ResponseStatus(StatusCode.SSU2010)
     fun login(
         @Valid @RequestBody request: StudentLoginRequest,
-    ) = studentApplicationService.login(request.sToken, request.sIdno)
+        response: HttpServletResponse,
+    ): StudentProfileResponse {
+        val result = studentApplicationService.login(request.sToken, request.sIdno)
+        tokenCookieWriter.writeAuthCookies(response, result.accessToken, result.refreshToken)
+        return StudentProfileResponse(result.studentId, result.name, result.major, result.isAdmin)
+    }
 
     @PostMapping("/profile")
     @ResponseStatus(StatusCode.SSU2020)
@@ -35,11 +44,15 @@ class StudentController(
 
     @PostMapping("/logout")
     @ResponseStatus(StatusCode.SSU2030)
-    fun logout(request: HttpServletRequest) {
+    fun logout(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         val refreshToken =
-            request.getHeader("Refresh-Token")
+            request.readCookie(TokenCookieWriter.REFRESH_TOKEN_COOKIE)
                 ?: throw BusinessException(StatusCode.SSU4000)
         studentApplicationService.logout(refreshToken)
+        tokenCookieWriter.clearAuthCookies(response)
     }
 
     @PostMapping("/updateXnApiToken")

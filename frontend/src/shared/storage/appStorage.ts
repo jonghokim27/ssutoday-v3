@@ -8,8 +8,6 @@ export type StoredProfile = {
 export type ArticleProvider = 'ssucatch' | 'stu' | 'major' | string;
 
 export type StorageState = {
-  accessToken?: string;
-  refreshToken?: string;
   profile?: string;
   provider?: string;
   notificationEnabled?: 'true' | 'false';
@@ -48,12 +46,7 @@ class LocalAppStorage implements AppStorage {
   }
 
   async clearAuth() {
-    await Promise.all([
-      this.removeItem('accessToken'),
-      this.removeItem('refreshToken'),
-      this.removeItem('profile'),
-      this.removeItem('notificationEnabled'),
-    ]);
+    await Promise.all([this.removeItem('profile'), this.removeItem('notificationEnabled')]);
   }
 
   async getProfile() {

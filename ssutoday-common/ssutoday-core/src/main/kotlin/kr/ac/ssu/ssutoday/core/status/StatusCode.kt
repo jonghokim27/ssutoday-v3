@@ -13,6 +13,7 @@ enum class StatusCode(
     SSU2010("SSU2010"),
     SSU4010("SSU4010"),
     SSU4011("SSU4011"),
+    SSU4012("SSU4012"),
     SSU2020("SSU2020"),
     SSU2030("SSU2030"),
     SSU2040("SSU2040"),

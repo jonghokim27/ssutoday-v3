@@ -13,23 +13,23 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class AuthenticationFilter(
     private val studentApplicationService: StudentApplicationService,
+    private val tokenCookieWriter: TokenCookieWriter,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
     ) {
-        val access =
-            request
-                .getHeader("Authorization")
-                ?.takeIf { it.startsWith(BEARER_PREFIX) }
-                ?.removePrefix(BEARER_PREFIX)
-        val refresh = request.getHeader("Refresh-Token")
+        val access = request.readCookie(TokenCookieWriter.ACCESS_TOKEN_COOKIE)
+        val refresh = request.readCookie(TokenCookieWriter.REFRESH_TOKEN_COOKIE)
         if (!access.isNullOrBlank() && !refresh.isNullOrBlank()) {
             runCatching { studentApplicationService.validate(access, refresh) }
                 .onSuccess {
-                    it.accessToken?.let { token -> response.setHeader("Access-Token", token) }
-                    it.refreshToken?.let { token -> response.setHeader("Refresh-Token", token) }
+                    val renewedAccess = it.accessToken
+                    val renewedRefresh = it.refreshToken
+                    if (renewedAccess != null && renewedRefresh != null) {
+                        tokenCookieWriter.writeAuthCookies(response, renewedAccess, renewedRefresh)
+                    }
                     SecurityContextHolder.getContext().authentication =
                         UsernamePasswordAuthenticationToken(it.student, null, emptyList())
                 }.onFailure {
@@ -40,7 +40,6 @@ class AuthenticationFilter(
     }
 
     private companion object {
-        const val BEARER_PREFIX = "Bearer "
         val log = KotlinLogging.logger {}
     }
 }

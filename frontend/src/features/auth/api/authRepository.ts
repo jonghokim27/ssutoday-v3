@@ -7,23 +7,16 @@ export type StudentLoginRequest = {
   sIdno: string;
 };
 
-export type StudentLoginData = StoredProfile & {
-  accessToken: string;
-  refreshToken: string;
-};
-
 export type AuthRepository = {
-  login(request: StudentLoginRequest): Promise<ApiResult<StudentLoginData>>;
+  login(request: StudentLoginRequest): Promise<ApiResult<StoredProfile>>;
   getProfile(): Promise<ApiResult<StoredProfile>>;
   logout(): Promise<ApiResult<null>>;
 };
 
 export class ApiAuthRepository implements AuthRepository {
   async login(request: StudentLoginRequest) {
-    const result = await apiClient.post<StudentLoginRequest, StudentLoginData>('student/login', request);
+    const result = await apiClient.post<StudentLoginRequest, StoredProfile>('student/login', request);
     if (result.ok) {
-      await appStorage.setItem('accessToken', result.data.accessToken);
-      await appStorage.setItem('refreshToken', result.data.refreshToken);
       await appStorage.setProfile(result.data);
     }
     return result;
