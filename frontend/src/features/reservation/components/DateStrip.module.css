@@ -37,8 +37,14 @@
     color 0.2s ease;
 }
 
-.date:hover {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .date:hover {
+    transform: translateY(-2px);
+  }
+
+  .dateFull:active {
+    transform: scale(0.98);
+  }
 }
 
 .date span {
@@ -83,10 +89,6 @@
   align-items: center;
   gap: 6px;
   transition: color 0.18s ease, transform 0.18s ease;
-}
-
-.dateFull:active {
-  transform: scale(0.98);
 }
 
 .live {

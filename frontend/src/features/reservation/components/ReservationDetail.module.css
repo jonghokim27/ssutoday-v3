@@ -31,7 +31,7 @@
 
 .back {
   position: absolute;
-  top: 60px;
+  top: calc(var(--space-status-top) + var(--space-6));
   left: 20px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
