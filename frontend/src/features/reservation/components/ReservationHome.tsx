@@ -8,6 +8,7 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { reservationRepository } from '../api/reservationRepository';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
+import { todayString } from '../data/dates';
 import { studyRooms, type StudyRoom } from '../data/reservationData';
 import { DateStrip } from './DateStrip';
 import { DatePickerDialog } from './DatePickerDialog';
@@ -16,9 +17,9 @@ import styles from './ReservationHome.module.css';
 
 export function ReservationHome() {
   const safePath = useSafeAreaPath();
-  const [selectedDay, setSelectedDay] = useState(8);
+  const [selectedDate, setSelectedDate] = useState(todayString);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [timebarScrollLeft, setTimebarScrollLeft] = useState(0);
+  const [timebarScrollLeft, setTimebarScrollLeft] = useState<number | undefined>(undefined);
   const [rooms, setRooms] = useState<StudyRoom[]>(studyRooms);
   const [name, setName] = useState('숭실인');
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ export function ReservationHome() {
         setName(profile.name);
       }
 
-      const result = await reservationRepository.listRooms(selectedDateString(selectedDay));
+      const result = await reservationRepository.listRooms(selectedDate);
       if (mounted && result.ok) {
         setRooms(result.data.rooms.map(roomSummaryToStudyRoom));
       }
@@ -47,7 +48,12 @@ export function ReservationHome() {
     return () => {
       mounted = false;
     };
-  }, [selectedDay]);
+  }, [selectedDate]);
+
+  function pickDate(date: string) {
+    setSelectedDate(date);
+    setTimebarScrollLeft(undefined);
+  }
 
   return (
     <div className={styles.screen}>
@@ -64,13 +70,13 @@ export function ReservationHome() {
         <h1>{name}님, 어디서 공부할까요?</h1>
         <p>실시간으로 빈 시간을 확인하고 바로 예약할 수 있어요</p>
       </section>
-      <DateStrip onOpenPicker={() => setPickerOpen(true)} onPickDay={setSelectedDay} selectedDay={selectedDay} />
+      <DateStrip onOpenPicker={() => setPickerOpen(true)} onPickDate={pickDate} selectedDate={selectedDate} />
       <section className={styles.list}>
         {loading ? <LoadingState label="스터디룸 현황을 불러오는 중" /> : null}
         {rooms.map((room) => (
           <StudyRoomCard
             key={room.id}
-            date={selectedDateString(selectedDay)}
+            date={selectedDate}
             onTimebarScroll={setTimebarScrollLeft}
             room={room}
             timebarScrollLeft={timebarScrollLeft}
@@ -80,17 +86,13 @@ export function ReservationHome() {
       {pickerOpen ? (
         <DatePickerDialog
           onClose={() => setPickerOpen(false)}
-          onPick={(day) => {
-            setSelectedDay(day);
+          onPick={(date) => {
+            pickDate(date);
             setPickerOpen(false);
           }}
-          selectedDay={selectedDay}
+          selectedDate={selectedDate}
         />
       ) : null}
     </div>
   );
-}
-
-function selectedDateString(day: number) {
-  return `2023-09-${String(day).padStart(2, '0')}`;
 }

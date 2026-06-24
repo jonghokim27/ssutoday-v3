@@ -10,7 +10,7 @@ import styles from './StudyRoomCard.module.css';
 
 type StudyRoomCardProps = {
   room: StudyRoom;
-  timebarScrollLeft: number;
+  timebarScrollLeft?: number;
   onTimebarScroll: (scrollLeft: number) => void;
   date?: string;
 };

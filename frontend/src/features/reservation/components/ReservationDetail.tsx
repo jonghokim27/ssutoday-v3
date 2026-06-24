@@ -10,6 +10,7 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
+import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
 import { slotLabel } from '../data/time';
 import { usageRules } from '../data/usageRules';
@@ -32,8 +33,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const fallbackRoom = useMemo(() => studyRooms.find((item) => item.id === roomId) ?? studyRooms[0], [roomId]);
   const [room, setRoom] = useState<StudyRoom>(fallbackRoom);
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
-  const [selectedDay, setSelectedDay] = useState(8);
-  const [selectedDate, setSelectedDate] = useState(searchParams.get('date') ?? '2023-09-08');
+  const [selectedDate, setSelectedDate] = useState(searchParams.get('date') ?? todayString());
   const [pickerOpen, setPickerOpen] = useState(false);
   const [reservedBooking, setReservedBooking] = useState<TimeBooking | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -186,9 +186,9 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
         <div className={styles.dateRow}>
           <button className={styles.dateButton} onClick={() => setPickerOpen(true)} type="button">
-            {selectedDate} <Icon name="calendar" width="17" height="17" />
+            {formatDateLabel(selectedDate)} <Icon name="calendar" width="17" height="17" />
           </button>
-          <span className={styles.live}><i /> 지금 18:40</span>
+          <span className={styles.live}><i /> 실시간</span>
         </div>
         <p className={styles.guide}>한 칸은 30분입니다. 예약된 시간은 선택할 수 없어요.</p>
 
@@ -243,12 +243,11 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       {pickerOpen ? (
         <DatePickerDialog
           onClose={() => setPickerOpen(false)}
-          onPick={(day) => {
-            setSelectedDay(day);
-            setSelectedDate(`2023-09-${String(day).padStart(2, '0')}`);
+          onPick={(date) => {
+            setSelectedDate(date);
             setPickerOpen(false);
           }}
-          selectedDay={selectedDay}
+          selectedDate={selectedDate}
         />
       ) : null}
       {confirmOpen && selection ? (

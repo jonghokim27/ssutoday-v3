@@ -138,4 +138,3 @@ export const reservationHistory: ReservationHistoryItem[] = [
 
 export const startHour = 6;
 export const endHour = 22;
-export const currentMinute = 18 * 60 + 40;
