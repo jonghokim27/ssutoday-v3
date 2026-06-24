@@ -12,7 +12,7 @@ import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
 import { studyRooms, type StudyRoom, type TimeBooking } from '../data/reservationData';
-import { slotLabel } from '../data/time';
+import { bookedSlots, slotLabel } from '../data/time';
 import { usageRules } from '../data/usageRules';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
 import { reservationRepository, type ReserveStatus } from '../api/reservationRepository';
@@ -52,27 +52,53 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   useEffect(() => {
     let mounted = true;
 
-    async function loadRoom() {
+    async function refreshRoom(showLoading: boolean) {
       if (!roomId) {
-        setLoadingRoom(false);
+        if (showLoading) {
+          setLoadingRoom(false);
+        }
         return;
       }
 
-      setLoadingRoom(true);
+      if (showLoading) {
+        setLoadingRoom(true);
+      }
+
       const result = await reservationRepository.getRoom(selectedDate, roomId);
       if (mounted && result.ok) {
-        setRoom(roomSummaryToStudyRoom(result.data.room));
+        const nextRoom = roomSummaryToStudyRoom(result.data.room);
+        setRoom(nextRoom);
+        setSelection((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          const booked = bookedSlots(nextRoom);
+          for (let index = prev.start; index <= prev.end; index += 1) {
+            if (booked.has(index)) {
+              flash('선택하신 시간은 이미 예약되었습니다.');
+              return null;
+            }
+          }
+
+          return prev;
+        });
       }
-      if (mounted) {
+      if (showLoading && mounted) {
         setLoadingRoom(false);
       }
     }
 
     setSelection(null);
-    void loadRoom();
+    void refreshRoom(true);
+
+    const intervalId = window.setInterval(() => {
+      void refreshRoom(false);
+    }, 1000);
 
     return () => {
       mounted = false;
+      window.clearInterval(intervalId);
     };
   }, [roomId, selectedDate]);
 
@@ -175,8 +201,9 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
   return (
     <div className={styles.screen}>
-      <RoomHero room={room} onBack={() => navigate(safePath('/reservations'))} />
+      <IconButton className={styles.back} onClick={() => navigate(safePath('/reservations'))} type="button"><Icon name="arrowLeft" /></IconButton>
       <section className={styles.content}>
+        <RoomHero room={room} />
         {loadingRoom ? <LoadingState label="예약 정보를 불러오는 중" /> : null}
         <div className={styles.amenities}>
           {room.amenities.map((amenity) => (
@@ -277,15 +304,13 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
 type RoomHeroProps = {
   room: StudyRoom;
-  onBack: () => void;
 };
 
-function RoomHero({ room, onBack }: RoomHeroProps) {
+function RoomHero({ room }: RoomHeroProps) {
   return (
     <header className={styles.hero}>
       <img alt={room.name} src={room.heroImage} />
       <div className={styles.heroOverlay} />
-      <IconButton className={styles.back} onClick={onBack} type="button"><Icon name="arrowLeft" /></IconButton>
       <h1>{room.name}</h1>
     </header>
   );

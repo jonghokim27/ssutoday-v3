@@ -79,7 +79,7 @@ export function AvailabilityBars({
               return (
                 <button
                   className={className}
-                  disabled={slotState === 'past'}
+                  disabled={slotState === 'past' && !isBooked}
                   key={index}
                   onClick={() => {
                     if (slotState === 'current') {

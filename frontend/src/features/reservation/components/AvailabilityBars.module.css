@@ -13,7 +13,7 @@
 }
 
 .largeScroller {
-  margin: var(--space-7) calc(var(--space-screen-x) * -1) 0;
+  margin: 7px calc(var(--space-screen-x) * -1) 0;
   padding: 4px var(--space-screen-x) 2px;
 }
 
@@ -89,6 +89,10 @@
   background: #eeeeee;
   opacity: 0.78;
   cursor: not-allowed;
+}
+
+.largeBar.past.booked {
+  cursor: pointer;
 }
 
 .largeBar.current {

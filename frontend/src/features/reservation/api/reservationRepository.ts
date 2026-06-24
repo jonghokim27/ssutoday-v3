@@ -8,10 +8,16 @@ export type ReserveInRoom = {
   idx: number;
   startBlock: number;
   endBlock: number;
-  studentInfo: string;
+  studentInfo: StudentInfo;
   isMine?: boolean;
   [key: string]: unknown;
 };
+
+export type StudentInfo = {
+  studentId: string;
+  name: string;
+  major: string;
+}
 
 export type RoomSummary = {
   no: number | string;
@@ -116,94 +122,6 @@ export class ApiReservationRepository implements ReservationRepository {
       { ...params, osType: device.osType, uuid: device.uuid, signature: signed.signature },
       { authenticated: true },
     );
-  }
-}
-
-export class MockReservationRepository implements ReservationRepository {
-  async listRooms() {
-    return apiSuccess('SSU2110', {
-        rooms: studyRooms.map((room) => ({
-          no: room.id,
-          name: room.name,
-          capacity: Number.parseInt(room.capacity, 10),
-          location: room.location,
-          image: room.thumbnail,
-          reserves: room.bookings.map((booking, index) => ({
-            idx: index + 1,
-            startBlock: timeToBlock(booking.start),
-            endBlock: timeToBlock(booking.end) - 1,
-            studentInfo: booking.name,
-          })),
-        })),
-    });
-  }
-
-  async getRoom(_date: string, roomNo: number | string) {
-    const room = studyRooms.find((item) => item.id === String(roomNo)) ?? studyRooms[0];
-    const reserves = room.bookings.map((booking, index) => ({
-      idx: index + 1,
-      startBlock: timeToBlock(booking.start),
-      endBlock: timeToBlock(booking.end) - 1,
-      studentInfo: booking.name,
-    }));
-
-    return apiSuccess('SSU2100', {
-        room: {
-          no: room.id,
-          name: room.name,
-          capacity: Number.parseInt(room.capacity, 10),
-          location: room.location,
-          image: room.thumbnail,
-          bigImage: room.heroImage,
-          tags: room.amenities.join(','),
-          reserves,
-        },
-    });
-  }
-
-  async requestReserve() {
-    return apiSuccess('SSU2090', { idx: Date.now() });
-  }
-
-  async getReserveStatus() {
-    return apiSuccess('SSU2120', { status: 1 as const });
-  }
-
-  async listReserves(type: 0 | 1) {
-    const kind = type === 1 ? 'active' : 'done';
-    const reserves = reservationHistory
-      .filter((item) => item.kind === kind)
-      .map((item) => ({
-        idx: item.id,
-        roomNo: item.room,
-        date: item.date,
-        startBlock: timeToBlock(item.time.split(' ~ ')[0]),
-        endBlock: timeToBlock(item.time.split(' ~ ')[1]) - 1,
-        createdAt: item.date,
-        deletedAt: null,
-        deletedReason: null,
-        isContinuous: false,
-        roomByRoomNo: { name: item.room },
-        verifyPhotosByIdx: [],
-      }));
-
-    return apiSuccess('SSU2130', { reserves, totalPages: 1 });
-  }
-
-  async cancelReserve() {
-    return apiSuccess('SSU2140', null);
-  }
-
-  async doneReserve() {
-    return apiSuccess('SSU2230', null);
-  }
-
-  async uploadVerifyPhoto() {
-    return apiSuccess('SSU2200', null);
-  }
-
-  async adminTool() {
-    return apiSuccess('SSU2220', 3 as const);
   }
 }
 

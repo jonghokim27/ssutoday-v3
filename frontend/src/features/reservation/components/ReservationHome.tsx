@@ -27,26 +27,37 @@ export function ReservationHome() {
   useEffect(() => {
     let mounted = true;
 
-    async function load() {
-      setLoading(true);
+    async function loadProfile() {
       const profile = await appStorage.getProfile();
       if (profile?.name && mounted) {
         setName(profile.name.slice(-2));
+      }
+    }
+
+    async function refreshRooms(showLoading: boolean) {
+      if (showLoading) {
+        setLoading(true);
       }
 
       const result = await reservationRepository.listRooms(selectedDate);
       if (mounted && result.ok) {
         setRooms(result.data.rooms.map(roomSummaryToStudyRoom));
       }
-      if (mounted) {
+      if (showLoading && mounted) {
         setLoading(false);
       }
     }
 
-    void load();
+    void loadProfile();
+    void refreshRooms(true);
+
+    const intervalId = window.setInterval(() => {
+      void refreshRooms(false);
+    }, 1000);
 
     return () => {
       mounted = false;
+      window.clearInterval(intervalId);
     };
   }, [selectedDate]);
 
