@@ -1,3 +1,6 @@
+import { hasCapability as hasBridgeCapability, request } from './bridgeTransport';
+import type { BridgeMethod } from './bridgeProtocol';
+
 export type NativePlatform = 'ios' | 'android';
 
 export type NativeDeviceInfo = {
@@ -28,6 +31,80 @@ export type NativeBridge = {
   readCookie(url: string, name: string): Promise<string | null>;
   logScreenView(screenName: string): Promise<void>;
 };
+
+const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
+  getDeviceInfo: 'device.getInfo',
+  requestPushPermission: 'push.requestPermission',
+  getPushToken: 'push.getToken',
+  subscribePushTopic: 'push.subscribeTopic',
+  unsubscribePushTopic: 'push.unsubscribeTopic',
+  openExternalUrl: 'browser.openExternalUrl',
+  openAppSettings: 'system.openAppSettings',
+  requestCameraPermission: 'camera.requestPermission',
+  captureVerifyPhoto: 'camera.captureVerifyPhoto',
+  signWithBiometrics: 'auth.signWithBiometrics',
+  clearWebViewCookies: 'webview.clearCookies',
+  readCookie: 'webview.readCookie',
+  logScreenView: 'analytics.logScreenView',
+};
+
+export function hasCapability(method: keyof NativeBridge): boolean {
+  return hasBridgeCapability(METHOD_FOR[method]);
+}
+
+class WebViewNativeBridge implements NativeBridge {
+  getDeviceInfo() {
+    return request<NativeDeviceInfo>(METHOD_FOR.getDeviceInfo);
+  }
+
+  requestPushPermission() {
+    return request<boolean>(METHOD_FOR.requestPushPermission);
+  }
+
+  getPushToken() {
+    return request<string | null>(METHOD_FOR.getPushToken);
+  }
+
+  subscribePushTopic(topic: string) {
+    return request<void>(METHOD_FOR.subscribePushTopic, { topic });
+  }
+
+  unsubscribePushTopic(topic: string) {
+    return request<void>(METHOD_FOR.unsubscribePushTopic, { topic });
+  }
+
+  openExternalUrl(url: string) {
+    return request<void>(METHOD_FOR.openExternalUrl, { url, mode: 'external' });
+  }
+
+  openAppSettings() {
+    return request<void>(METHOD_FOR.openAppSettings);
+  }
+
+  requestCameraPermission() {
+    return request<boolean>(METHOD_FOR.requestCameraPermission);
+  }
+
+  captureVerifyPhoto() {
+    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto);
+  }
+
+  signWithBiometrics(payload: string) {
+    return request<{ signature: string } | null>(METHOD_FOR.signWithBiometrics, { payload });
+  }
+
+  clearWebViewCookies() {
+    return request<void>(METHOD_FOR.clearWebViewCookies);
+  }
+
+  readCookie(url: string, name: string) {
+    return request<string | null>(METHOD_FOR.readCookie, { url, name });
+  }
+
+  logScreenView(screenName: string) {
+    return request<void>(METHOD_FOR.logScreenView, { screenName });
+  }
+}
 
 class MockNativeBridge implements NativeBridge {
   async getDeviceInfo() {
@@ -274,7 +351,7 @@ function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
   }
 }
 
-function createGatedNativeBridge(mock: NativeBridge): NativeBridge {
+function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): NativeBridge {
   return new Proxy(mock, {
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
@@ -284,7 +361,8 @@ function createGatedNativeBridge(mock: NativeBridge): NativeBridge {
 
       return (...args: unknown[]) => {
         if (isNativeApp()) {
-          return value.apply(target, args);
+          const realValue = Reflect.get(real, prop, real);
+          return (realValue as (...fnArgs: unknown[]) => unknown).apply(real, args);
         }
 
         showNativeOnlyModal();
@@ -294,7 +372,7 @@ function createGatedNativeBridge(mock: NativeBridge): NativeBridge {
   });
 }
 
-export const nativeBridge: NativeBridge = createGatedNativeBridge(new MockNativeBridge());
+export const nativeBridge: NativeBridge = createGatedNativeBridge(new WebViewNativeBridge(), new MockNativeBridge());
 
 export async function openLink(url: string) {
   if (isNativeApp()) {
