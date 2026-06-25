@@ -1,0 +1,28 @@
+name: Bridge protocol sync check
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/shared/native/bridgeProtocol.ts'
+      - 'mobile/src/bridge/protocol.ts'
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/src/shared/native/bridgeProtocol.ts'
+      - 'mobile/src/bridge/protocol.ts'
+
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check bridge protocol files are in sync
+        run: node scripts/check-bridge-protocol-sync.js

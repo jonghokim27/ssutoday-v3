@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "SSUtoday",
+    "slug": "ssutoday",
+    "scheme": "ssutoday",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.ssutoday",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "슈투데이에서 인증샷을 촬영하기 위해 카메라 권한을 허용해주세요.",
+        "NSFaceIDUsageDescription": "슈투데이에서 본인임을 확인하기 위해 FaceID 인증이 필요해요."
+      }
+    },
+    "android": {
+      "package": "com.ssutoday",
+      "adaptiveIcon": {
+        "backgroundColor": "#4F7CFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["CAMERA", "ACCESS_NOTIFICATION_POLICY"],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar"
+    ]
+  }
+}
