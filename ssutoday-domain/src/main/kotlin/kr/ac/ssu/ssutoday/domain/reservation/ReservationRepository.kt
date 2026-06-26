@@ -45,6 +45,24 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
         date: LocalDate,
     ): List<Reservation>
 
+    @Query(
+        """
+        select r from Reservation r
+        where r.deletedAt is null
+          and (r.date < :today or (r.date = :today and r.startBlock < :block))
+          and r.id not in (select vp.reservationId from VerifyPhoto vp)
+          and not exists (
+            select 1 from Reservation prev
+            where prev.deletedAt is null
+              and prev.studentId = r.studentId
+              and prev.date = r.date
+              and prev.roomNo = r.roomNo
+              and prev.endBlock = r.startBlock - 1
+          )
+        """,
+    )
+    fun findMissingPhotoReservations(today: LocalDate, block: Int): List<Reservation>
+
     fun findByIdAndStudentIdAndDeletedAtIsNull(
         id: Long,
         studentId: Int,
