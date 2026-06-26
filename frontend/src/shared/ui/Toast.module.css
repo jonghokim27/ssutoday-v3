@@ -2,7 +2,8 @@
   position: fixed;
   left: 50%;
   z-index: 200;
-  max-width: calc(100% - 24px);
+  width: calc(100% - 16px);
+  max-width: 480px;
   padding: 11px 18px;
   border-radius: 13px;
   background: var(--color-text-primary);
@@ -11,7 +12,6 @@
   font-size: var(--font-size-body-sm);
   font-weight: var(--font-weight-medium);
   text-align: center;
-  word-break: keep-all;
   line-height: 1.5;
   transform: translateX(-50%);
   animation: floatUp 0.3s ease both;

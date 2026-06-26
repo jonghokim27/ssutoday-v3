@@ -231,25 +231,15 @@
   flex: 1;
   border: 0;
   background: transparent;
-  color: var(--color-brand-blue);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-extra-bold);
-  text-align: center;
-  padding: 4px var(--space-7) 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  cursor: pointer;
-}
-
-.doneSubAction span {
-  display: block;
   color: #9aa0ad;
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-medium);
-  line-height: 1.2;
+  text-align: center;
+  padding: 4px var(--space-7) 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .primaryAction {
