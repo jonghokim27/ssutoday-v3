@@ -214,7 +214,7 @@ export function ReservationHistory() {
               </dl>
             </div>
             <div className={styles.actions}>
-              {item.canDone && item.canShootPhoto ? (
+              {item.canDone && (item.canShootPhoto || item.photoExempted) ? (
                 <>
                   <div className={styles.leftDualCell}>
                     <div className={styles.statusCell}>
@@ -224,10 +224,16 @@ export function ReservationHistory() {
                       이용을 종료하려면 선택
                     </button>
                   </div>
-                  <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
-                    <span className={styles.blinkAction}>인증샷 촬영<i /></span>
-                    <span>촬영 기한: {item.shotDeadline} 까지</span>
-                  </button>
+                  {item.canShootPhoto ? (
+                    <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
+                      <span className={styles.blinkAction}>인증샷 촬영<i /></span>
+                      <span>촬영 기한: {item.shotDeadline} 까지</span>
+                    </button>
+                  ) : (
+                    <div className={styles.actionInfo}>
+                      인증샷 촬영<span>촬영이 면제됨</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -246,13 +252,13 @@ export function ReservationHistory() {
                       <span>촬영 기한: {item.shotDeadline} 까지</span>
                     </button>
                   ) : null}
+                  {item.photoExempted ? (
+                    <div className={styles.actionInfo}>
+                      인증샷 촬영<span>촬영이 면제됨</span>
+                    </div>
+                  ) : null}
                 </>
               )}
-              {item.photoExempted ? (
-                <div className={styles.actionInfo}>
-                  인증샷 촬영<span>촬영이 면제됨</span>
-                </div>
-              ) : null}
               {item.canViewPhoto ? (
                 <button className={styles.shotButton} onClick={() => void openLink(item.verifyPhotoUrl ?? '')} type="button">
                   인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
@@ -326,7 +332,7 @@ export function ReservationHistory() {
           title="이용을 종료할까요?"
         />
       ) : null}
-      <Toast message={toast} bottomOffset={20} />
+      <Toast message={toast} bottomOffset={40} />
     </div>
   );
 }
