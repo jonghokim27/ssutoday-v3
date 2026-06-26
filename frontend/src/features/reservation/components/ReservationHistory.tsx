@@ -214,29 +214,40 @@ export function ReservationHistory() {
               </dl>
             </div>
             <div className={styles.actions}>
-              <div className={styles.statusCell}>
-                <Badge strong={item.state !== 'waiting'} tone={statusTone(item.state)}>{item.status}</Badge>
-                {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
-              </div>
               {item.canDone && item.canShootPhoto ? (
-                <div className={styles.dualAction}>
-                  <button className={styles.doneSubAction} onClick={() => setDoneTarget(item)} type="button">
-                    이용을 종료하려면 탭
-                  </button>
-                  <button className={styles.shotSubAction} onClick={() => void shootPhoto(item)} type="button">
+                <>
+                  <div className={styles.leftDualCell}>
+                    <div className={styles.statusCell}>
+                      <Badge strong tone={statusTone(item.state)}>{item.status}</Badge>
+                    </div>
+                    <button className={styles.doneSubAction} onClick={() => setDoneTarget(item)} type="button">
+                      이용 종료<span>종료하려면 선택</span>
+                    </button>
+                  </div>
+                  <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
                     <span className={styles.blinkAction}>인증샷 촬영<i /></span>
+                    <span>촬영 기한: {item.shotDeadline} 까지</span>
                   </button>
-                </div>
-              ) : item.canDone ? (
-                <button className={styles.primaryAction} onClick={() => setDoneTarget(item)} type="button">
-                  이용 종료<span>종료하려면 선택</span>
-                </button>
-              ) : item.canShootPhoto ? (
-                <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
-                  <span className={styles.blinkAction}>인증샷 촬영<i /></span>
-                  <span>촬영 기한: {item.shotDeadline} 까지</span>
-                </button>
-              ) : null}
+                </>
+              ) : (
+                <>
+                  <div className={styles.statusCell}>
+                    <Badge strong={item.state !== 'waiting'} tone={statusTone(item.state)}>{item.status}</Badge>
+                    {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
+                  </div>
+                  {item.canDone ? (
+                    <button className={styles.primaryAction} onClick={() => setDoneTarget(item)} type="button">
+                      이용 종료<span>종료하려면 선택</span>
+                    </button>
+                  ) : null}
+                  {item.canShootPhoto ? (
+                    <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
+                      <span className={styles.blinkAction}>인증샷 촬영<i /></span>
+                      <span>촬영 기한: {item.shotDeadline} 까지</span>
+                    </button>
+                  ) : null}
+                </>
+              )}
               {item.photoExempted ? (
                 <div className={styles.actionInfo}>
                   인증샷 촬영<span>촬영이 면제됨</span>
