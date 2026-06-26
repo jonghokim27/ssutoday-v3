@@ -17,6 +17,21 @@
   animation: floatUp 0.3s ease both;
 }
 
+.hiding {
+  animation: floatDown 0.3s ease both;
+}
+
+@keyframes floatDown {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+}
+
 @keyframes floatUp {
   from {
     opacity: 0;

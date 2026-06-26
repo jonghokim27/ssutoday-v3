@@ -156,6 +156,20 @@ class ReservationCommandApplicationService(
         }
     }
 
+    @Transactional
+    fun cancelMissingPhotos() {
+        val now = LocalDateTime.now()
+        val block = (now.hour * 60 + now.minute) / 30
+        val candidates = reservationService.findMissingPhotoReservations(now.toLocalDate(), block)
+        candidates.forEach { reservation ->
+            val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
+            val useStartAt = maxOf(startAt, reservation.createdAt.toLocalDateTime())
+            if (now.isAfter(useStartAt.plusMinutes(10))) {
+                reservationService.cancelByAdmin(reservation.id, "인증샷 미촬영 취소")
+            }
+        }
+    }
+
     private companion object {
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"

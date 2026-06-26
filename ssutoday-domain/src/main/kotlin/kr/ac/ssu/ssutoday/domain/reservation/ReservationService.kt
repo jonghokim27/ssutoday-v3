@@ -179,4 +179,9 @@ class ReservationService(
         repository
             .findAllByStudentIdAndDateAndDeletedAtIsNull(studentId, date)
             .sumOf { it.endBlock - it.startBlock + 1 }
+
+    fun findMissingPhotoReservations(
+        today: LocalDate,
+        block: Int,
+    ): List<ReservationView> = repository.findMissingPhotoReservations(today, block).map(Reservation::toView)
 }
