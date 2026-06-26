@@ -2,7 +2,7 @@
   position: fixed;
   left: 50%;
   z-index: 200;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 24px);
   padding: 11px 18px;
   border-radius: 13px;
   background: var(--color-text-primary);
