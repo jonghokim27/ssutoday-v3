@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '../../../shared/ui/Badge';
 import { Button } from '../../../shared/ui/Button';
@@ -43,6 +43,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
   const [submitting, setSubmitting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingRoom, setLoadingRoom] = useState(true);
+  const intervalPaused = useRef(false);
 
   const summary = selection ? `${slotLabel(selection.start)} ~ ${slotLabel(selection.end + 1)}` : '시간대를 선택하세요';
 
@@ -95,7 +96,9 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     void refreshRoom(true);
 
     const intervalId = window.setInterval(() => {
-      void refreshRoom(false);
+      if (!intervalPaused.current) {
+        void refreshRoom(false);
+      }
     }, 1000);
 
     return () => {
@@ -153,11 +156,13 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
     setSubmitting(true);
     setConfirmOpen(false);
+    intervalPaused.current = true;
 
     let recaptchaToken: string;
     try {
       recaptchaToken = await getRecaptchaToken('reservation_request');
     } catch {
+      intervalPaused.current = false;
       setSubmitting(false);
       navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요.', 'RECAPTCHA_FAILED');
       return;
@@ -171,6 +176,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       endBlock: slotToBlock(selection.end),
     });
     if (!requested.ok) {
+      intervalPaused.current = false;
       setSubmitting(false);
       navigateToFailure(requestFailureMessage(requested.statusCode, requested.message), requested.statusCode);
       return;
@@ -180,6 +186,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     setSubmitting(false);
 
     if (status !== 1) {
+      intervalPaused.current = false;
       navigateToFailure(reserveStatusMessage(status));
       return;
     }
