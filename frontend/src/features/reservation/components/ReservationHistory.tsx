@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { openLink } from '../../../shared/native/nativeBridge';
+import { isNativeApp, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -173,6 +173,10 @@ export function ReservationHistory() {
   }
 
   async function shootPhoto(item: HistoryViewItem) {
+    if (!isNativeApp()) {
+      requireNativeApp();
+      return;
+    }
     setActionLoading(true);
     const result = await reservationRepository.uploadVerifyPhoto(item.id);
     flash(result.ok ? '인증샷을 업로드했어요' : result.message);
@@ -214,12 +218,20 @@ export function ReservationHistory() {
                 <Badge strong={item.state !== 'waiting'} tone={statusTone(item.state)}>{item.status}</Badge>
                 {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
               </div>
-              {item.canDone ? (
+              {item.canDone && item.canShootPhoto ? (
+                <div className={styles.dualAction}>
+                  <button className={styles.doneSubAction} onClick={() => setDoneTarget(item)} type="button">
+                    이용을 종료하려면 탭
+                  </button>
+                  <button className={styles.shotSubAction} onClick={() => void shootPhoto(item)} type="button">
+                    <span className={styles.blinkAction}>인증샷 촬영<i /></span>
+                  </button>
+                </div>
+              ) : item.canDone ? (
                 <button className={styles.primaryAction} onClick={() => setDoneTarget(item)} type="button">
                   이용 종료<span>종료하려면 선택</span>
                 </button>
-              ) : null}
-              {item.canShootPhoto ? (
+              ) : item.canShootPhoto ? (
                 <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
                   <span className={styles.blinkAction}>인증샷 촬영<i /></span>
                   <span>촬영 기한: {item.shotDeadline} 까지</span>

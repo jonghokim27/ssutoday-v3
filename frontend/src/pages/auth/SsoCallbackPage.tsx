@@ -23,7 +23,10 @@ export function SsoCallbackPage() {
       return;
     }
 
-    authRepository.login({ sToken, sIdno }).then(async (result) => {
+    const persistLogin = sessionStorage.getItem('ssu_persist_login') === '1';
+    sessionStorage.removeItem('ssu_persist_login');
+
+    authRepository.login({ sToken, sIdno, persistLogin }).then(async (result) => {
       if (result.ok) {
         if (isNativeApp()) {
           await deviceRepository.register();

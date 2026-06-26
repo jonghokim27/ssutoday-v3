@@ -354,7 +354,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           <LoadingState compact label="요청을 처리하는 중" />
         </div>
       ) : null}
-      <Toast message={toast} />
+      <Toast message={toast} bottomOffset={20} />
     </div>
   );
 }

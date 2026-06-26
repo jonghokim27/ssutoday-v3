@@ -162,6 +162,63 @@
   font-weight: var(--font-weight-extra-bold);
 }
 
+.persistOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 24px;
+  background: rgba(15, 18, 34, 0.4);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease both;
+}
+
+.persistDialog {
+  width: calc(100% - 40px);
+  max-width: 420px;
+  background: var(--color-surface-base);
+  border-radius: var(--radius-dialog, 26px);
+  box-shadow: 0 24px 60px -20px rgba(20, 20, 40, 0.42);
+  padding: 26px 22px 22px;
+  text-align: center;
+  animation: slideUpDialog 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
+}
+
+.persistDialog h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: -0.4px;
+}
+
+.persistDialog p {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+}
+
+.persistActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.persistActions button {
+  width: 100%;
+}
+
+@keyframes slideUpDialog {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
