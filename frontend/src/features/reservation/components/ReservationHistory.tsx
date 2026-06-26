@@ -158,9 +158,9 @@ export function ReservationHistory() {
   }
 
   async function doneReserve(item: HistoryViewItem) {
+    setDoneTarget(null);
     setActionLoading(true);
     const result = await reservationRepository.doneReserve(item.id);
-    setDoneTarget(null);
     if (!result.ok) {
       setActionLoading(false);
       flash(doneFailureMessage(result.statusCode, result.message));
@@ -221,7 +221,7 @@ export function ReservationHistory() {
                       <Badge strong tone={statusTone(item.state)}>{item.status}</Badge>
                     </div>
                     <button className={styles.doneSubAction} onClick={() => setDoneTarget(item)} type="button">
-                      이용 종료<span>종료하려면 선택</span>
+                      이용을 종료하려면 선택
                     </button>
                   </div>
                   <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
@@ -326,7 +326,7 @@ export function ReservationHistory() {
           title="이용을 종료할까요?"
         />
       ) : null}
-      <Toast message={toast} />
+      <Toast message={toast} bottomOffset={20} />
     </div>
   );
 }
