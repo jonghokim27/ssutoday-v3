@@ -29,10 +29,12 @@ class StudentController(
     @ResponseStatus(StatusCode.SSU2010)
     fun login(
         @Valid @RequestBody request: StudentLoginRequest,
+        httpRequest: HttpServletRequest,
         response: HttpServletResponse,
     ): StudentProfileResponse {
         val result = studentApplicationService.login(request.sToken, request.sIdno)
-        tokenCookieWriter.writeAuthCookies(response, result.accessToken, result.refreshToken)
+        val persist = httpRequest.getHeader("User-Agent")?.startsWith("SSUTODAY") == true || request.persistLogin
+        tokenCookieWriter.writeAuthCookies(response, result.accessToken, result.refreshToken, persist)
         return StudentProfileResponse(result.studentId, result.name, result.major, result.isAdmin)
     }
 

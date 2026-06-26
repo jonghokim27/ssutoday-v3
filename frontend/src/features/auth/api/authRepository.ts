@@ -5,6 +5,7 @@ import { appStorage, type StoredProfile } from '../../../shared/storage/appStora
 export type StudentLoginRequest = {
   sToken: string;
   sIdno: string;
+  persistLogin?: boolean;
 };
 
 export type AuthRepository = {

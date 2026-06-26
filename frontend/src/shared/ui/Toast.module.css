@@ -1,8 +1,7 @@
 .toast {
-  position: absolute;
+  position: fixed;
   left: 50%;
-  bottom: 104px;
-  z-index: 60;
+  z-index: 200;
   max-width: calc(100% - 40px);
   padding: 11px 18px;
   border-radius: 13px;
@@ -11,7 +10,9 @@
   box-shadow: var(--shadow-toast);
   font-size: var(--font-size-body-sm);
   font-weight: var(--font-weight-medium);
-  white-space: nowrap;
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.5;
   transform: translateX(-50%);
   animation: floatUp 0.3s ease both;
 }

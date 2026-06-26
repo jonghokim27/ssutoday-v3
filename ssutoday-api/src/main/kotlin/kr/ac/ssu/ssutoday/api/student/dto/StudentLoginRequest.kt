@@ -6,4 +6,5 @@ import jakarta.validation.constraints.NotNull
 data class StudentLoginRequest(
     @field:NotEmpty val sToken: String,
     @field:NotNull val sIdno: Int,
+    val persistLogin: Boolean = false,
 )

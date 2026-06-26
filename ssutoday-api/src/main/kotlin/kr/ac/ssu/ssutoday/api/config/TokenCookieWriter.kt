@@ -15,9 +15,11 @@ class TokenCookieWriter {
         response: HttpServletResponse,
         accessToken: String,
         refreshToken: String,
+        persist: Boolean = false,
     ) {
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(ACCESS_TOKEN_COOKIE, accessToken, ACCESS_TOKEN_MAX_AGE).toString())
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(REFRESH_TOKEN_COOKIE, refreshToken, REFRESH_TOKEN_MAX_AGE).toString())
+        val maxAge = if (persist) Duration.ofDays(365) else REFRESH_TOKEN_MAX_AGE
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie(ACCESS_TOKEN_COOKIE, accessToken, maxAge).toString())
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie(REFRESH_TOKEN_COOKIE, refreshToken, maxAge).toString())
     }
 
     fun clearAuthCookies(response: HttpServletResponse) {

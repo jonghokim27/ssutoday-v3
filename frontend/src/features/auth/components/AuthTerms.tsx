@@ -4,6 +4,7 @@ import { Button } from '../../../shared/ui/Button';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
+import { isNativeApp } from '../../../shared/native/nativeBridge';
 import { getSsoLoginUrl } from '../config/sso';
 import styles from './AuthTerms.module.css';
 
@@ -139,12 +140,31 @@ export function AuthTerms() {
   const navigate = useNavigate();
   const safePath = useSafeAreaPath();
   const [redirecting, setRedirecting] = useState(false);
+  const [showPersistDialog, setShowPersistDialog] = useState(false);
 
   function redirectToSso() {
     setRedirecting(true);
     window.setTimeout(() => {
       window.location.assign(getSsoLoginUrl());
     }, 120);
+  }
+
+  function handleContinueClick() {
+    if (isNativeApp()) {
+      redirectToSso();
+    } else {
+      setShowPersistDialog(true);
+    }
+  }
+
+  function handlePersistChoice(persist: boolean) {
+    if (persist) {
+      sessionStorage.setItem('ssu_persist_login', '1');
+    } else {
+      sessionStorage.removeItem('ssu_persist_login');
+    }
+    setShowPersistDialog(false);
+    redirectToSso();
   }
 
   return (
@@ -183,7 +203,7 @@ export function AuthTerms() {
         </div>
       </section>
       <div className={styles.cta}>
-        <Button disabled={redirecting} onClick={redirectToSso} type="button">
+        <Button disabled={redirecting} onClick={handleContinueClick} type="button">
           {redirecting ? (
             <>
               <span className={styles.loader} aria-hidden="true" />
@@ -196,6 +216,18 @@ export function AuthTerms() {
           )}
         </Button>
       </div>
+      {showPersistDialog ? (
+        <div className={styles.persistOverlay} onClick={(e) => { if (e.target === e.currentTarget) { handlePersistChoice(false); } }}>
+          <div className={styles.persistDialog}>
+            <h3>이 기기에서 로그인을 유지할까요?</h3>
+            <p>유지하면 브라우저를 닫아도 로그인이 유지돼요</p>
+            <div className={styles.persistActions}>
+              <Button onClick={() => handlePersistChoice(true)} type="button">유지하기</Button>
+              <Button onClick={() => handlePersistChoice(false)} type="button" variant="secondary">유지 안 함</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {redirecting ? (
         <div className={styles.redirectOverlay} role="status" aria-live="polite">
           <span className={styles.loader} aria-hidden="true" />
