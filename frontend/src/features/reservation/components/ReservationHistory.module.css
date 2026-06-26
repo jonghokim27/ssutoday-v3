@@ -242,6 +242,11 @@
   cursor: pointer;
 }
 
+.leftDualCell + .shotButton .blinkAction {
+  font-size: 11.5px;
+  gap: 1px;
+}
+
 .primaryAction {
   color: var(--color-brand-blue);
   flex-direction: column;
