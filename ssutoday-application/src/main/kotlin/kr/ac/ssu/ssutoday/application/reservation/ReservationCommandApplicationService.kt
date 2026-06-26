@@ -2,7 +2,9 @@ package kr.ac.ssu.ssutoday.application.reservation
 
 import kr.ac.ssu.ssutoday.application.reservation.dto.AdminReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
+import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
 import kr.ac.ssu.ssutoday.core.port.RecaptchaVerificationPort
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.status.StatusCode
@@ -14,6 +16,7 @@ import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
 import kr.ac.ssu.ssutoday.domain.room.RoomService
+import kr.ac.ssu.ssutoday.domain.student.DeviceService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,10 +29,12 @@ class ReservationCommandApplicationService(
     private val verifyPhotoService: VerifyPhotoService,
     private val roomService: RoomService,
     private val studentService: StudentService,
+    private val deviceService: DeviceService,
     private val configService: ConfigService,
     private val reservationRequestPolicy: ReservationRequestPolicy,
     private val reservationCompletionPolicy: ReservationCompletionPolicy,
     private val reservationRequestPublisher: ReservationRequestPublisher,
+    private val pushMessagePublisher: PushMessagePublisher,
     private val recaptchaVerificationPort: RecaptchaVerificationPort,
 ) {
     @Transactional
@@ -104,6 +109,15 @@ class ReservationCommandApplicationService(
             endBlock = request.endBlock,
         )
         reservationRequestService.accept(requestId)
+
+        val studentId = request.studentId
+        afterCommit {
+            sendReservationPush(
+                studentId = studentId,
+                title = "예약이 확정되었어요!",
+                body = "${request.roomNo} 예약이 확정되었습니다.",
+            )
+        }
     }
 
     @Transactional
@@ -141,6 +155,14 @@ class ReservationCommandApplicationService(
                     command.reservationId,
                     "관리자 취소 (사유: $reason)",
                 )
+                val studentId = reservation.studentId
+                afterCommit {
+                    sendReservationPush(
+                        studentId = studentId,
+                        title = "예약이 취소되었어요",
+                        body = "관리자에 의해 ${reservation.roomNo} 예약이 취소되었습니다.",
+                    )
+                }
                 3
             }
             PHOTO_DELETE -> {
@@ -166,7 +188,33 @@ class ReservationCommandApplicationService(
             val useStartAt = maxOf(startAt, reservation.createdAt.toLocalDateTime())
             if (now.isAfter(useStartAt.plusMinutes(10))) {
                 reservationService.cancelByAdmin(reservation.id, "인증샷 미촬영 취소")
+                val studentId = reservation.studentId
+                afterCommit {
+                    sendReservationPush(
+                        studentId = studentId,
+                        title = "예약이 취소되었어요",
+                        body = "인증샷 미촬영으로 인해 ${reservation.roomNo} 예약이 취소되었습니다.",
+                    )
+                }
             }
+        }
+    }
+
+    private fun sendReservationPush(
+        studentId: Int,
+        title: String,
+        body: String,
+    ) {
+        deviceService.findReservationPushTokens(studentId).forEach { token ->
+            pushMessagePublisher.publish(
+                PushMessage(
+                    type = "token",
+                    token = token,
+                    title = title,
+                    body = body,
+                    link = "ssutoday://reservations",
+                ),
+            )
         }
     }
 
