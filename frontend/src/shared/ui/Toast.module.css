@@ -13,6 +13,7 @@
   font-weight: var(--font-weight-medium);
   text-align: center;
   line-height: 1.5;
+  white-space: pre-line;
   transform: translateX(-50%);
   animation: floatUp 0.3s ease both;
 }
