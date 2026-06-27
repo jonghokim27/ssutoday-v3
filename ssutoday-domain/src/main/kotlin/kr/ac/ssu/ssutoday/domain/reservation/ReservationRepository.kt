@@ -50,7 +50,7 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
         select r from Reservation r
         where r.deletedAt is null
           and r.date = :today
-          and r.startBlock < :block
+          and r.startBlock <= :block
           and r.endBlock >= :block
           and r.id not in (select vp.reservationId from VerifyPhoto vp)
           and not exists (
