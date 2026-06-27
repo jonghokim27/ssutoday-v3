@@ -11,7 +11,7 @@ class ReservationPhotoCheckJob(
 ) {
     private val log = KotlinLogging.logger {}
 
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(cron = "0 * * * * *")
     fun execute() {
         runCatching { reservationCommandApplicationService.cancelMissingPhotos() }
             .onFailure { log.error(it) { "인증샷 미촬영 예약 취소 처리 실패" } }
