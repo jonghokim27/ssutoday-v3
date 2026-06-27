@@ -38,10 +38,6 @@ button:disabled {
   cursor: default;
 }
 
-.grecaptcha-badge {
-  visibility: hidden;
-}
-
 button,
 a {
   -webkit-tap-highlight-color: transparent;

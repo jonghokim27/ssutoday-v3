@@ -3,7 +3,7 @@ package kr.ac.ssu.ssutoday.application.reservation.dto
 import java.io.InputStream
 
 data class UploadPhotoCommand(
-    val recaptchaToken: String,
+    val turnstileToken: String,
     val studentId: Int,
     val reservationId: Long,
     val contentType: String?,

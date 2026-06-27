@@ -5,7 +5,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
-import kr.ac.ssu.ssutoday.core.port.RecaptchaVerificationPort
+import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
@@ -35,11 +35,11 @@ class ReservationCommandApplicationService(
     private val reservationCompletionPolicy: ReservationCompletionPolicy,
     private val reservationRequestPublisher: ReservationRequestPublisher,
     private val pushMessagePublisher: PushMessagePublisher,
-    private val recaptchaVerificationPort: RecaptchaVerificationPort,
+    private val turnstileVerificationPort: TurnstileVerificationPort,
 ) {
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
-        if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
+        if (!turnstileVerificationPort.verify(command.turnstileToken)) {
             throw BusinessException(StatusCode.SSU4092)
         }
         reservationService.validate(command.startBlock, command.endBlock)
@@ -222,6 +222,5 @@ class ReservationCommandApplicationService(
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
-        const val RECAPTCHA_ACTION = "reservation_request"
     }
 }

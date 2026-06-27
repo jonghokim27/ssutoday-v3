@@ -10,7 +10,7 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
 import { openLink } from '../../../shared/native/nativeBridge';
-import { getRecaptchaToken } from '../../../shared/recaptcha/recaptcha';
+import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
 import { emptyStudyRoom, type StudyRoom, type TimeBooking } from '../data/reservationData';
@@ -158,18 +158,18 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     setConfirmOpen(false);
     intervalPaused.current = true;
 
-    let recaptchaToken: string;
+    let turnstileToken: string;
     try {
-      recaptchaToken = await getRecaptchaToken('reservation_request');
+      turnstileToken = await getTurnstileToken('reservation_request');
     } catch {
       intervalPaused.current = false;
       setSubmitting(false);
-      navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요.', 'RECAPTCHA_FAILED');
+      navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요.', 'TURNSTILE_FAILED');
       return;
     }
 
     const requested = await reservationRepository.requestReserve({
-      recaptchaToken,
+      turnstileToken,
       roomNo: roomId,
       date: selectedDate,
       startBlock: slotToBlock(selection.start),
@@ -327,10 +327,10 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           ]}
           footnote={
             <>
-              이 사이트는 reCAPTCHA의 보호를 받으며, Google의{' '}
-              <button onClick={() => void openLink('https://policies.google.com/privacy')} type="button">개인정보처리방침</button>
+              이 사이트는 Cloudflare Turnstile의 보호를 받으며, Cloudflare의{' '}
+              <button onClick={() => void openLink('https://www.cloudflare.com/privacypolicy/')} type="button">개인정보처리방침</button>
               {' '}및{' '}
-              <button onClick={() => void openLink('https://policies.google.com/terms')} type="button">서비스 약관</button>
+              <button onClick={() => void openLink('https://www.cloudflare.com/website-terms/')} type="button">서비스 약관</button>
               이 적용됩니다.
             </>
           }
@@ -423,7 +423,7 @@ function reserveStatusMessage(status: ReserveStatus) {
 
 function requestFailureMessage(statusCode: string, fallback: string) {
   if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요.';
-  if (statusCode === 'SSU4092') return 'reCAPTCHA 검증에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  if (statusCode === 'SSU4092') return 'Turnstile 검증에 실패했어요. 잠시 후 다시 시도해 주세요.';
   return fallback;
 }
 

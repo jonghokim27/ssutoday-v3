@@ -3,7 +3,7 @@ package kr.ac.ssu.ssutoday.application.reservation
 import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.FileStoragePort
-import kr.ac.ssu.ssutoday.core.port.RecaptchaVerificationPort
+import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
@@ -16,13 +16,13 @@ class VerifyPhotoApplicationService(
     private val reservationService: ReservationService,
     private val verifyPhotoService: VerifyPhotoService,
     private val fileStoragePort: FileStoragePort,
-    private val recaptchaVerificationPort: RecaptchaVerificationPort,
+    private val turnstileVerificationPort: TurnstileVerificationPort,
     @Value("\${ssutoday.storage.verify-photo-bucket:ssutoday-reserve-verify-photo}")
     private val bucket: String,
 ) {
     @Transactional
     fun upload(command: UploadPhotoCommand): String {
-        if (!recaptchaVerificationPort.verify(command.recaptchaToken, RECAPTCHA_ACTION)) {
+        if (!turnstileVerificationPort.verify(command.turnstileToken)) {
             throw BusinessException(StatusCode.SSU4003)
         }
         reservationService.getForPhotoUpload(command.studentId, command.reservationId)
@@ -35,9 +35,5 @@ class VerifyPhotoApplicationService(
             }
         verifyPhotoService.create(command.reservationId, url)
         return url
-    }
-
-    private companion object {
-        const val RECAPTCHA_ACTION = "verify_photo_upload"
     }
 }
