@@ -53,19 +53,18 @@ export function AvailabilityBars({
     const el = scrollerRef.current;
     if (!el || large) return;
 
-    let scheduled = false;
+    let timer: number;
     function handleScroll() {
-      if (scheduled) return;
-      scheduled = true;
-      window.setTimeout(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
         onScrollLeftChange?.(el!.scrollLeft);
-        scheduled = false;
       }, 32);
     }
 
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       el.removeEventListener('scroll', handleScroll);
+      window.clearTimeout(timer);
     };
   }, [large, onScrollLeftChange]);
 
