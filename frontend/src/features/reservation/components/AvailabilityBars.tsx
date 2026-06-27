@@ -57,7 +57,7 @@ export function AvailabilityBars({
     function handleScroll() {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
-        onScrollLeftChange?.(el.scrollLeft);
+        onScrollLeftChange?.(el!.scrollLeft);
       }, 80);
     }
 
