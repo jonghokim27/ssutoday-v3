@@ -14,6 +14,7 @@
 .largeScroller {
   margin: 7px calc(var(--space-screen-x) * -1) 0;
   padding: 4px var(--space-screen-x) 2px;
+  overscroll-behavior-x: auto;
 }
 
 .track {
