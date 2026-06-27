@@ -14,4 +14,4 @@ server:
 
 ssutoday:
   turnstile:
-    secret-key: ${TURNSTILE_SECRET_KEY}
+    secret-key: ${TURNSTILE_SECRET_KEY:}
