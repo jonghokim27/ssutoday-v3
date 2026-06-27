@@ -51,6 +51,8 @@ cloud:
       auto: false
 
 ssutoday:
+  turnstile:
+    secret-key: ${TURNSTILE_SECRET_KEY:}
   kafka:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
