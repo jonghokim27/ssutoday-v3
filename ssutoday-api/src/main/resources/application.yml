@@ -13,7 +13,5 @@ server:
   port: 8090
 
 ssutoday:
-  recaptcha:
-    secret-key: ${RECAPTCHA_SECRET_KEY}
-    minimum-score: ${RECAPTCHA_MINIMUM_SCORE:0.5}
-    allowed-hostnames: ${RECAPTCHA_ALLOWED_HOSTNAMES:}
+  turnstile:
+    secret-key: ${TURNSTILE_SECRET_KEY}

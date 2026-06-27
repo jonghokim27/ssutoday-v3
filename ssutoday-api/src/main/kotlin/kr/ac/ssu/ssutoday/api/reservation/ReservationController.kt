@@ -43,7 +43,7 @@ class ReservationController(
         val id =
             reservationCommandApplicationService.createReservationRequest(
                 CreateReservationCommand(
-                    request.recaptchaToken,
+                    request.turnstileToken,
                     student.id,
                     student.major,
                     student.isAdmin,
@@ -94,7 +94,7 @@ class ReservationController(
         val file = request.file
         verifyPhotoApplicationService.upload(
             UploadPhotoCommand(
-                request.recaptchaToken,
+                request.turnstileToken,
                 student.id,
                 request.idx,
                 file.contentType,
