@@ -17,6 +17,10 @@
   overscroll-behavior-x: auto;
 }
 
+.largeScroller .track {
+  padding-right: var(--space-screen-x);
+}
+
 .track {
   position: relative;
 }
