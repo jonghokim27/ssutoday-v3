@@ -15,7 +15,6 @@ type TurnstileOptions = {
   action?: string;
   callback?: (token: string) => void;
   'error-callback'?: () => void;
-  execution?: 'render' | 'execute';
   appearance?: 'always' | 'execute' | 'interaction-only';
 };
 
@@ -47,7 +46,11 @@ function loadScript(): Promise<void> {
 function getContainer(): HTMLElement {
   if (!container) {
     container = document.createElement('div');
-    container.style.display = 'none';
+    // display:none 사용 시 Turnstile이 실행되지 않으므로 off-screen으로 배치
+    container.style.position = 'fixed';
+    container.style.bottom = '0';
+    container.style.right = '0';
+    container.style.zIndex = '9999';
     document.body.appendChild(container);
   }
   return container;
@@ -73,7 +76,6 @@ export async function getTurnstileToken(action: string): Promise<string> {
       action,
       callback: resolve,
       'error-callback': () => reject(new Error('Turnstile 인증에 실패했습니다.')),
-      execution: 'execute',
       appearance: 'interaction-only',
     });
   });
