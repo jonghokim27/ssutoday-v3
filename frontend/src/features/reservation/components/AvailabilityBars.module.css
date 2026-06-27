@@ -18,7 +18,7 @@
 }
 
 .largeScroller .track {
-  padding-right: var(--space-screen-x);
+  margin-right: var(--space-screen-x);
 }
 
 .track {
