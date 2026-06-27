@@ -49,14 +49,28 @@ export function AvailabilityBars({
     }
   }, [date, nowPositionRatio, scrollLeft, trackWidth]);
 
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || large) return;
+
+    let timer: number;
+    function handleScroll() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        onScrollLeftChange?.(el.scrollLeft);
+      }, 80);
+    }
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
+      window.clearTimeout(timer);
+    };
+  }, [large, onScrollLeftChange]);
+
   return (
     <div
       className={[styles.scroller, large ? styles.largeScroller : ''].join(' ')}
-      onScroll={(event) => {
-        if (!large) {
-          onScrollLeftChange?.(event.currentTarget.scrollLeft);
-        }
-      }}
       ref={scrollerRef}
     >
       <div className={styles.track} style={{ width: trackWidth }}>
@@ -103,6 +117,7 @@ export function AvailabilityBars({
           {hourTicks.map((tick) => (
             <span key={tick}>{tick}</span>
           ))}
+          {large ? <span style={{ flex: 'none', width: 'auto' }}>22:00</span> : null}
         </div>
       </div>
     </div>
