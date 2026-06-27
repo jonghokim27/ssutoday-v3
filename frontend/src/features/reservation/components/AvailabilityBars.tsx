@@ -117,7 +117,6 @@ export function AvailabilityBars({
           {hourTicks.map((tick) => (
             <span key={tick}>{tick}</span>
           ))}
-          {large ? <span style={{ flex: 'none', width: 'auto' }}>22:00</span> : null}
         </div>
       </div>
     </div>
