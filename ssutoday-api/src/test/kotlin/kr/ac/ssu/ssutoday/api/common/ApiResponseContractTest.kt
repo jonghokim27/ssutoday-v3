@@ -204,7 +204,7 @@ class ApiResponseContractTest {
             )
         val reservationJson =
             objectMapper.writeValueAsString(
-                RoomReservation(1L, "name", 12, 13, true),
+                RoomReservation(1L, RoomReservation.StudentInfo("20000000", "홍길동", "컴퓨터학부"), 12, 13, true, null),
             )
 
         assertTrue(loginJson.contains("\"isAdmin\":true"))
