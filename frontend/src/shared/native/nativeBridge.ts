@@ -27,7 +27,6 @@ export type NativeBridge = {
   requestCameraPermission(): Promise<boolean>;
   captureVerifyPhoto(): Promise<CapturedPhoto | null>;
   signWithBiometrics(payload: string): Promise<{ signature: string } | null>;
-  logScreenView(screenName: string): Promise<void>;
   checkConnectivity(): Promise<{ online: boolean }>;
   getTurnstileToken(siteKey: string, action: string): Promise<string>;
 };
@@ -43,7 +42,6 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   requestCameraPermission: 'camera.requestPermission',
   captureVerifyPhoto: 'camera.captureVerifyPhoto',
   signWithBiometrics: 'auth.signWithBiometrics',
-  logScreenView: 'analytics.logScreenView',
   checkConnectivity: 'network.checkConnectivity',
   getTurnstileToken: 'security.getTurnstileToken',
 };
@@ -91,10 +89,6 @@ class WebViewNativeBridge implements NativeBridge {
 
   signWithBiometrics(payload: string) {
     return request<{ signature: string } | null>(METHOD_FOR.signWithBiometrics, { payload });
-  }
-
-  logScreenView(screenName: string) {
-    return request<void>(METHOD_FOR.logScreenView, { screenName });
   }
 
   checkConnectivity() {
@@ -149,8 +143,6 @@ class MockNativeBridge implements NativeBridge {
   async signWithBiometrics(payload: string) {
     return { signature: `mock-signature:${payload}` };
   }
-
-  async logScreenView() {}
 
   async checkConnectivity() {
     return { online: true };
