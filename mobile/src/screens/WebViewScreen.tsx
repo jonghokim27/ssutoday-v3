@@ -33,10 +33,19 @@ function isAllowedNavigation(url: string): boolean {
   }
 }
 
+function isSmartIdUrl(url: string): boolean {
+  try {
+    return new URL(url).host === 'smartid.ssu.ac.kr';
+  } catch {
+    return false;
+  }
+}
+
 export default function WebViewScreen() {
   const insets = useSafeAreaInsets();
   const webviewRef = useRef<WebView>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [currentUrl, setCurrentUrl] = useState(TARGET_URL);
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
 
@@ -143,6 +152,10 @@ export default function WebViewScreen() {
     return isAllowedNavigation(request.url);
   }, []);
 
+  const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
+    setCurrentUrl(state.url);
+  }, []);
+
   const handleRetry = useCallback(() => {
     NetInfo.fetch().then((state) => {
       const connected = state.isConnected === true && state.isInternetReachable !== false;
@@ -157,15 +170,21 @@ export default function WebViewScreen() {
     return <OfflineScreen onRetry={handleRetry} />;
   }
 
+  const webviewStyle = [
+    styles.webview,
+    isSmartIdUrl(currentUrl) ? { marginTop: insets.top } : null,
+  ];
+
   return (
     <>
       <WebView
         ref={webviewRef}
-        style={styles.webview}
+        style={webviewStyle}
         source={{ uri: targetUri }}
         onLoad={sendHandshake}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        onNavigationStateChange={handleNavigationStateChange}
         userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures
