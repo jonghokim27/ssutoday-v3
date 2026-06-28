@@ -62,11 +62,15 @@ class DiscordWebhookAppender : AppenderBase<ILoggingEvent>() {
             proxy.stackTraceElementProxyArray?.take(20)?.forEach {
                 append("\tat ${it.steAsString}\n")
             }
-            proxy.cause?.let { cause ->
+            var cause = proxy.cause
+            var depth = 0
+            while (cause != null && depth < 5) {
                 append("Caused by: ${cause.className}: ${cause.message}\n")
                 cause.stackTraceElementProxyArray?.take(10)?.forEach {
                     append("\tat ${it.steAsString}\n")
                 }
+                cause = cause.cause
+                depth++
             }
         }
     }
