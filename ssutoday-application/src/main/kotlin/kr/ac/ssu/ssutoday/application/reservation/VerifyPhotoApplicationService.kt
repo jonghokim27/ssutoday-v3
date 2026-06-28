@@ -4,6 +4,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.DiscordVerifyPhotoNotificationPort
 import kr.ac.ssu.ssutoday.core.port.FileStoragePort
+import kr.ac.ssu.ssutoday.core.port.TokenPort
 import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
@@ -18,6 +19,7 @@ class VerifyPhotoApplicationService(
     private val reservationService: ReservationService,
     private val verifyPhotoService: VerifyPhotoService,
     private val fileStoragePort: FileStoragePort,
+    private val tokenPort: TokenPort,
     private val turnstileVerificationPort: TurnstileVerificationPort,
     private val discordVerifyPhotoNotificationPort: DiscordVerifyPhotoNotificationPort,
     @Value("\${ssutoday.storage.verify-photo-bucket}")
@@ -31,7 +33,7 @@ class VerifyPhotoApplicationService(
             throw BusinessException(StatusCode.SSU4205)
         }
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
-        val key = "${command.reservationId}/${System.currentTimeMillis()}"
+        val key = "verifyPhoto/${tokenPort.randomToken(VERIFY_PHOTO_FILE_TOKEN_LENGTH)}.jpeg"
         val uploadedUrl =
             try {
                 fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
@@ -62,5 +64,9 @@ class VerifyPhotoApplicationService(
         if (publicBaseUrl.isBlank()) return fallbackUrl
 
         return "${publicBaseUrl.trimEnd('/')}/${key.trimStart('/')}"
+    }
+
+    private companion object {
+        const val VERIFY_PHOTO_FILE_TOKEN_LENGTH = 20
     }
 }
