@@ -64,6 +64,56 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
     )
     fun findMissingPhotoReservations(today: LocalDate, block: Int): List<Reservation>
 
+    // 특정 startBlock에 시작하는 활성 예약 (이용 시작 5분 전 알림용)
+    fun findAllByDateAndStartBlockAndDeletedAtIsNull(
+        date: LocalDate,
+        startBlock: Int,
+    ): List<Reservation>
+
+    // 특정 블록에 종료되며 연속 다음 예약이 없는 활성 예약 (이용 종료 5분 전 알림용)
+    @Query(
+        """
+        select r from Reservation r
+        where r.date = :date
+          and r.endBlock = :block
+          and r.deletedAt is null
+          and not exists (
+            select 1 from Reservation next
+            where next.deletedAt is null
+              and next.studentId = r.studentId
+              and next.date = r.date
+              and next.roomNo = r.roomNo
+              and next.startBlock = r.endBlock + 1
+          )
+        """,
+    )
+    fun findEndingSoon(
+        date: LocalDate,
+        block: Int,
+    ): List<Reservation>
+
+    // 특정 블록에 시작하며 연속 이전 예약이 없는 활성 예약 (인증샷 촬영 알림용)
+    @Query(
+        """
+        select r from Reservation r
+        where r.date = :date
+          and r.startBlock = :block
+          and r.deletedAt is null
+          and not exists (
+            select 1 from Reservation prev
+            where prev.deletedAt is null
+              and prev.studentId = r.studentId
+              and prev.date = r.date
+              and prev.roomNo = r.roomNo
+              and prev.endBlock = r.startBlock - 1
+          )
+        """,
+    )
+    fun findStartingNow(
+        date: LocalDate,
+        block: Int,
+    ): List<Reservation>
+
     fun findByAdminToken(adminToken: String): Reservation?
 
     fun findByIdAndStudentIdAndDeletedAtIsNull(

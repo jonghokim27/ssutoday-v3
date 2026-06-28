@@ -186,4 +186,19 @@ class ReservationService(
         today: LocalDate,
         block: Int,
     ): List<ReservationView> = repository.findMissingPhotoReservations(today, block).map(Reservation::toView)
+
+    fun findStartingSoon(
+        date: LocalDate,
+        startBlock: Int,
+    ): List<ReservationView> = repository.findAllByDateAndStartBlockAndDeletedAtIsNull(date, startBlock).map(Reservation::toView)
+
+    fun findEndingSoon(
+        date: LocalDate,
+        block: Int,
+    ): List<ReservationView> = repository.findEndingSoon(date, block).map(Reservation::toView)
+
+    fun findStartingNow(
+        date: LocalDate,
+        block: Int,
+    ): List<ReservationView> = repository.findStartingNow(date, block).map(Reservation::toView)
 }

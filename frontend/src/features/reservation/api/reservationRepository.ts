@@ -4,6 +4,16 @@ import { nativeBridge } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { blockToTime, timeToBlock } from './reservationBlocks';
 
+function dataUriToBlob(uri: string, fallbackType: string): Blob {
+  if (!uri.startsWith('data:')) {
+    return new Blob([], { type: fallbackType });
+  }
+  const [header, base64] = uri.split(',');
+  const mime = header.match(/:(.*?);/)?.[1] ?? fallbackType;
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type: mime });
+}
+
 export type ReserveInRoom = {
   idx: number;
   startBlock: number;
@@ -98,7 +108,7 @@ export class ApiReservationRepository implements ReservationRepository {
   async uploadVerifyPhoto(idx: number) {
     const photo = await nativeBridge.captureVerifyPhoto();
     if (!photo) {
-      return apiFailure('SSU0000', '사진 촬영이 취소되었습니다.');
+      return apiFailure('SSU0000', '인증샷 촬영이 취소되었습니다.');
     }
 
     const turnstileToken = await getTurnstileToken('verify_photo_upload');
@@ -106,7 +116,8 @@ export class ApiReservationRepository implements ReservationRepository {
     const formData = new FormData();
     formData.append('turnstileToken', turnstileToken);
     formData.append('idx', String(idx));
-    formData.append('file', photo.blob ?? new Blob([], { type: photo.type }), photo.name);
+    const fileBlob = photo.blob ?? dataUriToBlob(photo.uri, photo.type);
+    formData.append('file', fileBlob, photo.name);
 
     return apiClient.postFormData<null>('reserve/verifyPhoto/upload', formData, { authenticated: true });
   }

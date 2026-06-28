@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -58,6 +59,40 @@ export default function WebViewScreen() {
 
     registerHandler('system.openAppSettings', async () => {
       await Linking.openSettings();
+    });
+
+    registerHandler('camera.requestPermission', async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      return status === 'granted';
+    });
+
+    registerHandler('camera.captureVerifyPhoto', async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        throw new BridgeHandlerError('PERMISSION_DENIED', '카메라 권한이 없습니다.');
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        allowsEditing: false,
+        quality: 0.8,
+        base64: true,
+        exif: false,
+      });
+
+      if (result.canceled) {
+        return null;
+      }
+
+      const asset = result.assets[0];
+      if (!asset.base64) {
+        throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다.');
+      }
+      return {
+        name: `verify-photo-${Date.now()}.jpg`,
+        type: 'image/jpeg',
+        uri: `data:image/jpeg;base64,${asset.base64}`,
+      };
     });
 
     registerHandler('network.checkConnectivity', async () => {
