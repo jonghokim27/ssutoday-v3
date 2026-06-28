@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.core.dto
 
-import tools.jackson.annotation.JsonCreator
-import tools.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 
 data class PushMessage
 @JsonCreator
