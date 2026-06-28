@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { isNativeApp, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -172,6 +172,15 @@ export function ReservationHistory() {
     flash('이용을 종료했어요');
   }
 
+  async function viewPhoto(item: HistoryViewItem) {
+    const url = item.verifyPhotoUrl ?? '';
+    if (isNativeApp()) {
+      await nativeBridge.openExternalUrl(url, 'internal');
+    } else {
+      await openLink(url);
+    }
+  }
+
   async function shootPhoto(item: HistoryViewItem) {
     if (!isNativeApp()) {
       requireNativeApp();
@@ -219,7 +228,7 @@ export function ReservationHistory() {
               </dl>
             </div>
             <div className={styles.actions}>
-              {item.canDone && (item.canShootPhoto || item.photoExempted) ? (
+              {item.canDone && (item.canShootPhoto || item.photoExempted || item.canViewPhoto) ? (
                 <>
                   <div className={styles.leftDualCell}>
                     <div className={styles.statusCell}>
@@ -233,6 +242,10 @@ export function ReservationHistory() {
                     <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
                       <span className={styles.blinkAction}>인증샷 촬영<i /></span>
                       <span>촬영 기한: {item.shotDeadline} 까지</span>
+                    </button>
+                  ) : item.canViewPhoto ? (
+                    <button className={styles.shotButton} onClick={() => void viewPhoto(item)} type="button">
+                      인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
                     </button>
                   ) : (
                     <div className={styles.actionInfo}>
@@ -251,29 +264,18 @@ export function ReservationHistory() {
                       이용 종료<span>종료하려면 선택</span>
                     </button>
                   ) : null}
-                  {item.canShootPhoto ? (
-                    <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
-                      <span className={styles.blinkAction}>인증샷 촬영<i /></span>
-                      <span>촬영 기한: {item.shotDeadline} 까지</span>
+                  {item.canViewPhoto ? (
+                    <button className={styles.shotButton} onClick={() => void viewPhoto(item)} type="button">
+                      인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
                     </button>
                   ) : null}
-                  {item.photoExempted ? (
+                  {item.photoMissing ? (
                     <div className={styles.actionInfo}>
-                      인증샷 촬영<span>촬영이 면제됨</span>
+                      인증샷 보기<span>촬영되지 않음</span>
                     </div>
                   ) : null}
                 </>
               )}
-              {item.canViewPhoto ? (
-                <button className={styles.shotButton} onClick={() => void openLink(item.verifyPhotoUrl ?? '')} type="button">
-                  인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
-                </button>
-              ) : null}
-              {item.photoMissing ? (
-                <div className={styles.actionInfo}>
-                  인증샷 보기<span>촬영되지 않음</span>
-                </div>
-              ) : null}
               {item.cancelable ? <button className={styles.danger} onClick={() => setCancelTarget(item)} type="button">예약 취소</button> : null}
               {item.canRebook ? <Link className={styles.rebook} to={safePath(`/reservations/${item.roomNo}?date=${item.rawDate}`)}>다시 예약하기</Link> : null}
             </div>
