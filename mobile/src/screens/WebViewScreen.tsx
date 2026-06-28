@@ -30,10 +30,32 @@ export default function WebViewScreen() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+
     const unsubscribe = NetInfo.addEventListener((state) => {
-      setIsOnline(state.isConnected !== false);
+      const connected = state.isConnected === true && state.isInternetReachable !== false;
+
+      if (connected) {
+        if (offlineTimer) {
+          clearTimeout(offlineTimer);
+          offlineTimer = null;
+        }
+        setIsOnline(true);
+      } else {
+        // 일시적인 상태 변동은 무시하고 3초 이상 지속될 때만 오프라인으로 전환
+        if (!offlineTimer) {
+          offlineTimer = setTimeout(() => {
+            setIsOnline(false);
+            offlineTimer = null;
+          }, 3000);
+        }
+      }
     });
-    return unsubscribe;
+
+    return () => {
+      unsubscribe();
+      if (offlineTimer) clearTimeout(offlineTimer);
+    };
   }, []);
 
   const targetUri = `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}`;
@@ -70,8 +92,9 @@ export default function WebViewScreen() {
 
   const handleRetry = useCallback(() => {
     NetInfo.fetch().then((state) => {
-      setIsOnline(state.isConnected !== false);
-      if (state.isConnected !== false) {
+      const connected = state.isConnected === true && state.isInternetReachable !== false;
+      setIsOnline(connected);
+      if (connected) {
         webviewRef.current?.reload();
       }
     });
