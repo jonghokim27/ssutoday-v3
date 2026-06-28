@@ -14,4 +14,5 @@ data class ReservationView(
     val deletedAt: Timestamp?,
     val deletedReason: String?,
     val active: Boolean,
+    val adminToken: String,
 )

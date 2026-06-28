@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="DISCORD_WEBHOOK_URL" source="spring.discord.error-webhook-url" defaultValue=""/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="consumer"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n%ex</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="DISCORD_RAW" class="kr.ac.ssu.ssutoday.adapter.discord.DiscordWebhookAppender">
+        <webhookUrl>${DISCORD_WEBHOOK_URL}</webhookUrl>
+        <appName>${APP_NAME}</appName>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+    </appender>
+
+    <appender name="DISCORD" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="DISCORD_RAW"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="DISCORD"/>
+    </root>
+
+    <logger name="kr.ac.ssu.ssutoday" level="INFO"/>
+</configuration>

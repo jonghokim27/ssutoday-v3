@@ -5,8 +5,10 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import java.security.SecureRandom
 import java.sql.Timestamp
 import java.time.LocalDate
+import java.util.Base64
 
 @Entity
 class Reservation(
@@ -38,6 +40,9 @@ class Reservation(
 
     @Column
     var deletedReason: String? = null,
+
+    @Column(nullable = false, unique = true, length = 220)
+    var adminToken: String = generateAdminToken(),
 ) {
     val active: Boolean get() = deletedAt == null
 
@@ -52,5 +57,15 @@ class Reservation(
 
     fun finishAt(endBlock: Int) {
         this.endBlock = endBlock
+    }
+
+    companion object {
+        private val secureRandom = SecureRandom()
+
+        fun generateAdminToken(): String {
+            val bytes = ByteArray(150)
+            secureRandom.nextBytes(bytes)
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
     }
 }

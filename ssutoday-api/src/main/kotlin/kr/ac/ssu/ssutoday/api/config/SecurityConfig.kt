@@ -31,6 +31,7 @@ class SecurityConfig(
                         "/student/login",
                         "/device/checkVersion",
                         "/sso/validateToken",
+                        "/admin/action",
                         "/error",
                         "/actuator/health",
                     ).permitAll()

@@ -56,6 +56,8 @@ class ReservationService(
 
     fun find(reservationId: Long): ReservationView? = repository.findByIdOrNull(reservationId)?.toView()
 
+    fun findByAdminToken(adminToken: String): ReservationView? = repository.findByAdminToken(adminToken)?.toView()
+
     fun getActive(
         studentId: Int,
         reservationId: Long,

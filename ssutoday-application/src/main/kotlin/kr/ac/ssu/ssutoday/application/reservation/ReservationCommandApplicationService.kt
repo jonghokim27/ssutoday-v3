@@ -179,6 +179,41 @@ class ReservationCommandApplicationService(
     }
 
     @Transactional
+    fun executeAdminActionByToken(
+        adminToken: String,
+        action: String,
+    ): Int {
+        val reservation = reservationService.findByAdminToken(adminToken) ?: return 0
+        if (!reservation.active) return 1
+
+        val endAt = reservation.date
+            .atStartOfDay()
+            .plusMinutes((reservation.endBlock + 1) * 30L)
+        if (endAt.isBefore(LocalDateTime.now())) return 2
+
+        return when (action) {
+            ADMIN_CANCEL -> {
+                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (Discord)")
+                val studentId = reservation.studentId
+                afterCommit {
+                    sendReservationPush(
+                        studentId = studentId,
+                        title = "예약이 취소되었어요",
+                        body = "관리자에 의해 ${reservation.roomNo} 예약이 취소되었습니다.",
+                    )
+                }
+                3
+            }
+            PHOTO_DELETE -> {
+                if (!verifyPhotoService.delete(reservation.id)) return 4
+                reservationService.resetCreatedAt(reservation.id)
+                5
+            }
+            else -> 99
+        }
+    }
+
+    @Transactional
     fun cancelMissingPhotos() {
         val now = LocalDateTime.now()
         val block = (now.hour * 60 + now.minute) / 30

@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: batch
   config:
     import: classpath:common.yml
   main:
