@@ -9,7 +9,7 @@ import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/prot
 import OfflineScreen from './OfflineScreen';
 
 const TARGET_URL = 'https://v3.ssu.today';
-const ALLOWED_HOST = 'v3.ssu.today';
+const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr']);
 
 function generateId(): string {
   return `native-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -17,7 +17,7 @@ function generateId(): string {
 
 function isAllowedNavigation(url: string): boolean {
   try {
-    return new URL(url).host === ALLOWED_HOST;
+    return ALLOWED_HOSTS.has(new URL(url).host);
   } catch {
     return false;
   }
@@ -88,6 +88,7 @@ export default function WebViewScreen() {
       onLoad={sendHandshake}
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+      userAgent="SSUTODAY"
       originWhitelist={['https://*']}
       allowsBackForwardNavigationGestures
     />
