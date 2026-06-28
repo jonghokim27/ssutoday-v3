@@ -16,6 +16,14 @@ function buildHtml(siteKey: string, action: string): string {
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <script>
+    (function() {
+      window.__postToRN = window.ReactNativeWebView
+        ? window.ReactNativeWebView.postMessage.bind(window.ReactNativeWebView)
+        : function() {};
+      try { delete window.ReactNativeWebView; } catch(e) { window.ReactNativeWebView = undefined; }
+    })();
+  </script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__onLoad&render=explicit" defer></script>
   <style>
     html, body { margin: 0; padding: 0; background: transparent; display: flex; justify-content: center; align-items: center; min-height: 65px; }
@@ -30,10 +38,10 @@ function buildHtml(siteKey: string, action: string): string {
         action: '${action}',
         appearance: 'always',
         callback: function(token) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ ok: true, token: token }));
+          window.__postToRN(JSON.stringify({ ok: true, token: token }));
         },
         'error-callback': function() {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ ok: false }));
+          window.__postToRN(JSON.stringify({ ok: false }));
         },
         'expired-callback': function() {
           turnstile.reset();
