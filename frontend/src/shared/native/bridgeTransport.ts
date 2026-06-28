@@ -122,18 +122,19 @@ export function hasCapability(method: BridgeMethod): boolean {
   return handshakeInfo?.capabilities.has(method) ?? false;
 }
 
-export function request<T = unknown>(method: BridgeMethod, params?: unknown): Promise<T> {
+export function request<T = unknown>(method: BridgeMethod, params?: unknown, timeoutMs?: number): Promise<T> {
   if (handshakeInfo && !hasCapability(method)) {
     return Promise.reject(new BridgeError('UNSUPPORTED_METHOD', `앱이 ${method}을 지원하지 않습니다.`));
   }
 
   const id = generateId();
+  const timeout = timeoutMs ?? BRIDGE_REQUEST_TIMEOUT_MS;
 
   return new Promise<T>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       pending.delete(id);
-      reject(new BridgeError('TIMEOUT', `${method} 응답이 ${BRIDGE_REQUEST_TIMEOUT_MS}ms 내에 도착하지 않았습니다.`));
-    }, BRIDGE_REQUEST_TIMEOUT_MS);
+      reject(new BridgeError('TIMEOUT', `${method} 응답이 ${timeout}ms 내에 도착하지 않았습니다.`));
+    }, timeout);
 
     pending.set(id, { resolve: resolve as (result: unknown) => void, reject, timeoutId });
     postToNative({ v: 1, kind: 'request', id, method, params });

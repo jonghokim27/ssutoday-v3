@@ -61,7 +61,7 @@ function getContainer(): HTMLElement {
 
 export async function getTurnstileToken(action: string): Promise<string> {
   if (isNativeApp()) {
-    return request<string>('security.getTurnstileToken', { siteKey: TURNSTILE_SITE_KEY, action });
+    return request<string>('security.getTurnstileToken', { siteKey: TURNSTILE_SITE_KEY, action }, 30_000);
   }
 
   await loadScript();

@@ -1,5 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
+
+const TIMEOUT_MS = 28_000;
 
 type Props = {
   siteKey: string;
@@ -15,7 +18,7 @@ function buildHtml(siteKey: string, action: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__onLoad&render=explicit" defer></script>
   <style>
-    html, body { margin: 0; padding: 0; background: transparent; display: flex; justify-content: center; align-items: center; min-height: 80px; }
+    html, body { margin: 0; padding: 0; background: transparent; display: flex; justify-content: center; align-items: center; min-height: 65px; }
   </style>
 </head>
 <body>
@@ -25,7 +28,7 @@ function buildHtml(siteKey: string, action: string): string {
       turnstile.render('#w', {
         sitekey: '${siteKey}',
         action: '${action}',
-        appearance: 'interaction-only',
+        appearance: 'always',
         callback: function(token) {
           window.ReactNativeWebView.postMessage(JSON.stringify({ ok: true, token: token }));
         },
@@ -33,7 +36,7 @@ function buildHtml(siteKey: string, action: string): string {
           window.ReactNativeWebView.postMessage(JSON.stringify({ ok: false }));
         },
         'expired-callback': function() {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ ok: false }));
+          turnstile.reset();
         },
       });
     };
@@ -43,15 +46,31 @@ function buildHtml(siteKey: string, action: string): string {
 }
 
 export default function TurnstileModal({ siteKey, action, onToken, onError }: Props) {
+  const doneRef = useRef(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!doneRef.current) {
+        doneRef.current = true;
+        onError();
+      }
+    }, TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [onError]);
+
   const handleMessage = (event: WebViewMessageEvent) => {
+    if (doneRef.current) return;
     try {
       const data = JSON.parse(event.nativeEvent.data) as { ok: boolean; token?: string };
       if (data.ok && data.token) {
+        doneRef.current = true;
         onToken(data.token);
       } else {
+        doneRef.current = true;
         onError();
       }
     } catch {
+      doneRef.current = true;
       onError();
     }
   };
@@ -100,7 +119,7 @@ const styles = StyleSheet.create({
   },
   webview: {
     width: 300,
-    height: 70,
+    height: 65,
     backgroundColor: 'transparent',
   },
 });
