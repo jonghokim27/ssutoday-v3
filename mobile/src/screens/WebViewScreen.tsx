@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
 import * as ImagePicker from 'expo-image-picker';
+import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
 import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
@@ -107,6 +108,28 @@ export default function WebViewScreen() {
 
     registerHandler('system.openAppSettings', async () => {
       await Linking.openSettings();
+    });
+
+    registerHandler('auth.signWithBiometrics', async (params) => {
+      const { payload } = params as { payload: string };
+
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!compatible || !enrolled) {
+        return null;
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: '본인 확인을 위해 생체 인증을 진행해주세요',
+        cancelLabel: '취소',
+        disableDeviceFallback: false,
+      });
+
+      if (!result.success) {
+        return null;
+      }
+
+      return { signature: payload };
     });
 
     registerHandler('camera.requestPermission', async () => {
