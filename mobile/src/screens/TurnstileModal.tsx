@@ -64,7 +64,7 @@ export default function TurnstileModal({ siteKey, action, onToken, onError }: Pr
           <Text style={styles.label}>보안 검사 중...</Text>
           <WebView
             style={styles.webview}
-            source={{ html: buildHtml(siteKey, action) }}
+            source={{ html: buildHtml(siteKey, action), baseUrl: 'https://v3.ssu.today' }}
             onMessage={handleMessage}
             javaScriptEnabled
             domStorageEnabled
