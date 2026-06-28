@@ -23,7 +23,8 @@ export type BridgeMethod =
   | 'webview.clearCookies'
   | 'webview.readCookie'
   | 'analytics.logScreenView'
-  | 'network.checkConnectivity';
+  | 'network.checkConnectivity'
+  | 'security.getTurnstileToken';
 
 export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed';
 

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
+import TurnstileModal from './TurnstileModal';
 
 const TARGET_URL = 'https://v3.ssu.today';
 const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr', 'challenges.cloudflare.com']);
@@ -28,6 +29,8 @@ export default function WebViewScreen() {
   const insets = useSafeAreaInsets();
   const webviewRef = useRef<WebView>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
+  const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
 
   useEffect(() => {
     NetInfo.fetch().then((state) => {
@@ -42,6 +45,14 @@ export default function WebViewScreen() {
       const connected = state.isConnected === true && state.isInternetReachable !== false;
       if (!connected) setIsOnline(false);
       return { online: connected };
+    });
+
+    registerHandler('security.getTurnstileToken', (params) => {
+      const { siteKey, action } = params as { siteKey: string; action: string };
+      return new Promise<string>((resolve, reject) => {
+        turnstileCallbackRef.current = { resolve, reject };
+        setTurnstileRequest({ siteKey, action });
+      });
     });
   }, []);
 
@@ -92,17 +103,35 @@ export default function WebViewScreen() {
   }
 
   return (
-    <WebView
-      ref={webviewRef}
-      style={styles.webview}
-      source={{ uri: targetUri }}
-      onLoad={sendHandshake}
-      onMessage={handleMessage}
-      onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-      userAgent="Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 SSUTODAY"
-      originWhitelist={['https://*', 'about:*']}
-      allowsBackForwardNavigationGestures
-    />
+    <>
+      <WebView
+        ref={webviewRef}
+        style={styles.webview}
+        source={{ uri: targetUri }}
+        onLoad={sendHandshake}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        userAgent="Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 SSUTODAY"
+        originWhitelist={['https://*', 'about:*']}
+        allowsBackForwardNavigationGestures
+      />
+      {turnstileRequest ? (
+        <TurnstileModal
+          siteKey={turnstileRequest.siteKey}
+          action={turnstileRequest.action}
+          onToken={(token) => {
+            turnstileCallbackRef.current?.resolve(token);
+            turnstileCallbackRef.current = null;
+            setTurnstileRequest(null);
+          }}
+          onError={() => {
+            turnstileCallbackRef.current?.reject();
+            turnstileCallbackRef.current = null;
+            setTurnstileRequest(null);
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 

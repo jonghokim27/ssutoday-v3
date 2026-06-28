@@ -1,4 +1,6 @@
 import { TURNSTILE_SITE_KEY } from '../config/env';
+import { isNativeApp } from '../native/nativeBridge';
+import { request } from '../native/bridgeTransport';
 
 declare global {
   interface Window {
@@ -48,8 +50,9 @@ function getContainer(): HTMLElement {
     container = document.createElement('div');
     // display:none 사용 시 Turnstile이 실행되지 않으므로 off-screen으로 배치
     container.style.position = 'fixed';
-    container.style.bottom = '0';
-    container.style.right = '0';
+    container.style.top = '50%';
+    container.style.left = '50%';
+    container.style.transform = 'translate(-50%, -50%)';
     container.style.zIndex = '9999';
     document.body.appendChild(container);
   }
@@ -57,6 +60,10 @@ function getContainer(): HTMLElement {
 }
 
 export async function getTurnstileToken(action: string): Promise<string> {
+  if (isNativeApp()) {
+    return request<string>('security.getTurnstileToken', { siteKey: TURNSTILE_SITE_KEY, action });
+  }
+
   await loadScript();
 
   if (!window.turnstile) {
