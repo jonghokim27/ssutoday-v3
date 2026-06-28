@@ -124,7 +124,7 @@ export function hasCapability(method: BridgeMethod): boolean {
 
 export function request<T = unknown>(method: BridgeMethod, params?: unknown, timeoutMs?: number): Promise<T> {
   if (handshakeInfo && !hasCapability(method)) {
-    return Promise.reject(new BridgeError('UNSUPPORTED_METHOD', `앱이 ${method}을 지원하지 않습니다.`));
+    return Promise.reject(new BridgeError('UNSUPPORTED_METHOD', `앱이 ${method}을 지원하지 않습니다`));
   }
 
   const id = generateId();
@@ -133,7 +133,7 @@ export function request<T = unknown>(method: BridgeMethod, params?: unknown, tim
   return new Promise<T>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       pending.delete(id);
-      reject(new BridgeError('TIMEOUT', `${method} 응답이 ${timeout}ms 내에 도착하지 않았습니다.`));
+      reject(new BridgeError('TIMEOUT', `${method} 응답이 ${timeout}ms 내에 도착하지 않았습니다`));
     }, timeout);
 
     pending.set(id, { resolve: resolve as (result: unknown) => void, reject, timeoutId });

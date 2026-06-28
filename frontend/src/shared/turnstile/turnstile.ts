@@ -38,7 +38,7 @@ function loadScript(): Promise<void> {
     script.src =
       'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit';
     script.async = true;
-    script.onerror = () => reject(new Error('Turnstile 스크립트를 불러오지 못했습니다.'));
+    script.onerror = () => reject(new Error('Turnstile 스크립트를 불러오지 못했습니다'));
     document.head.appendChild(script);
   });
 
@@ -67,7 +67,7 @@ export async function getTurnstileToken(action: string): Promise<string> {
   await loadScript();
 
   if (!window.turnstile) {
-    throw new Error('Turnstile을 사용할 수 없습니다.');
+    throw new Error('Turnstile을 사용할 수 없습니다');
   }
 
   const el = getContainer();
@@ -82,7 +82,7 @@ export async function getTurnstileToken(action: string): Promise<string> {
       sitekey: TURNSTILE_SITE_KEY,
       action,
       callback: resolve,
-      'error-callback': () => reject(new Error('Turnstile 인증에 실패했습니다.')),
+      'error-callback': () => reject(new Error('Turnstile 인증에 실패했습니다')),
       appearance: 'interaction-only',
     });
   });

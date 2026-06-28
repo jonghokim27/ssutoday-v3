@@ -108,7 +108,7 @@ export class ApiReservationRepository implements ReservationRepository {
   async uploadVerifyPhoto(idx: number) {
     const photo = await nativeBridge.captureVerifyPhoto();
     if (!photo) {
-      return apiFailure('SSU0000', '인증샷 촬영이 취소되었습니다.');
+      return apiFailure('SSU0000', '인증샷 촬영이 취소되었습니다');
     }
 
     const turnstileToken = await getTurnstileToken('verify_photo_upload');
@@ -126,7 +126,7 @@ export class ApiReservationRepository implements ReservationRepository {
     const device = await nativeBridge.getDeviceInfo();
     const signed = await nativeBridge.signWithBiometrics(`${params.type}:${params.idx}`);
     if (!signed) {
-      return apiFailure('SSU0000', '생체 인증을 사용할 수 없습니다.');
+      return apiFailure('SSU0000', '생체 인증을 사용할 수 없습니다');
     }
 
     return apiClient.post<

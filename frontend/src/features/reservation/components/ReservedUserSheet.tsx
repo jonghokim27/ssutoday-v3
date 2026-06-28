@@ -27,7 +27,7 @@ export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport,
           <div><dt>학번</dt><dd>{booking.studentId}</dd></div>
           <div><dt>이용 시간</dt><dd>{booking.start} ~ {booking.end}</dd></div>
         </dl>
-        <p className={styles.help}>개인정보 보호를 위해 이름과 학번 일부가 마스킹되어 표시됩니다.</p>
+        <p className={styles.help}>개인정보 보호를 위해 이름과 학번 일부가 마스킹되어 표시됩니다</p>
         <div className={styles.actions}>
           {isAdmin ? (
             <>

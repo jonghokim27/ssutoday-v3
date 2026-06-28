@@ -79,7 +79,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           const booked = bookedSlots(nextRoom);
           for (let index = prev.start; index <= prev.end; index += 1) {
             if (booked.has(index)) {
-              flash('선택하신 시간은 이미 예약되었습니다.');
+              flash('선택하신 시간은 이미 예약되었습니다');
               return null;
             }
           }
@@ -164,7 +164,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     } catch {
       intervalPaused.current = false;
       setSubmitting(false);
-      navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요.', 'TURNSTILE_FAILED');
+      navigateToFailure('보안 인증에 실패했어요. 잠시 후 다시 시도해 주세요', 'TURNSTILE_FAILED');
       return;
     }
 
@@ -256,7 +256,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           </button>
           <span className={styles.live}><i /> 실시간</span>
         </div>
-        <p className={styles.guide}>한 칸은 30분입니다. 예약된 시간은 선택할 수 없어요.</p>
+        <p className={styles.guide}>한 칸은 30분입니다. 예약된 시간은 선택할 수 없어요</p>
 
         <AvailabilityBars
           date={selectedDate}
@@ -337,7 +337,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           confirmLabel="취소 확정"
           defaultValue="인증샷으로 입실을 확인할 수 없음"
           icon="x"
-          message="예약 취소 사유를 입력해 주세요."
+          message="예약 취소 사유를 입력해 주세요"
           onCancel={() => setCancelReasonBooking(null)}
           onConfirm={(text) => {
             void executeAdminTool('reserveCancel', cancelReasonBooking, text);
@@ -409,12 +409,12 @@ function reserveStatusMessage(status: ReserveStatus) {
   if (status === 5) return '이미 예약된 시간이에요';
   if (status === 6) return '하루 최대 예약 가능 시간을 초과했어요';
   if (status === 7) return '동일한 시간에 예약하신 스터디룸이 존재해요';
-  return '예약 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
+  return '예약 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요';
 }
 
 function requestFailureMessage(statusCode: string, fallback: string) {
-  if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요.';
-  if (statusCode === 'SSU4092') return 'Turnstile 검증에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요';
+  if (statusCode === 'SSU4092') return 'Turnstile 검증에 실패했어요. 잠시 후 다시 시도해 주세요';
   return fallback;
 }
 

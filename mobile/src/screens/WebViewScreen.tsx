@@ -69,7 +69,7 @@ export default function WebViewScreen() {
     registerHandler('camera.captureVerifyPhoto', async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        throw new BridgeHandlerError('PERMISSION_DENIED', '카메라 권한이 없습니다.');
+        throw new BridgeHandlerError('PERMISSION_DENIED', '카메라 권한이 없습니다');
       }
 
       const result = await ImagePicker.launchCameraAsync({
@@ -86,7 +86,7 @@ export default function WebViewScreen() {
 
       const asset = result.assets[0];
       if (!asset.base64) {
-        throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다.');
+        throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다');
       }
       return {
         name: `verify-photo-${Date.now()}.jpg`,
@@ -133,7 +133,7 @@ export default function WebViewScreen() {
       })
       .catch((error: unknown) => {
         const code = error instanceof BridgeHandlerError ? error.code : 'NATIVE_ERROR';
-        const message = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+        const message = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
         const response: BridgeResponseEnvelope = { v: 1, kind: 'response', id, ok: false, error: { code, message } };
         webviewRef.current?.postMessage(JSON.stringify(response));
       });

@@ -192,7 +192,7 @@ export function ReservationHistory() {
       flash(result.ok ? '인증샷을 업로드했어요' : result.message);
       if (result.ok) await loadItems(0);
     } catch {
-      flash('오류가 발생했습니다. 다시 시도해주세요.');
+      flash('오류가 발생했습니다. 다시 시도해주세요');
     } finally {
       setActionLoading(false);
     }
@@ -313,7 +313,7 @@ export function ReservationHistory() {
             { label: '시간', value: cancelTarget.time },
           ]}
           icon="x"
-          message="취소한 예약은 되돌릴 수 없어요."
+          message="취소한 예약은 되돌릴 수 없어요"
           onCancel={() => setCancelTarget(null)}
           onConfirm={() => {
             void cancelReserve(cancelTarget);
@@ -388,16 +388,16 @@ function statusTone(state: HistoryViewItem['state']) {
 }
 
 function cancelFailureMessage(statusCode: string, fallback: string) {
-  if (statusCode === 'SSU4141' || statusCode === 'SSU4142') return '이미 이용이 완료된 예약이에요.';
-  if (statusCode === 'SSU4143') return '현재 이용중인 예약이에요.';
+  if (statusCode === 'SSU4141' || statusCode === 'SSU4142') return '이미 이용이 완료된 예약이에요';
+  if (statusCode === 'SSU4143') return '현재 이용중인 예약이에요';
   return fallback;
 }
 
 function doneFailureMessage(statusCode: string, fallback: string) {
-  if (statusCode === 'SSU4231' || statusCode === 'SSU4232') return '이미 이용이 완료된 예약이에요.';
-  if (statusCode === 'SSU4233') return '아직 이용을 시작하지 않은 예약이에요.';
-  if (statusCode === 'SSU4234') return '이용 종료는 최소 30분 이상 이용하신 경우에만 가능해요.';
-  if (statusCode === 'SSU4235') return '인증샷을 먼저 촬영해주세요.';
-  if (statusCode === 'SSU4236') return '이용 종료 시간에 근접하여 이용을 종료할 수 없어요.';
+  if (statusCode === 'SSU4231' || statusCode === 'SSU4232') return '이미 이용이 완료된 예약이에요';
+  if (statusCode === 'SSU4233') return '아직 이용을 시작하지 않은 예약이에요';
+  if (statusCode === 'SSU4234') return '이용 종료는 최소 30분 이상 이용하신 경우에만 가능해요';
+  if (statusCode === 'SSU4235') return '인증샷을 먼저 촬영해주세요';
+  if (statusCode === 'SSU4236') return '이용 종료 시간에 근접하여 이용을 종료할 수 없어요';
   return fallback;
 }

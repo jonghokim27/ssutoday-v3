@@ -12,5 +12,5 @@ export const notificationRows = [
 
 export const appInfo = {
   version: 'v3.0.0_60_2026.06.24',
-  copyright: 'SSUTODAY. 모든 권리 보유.',
+  copyright: 'SSUTODAY. 모든 권리 보유',
 };

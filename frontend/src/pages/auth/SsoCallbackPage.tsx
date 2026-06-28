@@ -19,7 +19,7 @@ export function SsoCallbackPage() {
     const sToken = params.get('sToken');
     const sIdno = params.get('sIdno');
     if (!sToken || !sIdno) {
-      setError('SSO 인증 정보가 없습니다.');
+      setError('SSO 인증 정보가 없습니다');
       return;
     }
 
@@ -71,7 +71,7 @@ export function SsoCallbackPage() {
     <div className={styles.loadingScreen} role="status" aria-live="polite">
       <span className={styles.loader} aria-hidden="true" />
       <strong>로그인 정보 확인 중</strong>
-      <p>로그인 정보를 확인하고 있어요.</p>
+      <p>로그인 정보를 확인하고 있어요</p>
     </div>
   );
 }
