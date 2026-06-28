@@ -3,11 +3,14 @@ package kr.ac.ssu.ssutoday.domain.reservation
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.reservation.factory.toView
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
 class VerifyPhotoService(
     private val repository: VerifyPhotoRepository,
+    @Value("\${ssutoday.storage.public-base-url:}")
+    private val publicBaseUrl: String,
 ) {
     fun create(
         reservationId: Long,
@@ -29,11 +32,13 @@ class VerifyPhotoService(
 
     fun createException(reservationId: Long): Boolean {
         if (repository.findByReservationId(reservationId) != null) return false
-        repository.save(VerifyPhoto(reservationId = reservationId, url = EXCEPTION_PHOTO_URL))
+        repository.save(VerifyPhoto(reservationId = reservationId, url = buildPublicUrl(EXCEPTION_PHOTO_KEY)))
         return true
     }
 
+    private fun buildPublicUrl(key: String): String = "${publicBaseUrl.trimEnd('/')}/$key"
+
     private companion object {
-        const val EXCEPTION_PHOTO_URL = "https://r2.ssu.today/verifyPhoto/except.png"
+        const val EXCEPTION_PHOTO_KEY = "verifyPhoto/except.png"
     }
 }
