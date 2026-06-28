@@ -2,7 +2,7 @@
   position: relative;
   height: 100%;
   overflow-y: auto;
-  padding: var(--space-status-top) var(--space-9) calc(var(--space-bottom-nav-height) + var(--space-8));
+  padding: var(--space-status-top) var(--space-screen-x) calc(var(--space-bottom-nav-height) + var(--space-8));
   scrollbar-width: none;
   animation: slideInL 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
@@ -15,7 +15,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  padding-top: var(--space-4);
 }
 
 .header h1 {
