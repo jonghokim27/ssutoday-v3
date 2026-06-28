@@ -329,7 +329,7 @@ export function ReservationHistory() {
             { label: '시간', value: doneTarget.time },
           ]}
           icon="check"
-          message="종료 후에는 취소할 수 없어요. 최소 30분 이상 이용한 경우에만 종료할 수 있어요."
+          message={'종료 후에는 취소할 수 없어요.\n최소 30분 이상 이용한 경우에만 종료할 수 있어요.'}
           onCancel={() => setDoneTarget(null)}
           onConfirm={() => {
             void doneReserve(doneTarget);
