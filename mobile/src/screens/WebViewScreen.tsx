@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import * as Application from 'expo-application';
 import * as ImagePicker from 'expo-image-picker';
+import * as Notifications from 'expo-notifications';
 import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +59,43 @@ export default function WebViewScreen() {
   }, []);
 
   useEffect(() => {
+    registerHandler('device.getInfo', async () => {
+      const uuid = Platform.OS === 'ios'
+        ? ((await Application.getIosIdForVendorAsync()) ?? 'unknown')
+        : (Application.getAndroidId() ?? 'unknown');
+      return {
+        osType: Platform.OS as 'ios' | 'android',
+        uuid,
+        appVersion: Constants.expoConfig?.version ?? '0.0.0',
+      };
+    });
+
+    registerHandler('push.requestPermission', async () => {
+      const result = await Notifications.requestPermissionsAsync();
+      return (result as unknown as { granted: boolean }).granted;
+    });
+
+    registerHandler('push.getToken', async () => {
+      const result = await Notifications.getPermissionsAsync();
+      if (!(result as unknown as { granted: boolean }).granted) return null;
+      try {
+        const token = await Notifications.getExpoPushTokenAsync({
+          projectId: Constants.expoConfig?.extra?.eas?.projectId as string,
+        });
+        return token.data;
+      } catch {
+        return null;
+      }
+    });
+
+    registerHandler('push.subscribeTopic', async () => {
+      // FCM topic 구독은 Firebase SDK 필요 - 서버에서 관리
+    });
+
+    registerHandler('push.unsubscribeTopic', async () => {
+      // FCM topic 구독 해제는 Firebase SDK 필요 - 서버에서 관리
+    });
+
     registerHandler('browser.openExternalUrl', async (params) => {
       const { url, mode } = params as { url: string; mode?: string };
       if (mode === 'internal') {
