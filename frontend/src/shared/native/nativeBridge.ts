@@ -90,7 +90,7 @@ class WebViewNativeBridge implements NativeBridge {
   }
 
   captureVerifyPhoto() {
-    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto);
+    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto, undefined, 120_000);
   }
 
   signWithBiometrics(payload: string) {

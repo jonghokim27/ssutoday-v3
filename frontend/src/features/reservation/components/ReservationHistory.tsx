@@ -178,10 +178,15 @@ export function ReservationHistory() {
       return;
     }
     setActionLoading(true);
-    const result = await reservationRepository.uploadVerifyPhoto(item.id);
-    flash(result.ok ? '인증샷을 업로드했어요' : result.message);
-    await loadItems(0);
-    setActionLoading(false);
+    try {
+      const result = await reservationRepository.uploadVerifyPhoto(item.id);
+      flash(result.ok ? '인증샷을 업로드했어요' : result.message);
+      if (result.ok) await loadItems(0);
+    } catch {
+      flash('오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   return (

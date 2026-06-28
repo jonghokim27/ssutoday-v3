@@ -24,6 +24,8 @@ class RoomService(
         return room?.toView() ?: throw BusinessException(StatusCode.SSU4000)
     }
 
+    fun getByNo(roomNo: String): RoomView? = repository.findByIdOrNull(roomNo)?.toView()
+
     fun findAll(
         major: String,
         admin: Boolean,
