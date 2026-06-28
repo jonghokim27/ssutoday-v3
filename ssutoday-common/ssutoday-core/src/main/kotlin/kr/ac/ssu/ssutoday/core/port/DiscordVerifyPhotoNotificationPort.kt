@@ -4,15 +4,12 @@ import java.time.LocalDate
 
 interface DiscordVerifyPhotoNotificationPort {
     fun send(
+        content: String,
         reservationId: Long,
         adminToken: String,
-        studentId: Int,
-        studentName: String,
-        roomNo: String,
+        studentInfo: String,
         roomName: String,
-        date: LocalDate,
-        startBlock: Int,
-        endBlock: Int,
+        reservationDateTime: String,
         photoUrl: String,
     )
 }

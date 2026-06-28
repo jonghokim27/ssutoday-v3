@@ -7,8 +7,8 @@ import kr.ac.ssu.ssutoday.core.dto.PushMessages
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
-import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
+import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
@@ -23,8 +23,11 @@ import kr.ac.ssu.ssutoday.domain.student.DeviceService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Calendar
+import java.util.TimeZone
 
 @Service
 class ReservationCommandApplicationService(
@@ -182,9 +185,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.adminCancelBody(reason),
                     )
                     sendReservationDiscordNotice(
-                        title = "예약 취소 알림",
+                        content = "**[예약 취소 알림]**",
                         reservation = reservation,
-                        reason = "관리자 취소 (사유: $reason)",
+                        actionFieldName = "취소 구분",
+                        actionFieldValue = "관리자 취소 (사유: $reason)",
                     )
                 }
                 3
@@ -201,9 +205,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.PHOTO_DELETE_BODY,
                     )
                     sendReservationDiscordNotice(
-                        title = "인증샷 삭제 알림",
+                        content = "**[인증샷 삭제 알림]**",
                         reservation = reservation,
-                        reason = "관리자가 인증샷을 삭제했어요. 재촬영이 필요해요",
+                        actionFieldName = "처리자",
+                        actionFieldValue = "관리자",
                         photoUrl = photoUrl,
                     )
                 }
@@ -220,9 +225,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.PHOTO_EXCEPT_BODY,
                     )
                     sendReservationDiscordNotice(
-                        title = "인증샷 촬영 예외 처리 알림",
+                        content = "**[인증샷 촬영 예외 알림]**",
                         reservation = reservation,
-                        reason = "관리자가 인증샷 촬영 예외로 처리했어요",
+                        actionFieldName = "처리자",
+                        actionFieldValue = "관리자",
                         photoUrl = photoUrl,
                     )
                 }
@@ -257,9 +263,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.adminCancelBody("Discord"),
                     )
                     sendReservationDiscordNotice(
-                        title = "예약 취소 알림",
+                        content = "**[예약 취소 알림]**",
                         reservation = reservation,
-                        reason = "관리자 취소 (Discord)",
+                        actionFieldName = "취소 구분",
+                        actionFieldValue = "관리자 취소 (Discord)",
                     )
                 }
                 3
@@ -276,9 +283,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.PHOTO_DELETE_BODY,
                     )
                     sendReservationDiscordNotice(
-                        title = "인증샷 삭제 알림",
+                        content = "**[인증샷 삭제 알림]**",
                         reservation = reservation,
-                        reason = "관리자가 인증샷을 삭제했어요. 재촬영이 필요해요",
+                        actionFieldName = "처리자",
+                        actionFieldValue = "Discord",
                         photoUrl = photoUrl,
                     )
                 }
@@ -307,9 +315,10 @@ class ReservationCommandApplicationService(
                         body = PushMessages.AUTO_CANCEL_BODY,
                     )
                     sendReservationDiscordNotice(
-                        title = "예약 취소 알림",
+                        content = "**[예약 취소 알림]**",
                         reservation = reservation,
-                        reason = "자동 취소 (사유: 인증샷을 촬영하지 않음)",
+                        actionFieldName = "취소 구분",
+                        actionFieldValue = "자동 취소 (사유: 인증샷을 촬영하지 않음)",
                     )
                 }
             }
@@ -361,20 +370,22 @@ class ReservationCommandApplicationService(
     }
 
     private fun sendReservationDiscordNotice(
-        title: String,
+        content: String,
         reservation: ReservationView,
-        reason: String,
+        actionFieldName: String,
+        actionFieldValue: String,
         photoUrl: String? = null,
     ) {
+        val student = studentService.get(reservation.studentId)
+        val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
         discordReservationActionNotificationPort.send(
-            title = title,
+            content = content,
             reservationId = reservation.id,
-            studentId = reservation.studentId,
-            roomNo = reservation.roomNo,
-            date = reservation.date,
-            startBlock = reservation.startBlock,
-            endBlock = reservation.endBlock,
-            reason = reason,
+            studentInfo = buildStudentInfo(student.name, student.id, student.major),
+            roomName = roomName,
+            reservationDateTime = buildReservationDateTime(reservation.date, reservation.startBlock, reservation.endBlock),
+            actionFieldName = actionFieldName,
+            actionFieldValue = actionFieldValue,
             photoUrl = photoUrl,
         )
     }
@@ -397,9 +408,48 @@ class ReservationCommandApplicationService(
         }
     }
 
+    private fun buildStudentInfo(
+        name: String,
+        studentId: Int,
+        major: String,
+    ): String = "$name ($studentId/${majorShortName(major)})"
+
+    private fun buildReservationDateTime(
+        date: LocalDate,
+        startBlock: Int,
+        endBlock: Int,
+    ): String {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
+            set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val dateText = SimpleDateFormat("yyyy년 MM월 dd일").apply {
+            timeZone = TimeZone.getTimeZone("Asia/Seoul")
+        }.format(calendar.time)
+        val day = DAYS[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+
+        return "$dateText($day) ${blockToTime(startBlock)} ~ ${blockToTime(endBlock + 1)}"
+    }
+
+    private fun blockToTime(block: Int): String {
+        val totalMinutes = block * 30
+        return "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
+    }
+
+    private fun majorShortName(major: String): String =
+        when (major) {
+            "cse" -> "컴"
+            "sw" -> "솦"
+            "media" -> "글"
+            "mediamba" -> "미경"
+            "sec" -> "정"
+            else -> ""
+        }
+
     private companion object {
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
+        val DAYS = arrayOf("일", "월", "화", "수", "목", "금", "토")
     }
 }

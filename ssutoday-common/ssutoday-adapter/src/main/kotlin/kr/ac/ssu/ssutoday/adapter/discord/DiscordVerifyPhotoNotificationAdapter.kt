@@ -4,11 +4,12 @@ import kr.ac.ssu.ssutoday.core.port.DiscordVerifyPhotoNotificationPort
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 import java.time.Duration
-import java.time.LocalDate
 
 @Component
 class DiscordVerifyPhotoNotificationAdapter(
@@ -20,32 +21,24 @@ class DiscordVerifyPhotoNotificationAdapter(
         .build()
 
     override fun send(
+        content: String,
         reservationId: Long,
         adminToken: String,
-        studentId: Int,
-        studentName: String,
-        roomNo: String,
+        studentInfo: String,
         roomName: String,
-        date: LocalDate,
-        startBlock: Int,
-        endBlock: Int,
+        reservationDateTime: String,
         photoUrl: String,
     ) {
         if (webhookUrl.isBlank()) return
 
-        val startTime = blockToTime(startBlock)
-        val endTime = blockToTime(endBlock + 1)
         val photoDeleteUrl = buildAdminActionUrl(adminToken, PHOTO_DELETE)
         val cancelUrl = buildAdminActionUrl(adminToken, RESERVE_CANCEL)
-
         val payload = buildPayload(
+            content = content,
             reservationId = reservationId,
-            studentId = studentId,
-            studentName = studentName,
-            roomNo = roomNo,
+            studentInfo = studentInfo,
             roomName = roomName,
-            date = date.toString(),
-            time = "$startTime ~ $endTime",
+            reservationDateTime = reservationDateTime,
             photoUrl = photoUrl,
             photoDeleteUrl = photoDeleteUrl,
             cancelUrl = cancelUrl,
@@ -53,53 +46,64 @@ class DiscordVerifyPhotoNotificationAdapter(
 
         try {
             val request = HttpRequest.newBuilder()
-                .uri(URI.create(webhookUrl))
+                .uri(URI.create(buildWebhookUrl(photoDeleteUrl, cancelUrl)))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .timeout(Duration.ofSeconds(10))
                 .build()
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // 알림 실패는 무시 (로그는 Logback이 처리)
         }
     }
 
-    private fun blockToTime(block: Int): String {
-        val totalMinutes = block * 30
-        return "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
-    }
-
     private fun buildPayload(
+        content: String,
         reservationId: Long,
-        studentId: Int,
-        studentName: String,
-        roomNo: String,
+        studentInfo: String,
         roomName: String,
-        date: String,
-        time: String,
+        reservationDateTime: String,
         photoUrl: String,
         photoDeleteUrl: String?,
         cancelUrl: String?,
     ): String {
-        val description = escapeJson(
-            "**예약 고유번호:** $reservationId\n" +
-                "**예약자:** $studentName ($studentId)\n" +
-                "**시설명:** $roomName ($roomNo)\n" +
-                "**예약 날짜 및 시간:** $date $time",
-        )
+        val safeContent = escapeJson(content)
         val safePhotoUrl = escapeJson(photoUrl)
+        val safeReservationId = escapeJson(reservationId.toString())
+        val safeStudentInfo = escapeJson(studentInfo)
+        val safeRoomName = escapeJson(roomName)
+        val safeReservationDateTime = escapeJson(reservationDateTime)
         val components = buildComponents(photoDeleteUrl, cancelUrl)
 
         return """
         {
+          "content": "$safeContent",
           "embeds": [{
-            "title": "인증샷 등록 알림",
-            "description": "$description",
-            "color": 5763719,
-            "image": { "url": "$safePhotoUrl" }
+            "image": { "url": "$safePhotoUrl" },
+            "fields": [
+              { "name": "예약 고유번호", "value": "$safeReservationId" },
+              { "name": "예약자", "value": "$safeStudentInfo" },
+              { "name": "시설명", "value": "$safeRoomName" },
+              { "name": "예약 날짜 및 시간", "value": "$safeReservationDateTime" }
+            ]
           }]$components
         }
         """.trimIndent()
+    }
+
+    private fun buildWebhookUrl(
+        photoDeleteUrl: String?,
+        cancelUrl: String?,
+    ): String {
+        if (photoDeleteUrl == null && cancelUrl == null) {
+            return webhookUrl
+        }
+        if (webhookUrl.contains("with_components=")) {
+            return webhookUrl
+        }
+
+        val separator = if (webhookUrl.contains("?")) "&" else "?"
+        return "${webhookUrl}${separator}with_components=true"
     }
 
     private fun buildAdminActionUrl(
@@ -108,7 +112,9 @@ class DiscordVerifyPhotoNotificationAdapter(
     ): String? {
         if (adminBaseUrl.isBlank()) return null
 
-        return "${adminBaseUrl.trimEnd('/')}/admin/action?token=$adminToken&action=$action"
+        val encodedToken = URLEncoder.encode(adminToken, StandardCharsets.UTF_8)
+        val encodedAction = URLEncoder.encode(action, StandardCharsets.UTF_8)
+        return "${adminBaseUrl.trimEnd('/')}/admin/action?token=$encodedToken&action=$encodedAction"
     }
 
     private fun buildComponents(
@@ -117,24 +123,10 @@ class DiscordVerifyPhotoNotificationAdapter(
     ): String {
         val buttons = listOfNotNull(
             photoDeleteUrl?.let {
-                """
-              {
-                "type": 2,
-                "style": 5,
-                "label": "인증샷 삭제",
-                "url": "${escapeJson(it)}"
-              }
-                """.trimIndent()
+                """{ "type": 2, "style": 5, "label": "인증샷 삭제", "url": "${escapeJson(it)}" }"""
             },
             cancelUrl?.let {
-                """
-              {
-                "type": 2,
-                "style": 5,
-                "label": "예약 취소",
-                "url": "${escapeJson(it)}"
-              }
-                """.trimIndent()
+                """{ "type": 2, "style": 5, "label": "예약 취소", "url": "${escapeJson(it)}" }"""
             },
         )
         if (buttons.isEmpty()) return ""
@@ -142,9 +134,7 @@ class DiscordVerifyPhotoNotificationAdapter(
         return """,
           "components": [{
             "type": 1,
-            "components": [
-              ${buttons.joinToString(",\n              ")}
-            ]
+            "components": [${buttons.joinToString(", ")}]
           }]"""
     }
 
