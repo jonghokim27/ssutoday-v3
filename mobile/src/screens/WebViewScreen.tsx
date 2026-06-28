@@ -16,6 +16,7 @@ function generateId(): string {
 }
 
 function isAllowedNavigation(url: string): boolean {
+  if (url.startsWith('about:')) return true;
   try {
     return ALLOWED_HOSTS.has(new URL(url).host);
   } catch {
@@ -89,7 +90,7 @@ export default function WebViewScreen() {
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
       userAgent="SSUTODAY"
-      originWhitelist={['https://*']}
+      originWhitelist={['https://*', 'about:*']}
       allowsBackForwardNavigationGestures
     />
   );
