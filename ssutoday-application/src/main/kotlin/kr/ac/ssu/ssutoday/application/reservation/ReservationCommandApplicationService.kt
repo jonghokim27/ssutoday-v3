@@ -5,6 +5,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.dto.PushMessages
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
 import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
@@ -15,6 +16,7 @@ import kr.ac.ssu.ssutoday.domain.reservation.ReservationCompletionPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
+import kr.ac.ssu.ssutoday.domain.reservation.ReservationView
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
 import kr.ac.ssu.ssutoday.domain.room.RoomService
 import kr.ac.ssu.ssutoday.domain.student.DeviceService
@@ -38,6 +40,7 @@ class ReservationCommandApplicationService(
     private val reservationRequestPublisher: ReservationRequestPublisher,
     private val pushMessagePublisher: PushMessagePublisher,
     private val turnstileVerificationPort: TurnstileVerificationPort,
+    private val discordReservationActionNotificationPort: DiscordReservationActionNotificationPort,
 ) {
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
@@ -178,10 +181,16 @@ class ReservationCommandApplicationService(
                         title = PushMessages.adminCancelTitle(roomName),
                         body = PushMessages.adminCancelBody(reason),
                     )
+                    sendReservationDiscordNotice(
+                        title = "예약 취소 알림",
+                        reservation = reservation,
+                        reason = "관리자 취소 (사유: $reason)",
+                    )
                 }
                 3
             }
             PHOTO_DELETE -> {
+                val photoUrl = verifyPhotoService.find(command.reservationId)?.url
                 if (!verifyPhotoService.delete(command.reservationId)) return 4
                 reservationService.resetCreatedAt(command.reservationId)
                 val studentId = reservation.studentId
@@ -191,17 +200,30 @@ class ReservationCommandApplicationService(
                         title = PushMessages.PHOTO_DELETE_TITLE,
                         body = PushMessages.PHOTO_DELETE_BODY,
                     )
+                    sendReservationDiscordNotice(
+                        title = "인증샷 삭제 알림",
+                        reservation = reservation,
+                        reason = "관리자가 인증샷을 삭제했어요. 재촬영이 필요해요",
+                        photoUrl = photoUrl,
+                    )
                 }
                 5
             }
             PHOTO_EXCEPT -> {
                 if (!verifyPhotoService.createException(command.reservationId)) return 6
+                val photoUrl = verifyPhotoService.find(command.reservationId)?.url
                 val studentId = reservation.studentId
                 afterCommit {
                     sendReservationPush(
                         studentId = studentId,
                         title = PushMessages.PHOTO_EXCEPT_TITLE,
                         body = PushMessages.PHOTO_EXCEPT_BODY,
+                    )
+                    sendReservationDiscordNotice(
+                        title = "인증샷 촬영 예외 처리 알림",
+                        reservation = reservation,
+                        reason = "관리자가 인증샷 촬영 예외로 처리했어요",
+                        photoUrl = photoUrl,
                     )
                 }
                 7
@@ -234,10 +256,16 @@ class ReservationCommandApplicationService(
                         title = PushMessages.adminCancelTitle(roomName),
                         body = PushMessages.adminCancelBody("Discord"),
                     )
+                    sendReservationDiscordNotice(
+                        title = "예약 취소 알림",
+                        reservation = reservation,
+                        reason = "관리자 취소 (Discord)",
+                    )
                 }
                 3
             }
             PHOTO_DELETE -> {
+                val photoUrl = verifyPhotoService.find(reservation.id)?.url
                 if (!verifyPhotoService.delete(reservation.id)) return 4
                 reservationService.resetCreatedAt(reservation.id)
                 val studentId = reservation.studentId
@@ -246,6 +274,12 @@ class ReservationCommandApplicationService(
                         studentId = studentId,
                         title = PushMessages.PHOTO_DELETE_TITLE,
                         body = PushMessages.PHOTO_DELETE_BODY,
+                    )
+                    sendReservationDiscordNotice(
+                        title = "인증샷 삭제 알림",
+                        reservation = reservation,
+                        reason = "관리자가 인증샷을 삭제했어요. 재촬영이 필요해요",
+                        photoUrl = photoUrl,
                     )
                 }
                 5
@@ -271,6 +305,11 @@ class ReservationCommandApplicationService(
                         studentId = studentId,
                         title = PushMessages.autoCancelTitle(roomName),
                         body = PushMessages.AUTO_CANCEL_BODY,
+                    )
+                    sendReservationDiscordNotice(
+                        title = "예약 취소 알림",
+                        reservation = reservation,
+                        reason = "자동 취소 (사유: 인증샷을 촬영하지 않음)",
                     )
                 }
             }
@@ -319,6 +358,25 @@ class ReservationCommandApplicationService(
                 body = PushMessages.VERIFY_PHOTO_BODY,
             )
         }
+    }
+
+    private fun sendReservationDiscordNotice(
+        title: String,
+        reservation: ReservationView,
+        reason: String,
+        photoUrl: String? = null,
+    ) {
+        discordReservationActionNotificationPort.send(
+            title = title,
+            reservationId = reservation.id,
+            studentId = reservation.studentId,
+            roomNo = reservation.roomNo,
+            date = reservation.date,
+            startBlock = reservation.startBlock,
+            endBlock = reservation.endBlock,
+            reason = reason,
+            photoUrl = photoUrl,
+        )
     }
 
     private fun sendReservationPush(
