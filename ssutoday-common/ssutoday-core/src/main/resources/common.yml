@@ -33,7 +33,8 @@ spring:
     secret: ${JWT_SECRET_KEY}
 
   discord:
-    webhook-url: ${DISCORD_WEBHOOK_URL}
+    error-webhook-url: ${DISCORD_ERROR_WEBHOOK_URL:}
+    verify-photo-webhook-url: ${DISCORD_VERIFYPHOTO_WEBHOOK_URL:}
 
 logging:
   level:
@@ -51,6 +52,8 @@ cloud:
       auto: false
 
 ssutoday:
+  admin:
+    base-url: ${ADMIN_BASE_URL:}
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY:}
   kafka:

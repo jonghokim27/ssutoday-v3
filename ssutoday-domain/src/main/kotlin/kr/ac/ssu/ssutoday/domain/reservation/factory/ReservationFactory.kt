@@ -15,4 +15,5 @@ fun Reservation.toView() =
         deletedAt = deletedAt,
         deletedReason = deletedReason,
         active = active,
+        adminToken = adminToken,
     )

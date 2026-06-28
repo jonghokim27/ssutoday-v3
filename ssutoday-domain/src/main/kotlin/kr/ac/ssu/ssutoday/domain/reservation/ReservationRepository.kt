@@ -64,6 +64,8 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
     )
     fun findMissingPhotoReservations(today: LocalDate, block: Int): List<Reservation>
 
+    fun findByAdminToken(adminToken: String): Reservation?
+
     fun findByIdAndStudentIdAndDeletedAtIsNull(
         id: Long,
         studentId: Int,

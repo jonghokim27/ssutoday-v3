@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: consumer
   config:
     import: classpath:common.yml
   kafka:
