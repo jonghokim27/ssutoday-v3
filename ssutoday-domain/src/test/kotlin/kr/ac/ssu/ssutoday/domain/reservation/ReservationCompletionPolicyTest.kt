@@ -50,5 +50,6 @@ class ReservationCompletionPolicyTest {
             deletedAt = null,
             deletedReason = null,
             active = true,
+            adminToken = "admin-token",
         )
 }

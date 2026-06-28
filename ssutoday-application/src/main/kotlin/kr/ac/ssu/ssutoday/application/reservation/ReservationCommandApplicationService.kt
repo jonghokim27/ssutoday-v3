@@ -47,7 +47,7 @@ class ReservationCommandApplicationService(
         if (!turnstileVerificationPort.verify(command.turnstileToken)) {
             throw BusinessException(StatusCode.SSU4092)
         }
-        reservationService.validate(command.startBlock, command.endBlock)
+        reservationService.validate(command.startBlock, command.endBlock, command.admin)
         val room = roomService.get(command.roomNo, command.major, command.admin)
         if (!room.isAvailable) {
             throw BusinessException(StatusCode.SSU4091)
