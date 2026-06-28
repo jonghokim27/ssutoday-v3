@@ -10,6 +10,8 @@ import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
+import kr.ac.ssu.ssutoday.domain.room.RoomService
+import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional
 class VerifyPhotoApplicationService(
     private val reservationService: ReservationService,
     private val verifyPhotoService: VerifyPhotoService,
+    private val studentService: StudentService,
+    private val roomService: RoomService,
     private val fileStoragePort: FileStoragePort,
     private val tokenPort: TokenPort,
     private val turnstileVerificationPort: TurnstileVerificationPort,
@@ -42,12 +46,16 @@ class VerifyPhotoApplicationService(
             }
         val publicUrl = buildPublicUrl(key, uploadedUrl)
         verifyPhotoService.create(command.reservationId, publicUrl)
+        val student = studentService.get(reservation.studentId)
+        val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
         afterCommit {
             discordVerifyPhotoNotificationPort.send(
                 reservationId = reservation.id,
                 adminToken = reservation.adminToken,
                 studentId = reservation.studentId,
+                studentName = student.name,
                 roomNo = reservation.roomNo,
+                roomName = roomName,
                 date = reservation.date,
                 startBlock = reservation.startBlock,
                 endBlock = reservation.endBlock,

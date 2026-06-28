@@ -23,7 +23,9 @@ class DiscordVerifyPhotoNotificationAdapter(
         reservationId: Long,
         adminToken: String,
         studentId: Int,
+        studentName: String,
         roomNo: String,
+        roomName: String,
         date: LocalDate,
         startBlock: Int,
         endBlock: Int,
@@ -33,13 +35,15 @@ class DiscordVerifyPhotoNotificationAdapter(
 
         val startTime = blockToTime(startBlock)
         val endTime = blockToTime(endBlock + 1)
-        val photoDeleteUrl = "$adminBaseUrl/admin/action?token=${adminToken}&action=photoDelete"
-        val cancelUrl = "$adminBaseUrl/admin/action?token=${adminToken}&action=reserveCancel"
+        val photoDeleteUrl = buildAdminActionUrl(adminToken, PHOTO_DELETE)
+        val cancelUrl = buildAdminActionUrl(adminToken, RESERVE_CANCEL)
 
         val payload = buildPayload(
             reservationId = reservationId,
             studentId = studentId,
+            studentName = studentName,
             roomNo = roomNo,
+            roomName = roomName,
             date = date.toString(),
             time = "$startTime ~ $endTime",
             photoUrl = photoUrl,
@@ -68,53 +72,80 @@ class DiscordVerifyPhotoNotificationAdapter(
     private fun buildPayload(
         reservationId: Long,
         studentId: Int,
+        studentName: String,
         roomNo: String,
+        roomName: String,
         date: String,
         time: String,
         photoUrl: String,
-        photoDeleteUrl: String,
-        cancelUrl: String,
+        photoDeleteUrl: String?,
+        cancelUrl: String?,
     ): String {
         val description = escapeJson(
-            "**예약 ID:** $reservationId\n" +
-            "**학번:** $studentId\n" +
-            "**강의실:** $roomNo\n" +
-            "**날짜:** $date\n" +
-            "**시간:** $time"
+            "**예약 고유번호:** $reservationId\n" +
+                "**예약자:** $studentName ($studentId)\n" +
+                "**시설명:** $roomName ($roomNo)\n" +
+                "**예약 날짜 및 시간:** $date $time",
         )
         val safePhotoUrl = escapeJson(photoUrl)
-        val safePhotoDeleteUrl = escapeJson(photoDeleteUrl)
-        val safeCancelUrl = escapeJson(cancelUrl)
+        val components = buildComponents(photoDeleteUrl, cancelUrl)
 
         return """
         {
           "embeds": [{
-            "title": "인증샷 등록",
+            "title": "인증샷 등록 알림",
             "description": "$description",
             "color": 5763719,
             "image": { "url": "$safePhotoUrl" }
-          }],
-          "components": [{
-            "type": 1,
-            "components": [
+          }]$components
+        }
+        """.trimIndent()
+    }
+
+    private fun buildAdminActionUrl(
+        adminToken: String,
+        action: String,
+    ): String? {
+        if (adminBaseUrl.isBlank()) return null
+
+        return "${adminBaseUrl.trimEnd('/')}/admin/action?token=$adminToken&action=$action"
+    }
+
+    private fun buildComponents(
+        photoDeleteUrl: String?,
+        cancelUrl: String?,
+    ): String {
+        val buttons = listOfNotNull(
+            photoDeleteUrl?.let {
+                """
               {
                 "type": 2,
                 "style": 5,
                 "label": "인증샷 삭제",
-                "emoji": { "name": "🗑️" },
-                "url": "$safePhotoDeleteUrl"
-              },
+                "url": "${escapeJson(it)}"
+              }
+                """.trimIndent()
+            },
+            cancelUrl?.let {
+                """
               {
                 "type": 2,
                 "style": 5,
                 "label": "예약 취소",
-                "emoji": { "name": "❌" },
-                "url": "$safeCancelUrl"
+                "url": "${escapeJson(it)}"
               }
+                """.trimIndent()
+            },
+        )
+        if (buttons.isEmpty()) return ""
+
+        return """,
+          "components": [{
+            "type": 1,
+            "components": [
+              ${buttons.joinToString(",\n              ")}
             ]
-          }]
-        }
-        """.trimIndent()
+          }]"""
     }
 
     private fun escapeJson(value: String): String = value
@@ -123,4 +154,9 @@ class DiscordVerifyPhotoNotificationAdapter(
         .replace("\n", "\\n")
         .replace("\r", "\\r")
         .replace("\t", "\\t")
+
+    private companion object {
+        const val PHOTO_DELETE = "photoDelete"
+        const val RESERVE_CANCEL = "reserveCancel"
+    }
 }
