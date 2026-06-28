@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <script>
+    (function () {
+      window.__postToRN = window.ReactNativeWebView
+        ? window.ReactNativeWebView.postMessage.bind(window.ReactNativeWebView)
+        : function () {};
+      try { delete window.ReactNativeWebView; } catch (e) { window.ReactNativeWebView = undefined; }
+
+      window.__initTurnstile = function () {
+        var params = new URLSearchParams(window.location.search);
+        var siteKey = params.get('siteKey');
+        var action = params.get('action') || 'default';
+
+        if (!siteKey) {
+          window.__postToRN(JSON.stringify({ ok: false }));
+          return;
+        }
+
+        turnstile.render('#widget', {
+          sitekey: siteKey,
+          action: action,
+          appearance: 'always',
+          callback: function (token) {
+            window.__postToRN(JSON.stringify({ ok: true, token: token }));
+          },
+          'error-callback': function () {
+            window.__postToRN(JSON.stringify({ ok: false }));
+          },
+          'expired-callback': function () {
+            turnstile.reset();
+          },
+        });
+      };
+    })();
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__initTurnstile&render=explicit" defer></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="widget"></div>
+</body>
+</html>
