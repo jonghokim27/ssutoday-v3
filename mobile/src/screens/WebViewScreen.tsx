@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import Constants from 'expo-constants';
 import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,11 @@ import OfflineScreen from './OfflineScreen';
 import TurnstileModal from './TurnstileModal';
 
 const TARGET_URL = 'https://v3.ssu.today';
+
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
+const OS_INFO = `${Platform.OS} ${Platform.Version}`;
+const DEVICE_NAME = Constants.deviceName ?? 'unknown';
+const USER_AGENT = `SSUTODAY/${APP_VERSION}/${OS_INFO}/${DEVICE_NAME}`;
 const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr', 'challenges.cloudflare.com']);
 
 function generateId(): string {
@@ -111,7 +117,7 @@ export default function WebViewScreen() {
         onLoad={sendHandshake}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        userAgent="Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 SSUTODAY"
+        userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures
       />
