@@ -20,8 +20,6 @@ export type BridgeMethod =
   | 'camera.requestPermission'
   | 'camera.captureVerifyPhoto'
   | 'auth.signWithBiometrics'
-  | 'webview.clearCookies'
-  | 'webview.readCookie'
   | 'analytics.logScreenView'
   | 'network.checkConnectivity'
   | 'security.getTurnstileToken';
