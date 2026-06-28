@@ -9,7 +9,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
   jpa:
-    database: mysql
     hibernate:
       ddl-auto: validate
     show-sql: false
