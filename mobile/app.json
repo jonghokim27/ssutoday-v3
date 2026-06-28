@@ -3,7 +3,7 @@
     "name": "SSUtoday",
     "slug": "ssutoday",
     "scheme": "ssutoday",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,7 +13,8 @@
       "supportsTablet": false,
       "infoPlist": {
         "NSCameraUsageDescription": "슈투데이에서 인증샷을 촬영하기 위해 카메라 권한을 허용해주세요",
-        "NSFaceIDUsageDescription": "슈투데이에서 본인임을 확인하기 위해 FaceID 인증이 필요해요"
+        "NSFaceIDUsageDescription": "슈투데이에서 본인임을 확인하기 위해 FaceID 인증이 필요해요",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -24,7 +25,10 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["CAMERA", "ACCESS_NOTIFICATION_POLICY"],
+      "permissions": [
+        "CAMERA",
+        "ACCESS_NOTIFICATION_POLICY"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -32,6 +36,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bab41217-d412-490f-b208-c5b9cc2f5dab"
+      }
+    }
   }
 }
