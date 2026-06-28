@@ -1,17 +1,14 @@
 package kr.ac.ssu.ssutoday.core.port
 
-import java.time.LocalDate
-
 interface DiscordReservationActionNotificationPort {
     fun send(
-        title: String,
+        content: String,
         reservationId: Long,
-        studentId: Int,
-        roomNo: String,
-        date: LocalDate,
-        startBlock: Int,
-        endBlock: Int,
-        reason: String,
+        studentInfo: String,
+        roomName: String,
+        reservationDateTime: String,
+        actionFieldName: String,
+        actionFieldValue: String,
         photoUrl: String? = null,
     )
 }

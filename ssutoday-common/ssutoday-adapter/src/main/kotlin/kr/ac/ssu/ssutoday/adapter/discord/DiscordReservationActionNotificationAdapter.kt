@@ -8,7 +8,6 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
-import java.time.LocalDate
 
 @Component
 class DiscordReservationActionNotificationAdapter(
@@ -19,29 +18,25 @@ class DiscordReservationActionNotificationAdapter(
         .build()
 
     override fun send(
-        title: String,
+        content: String,
         reservationId: Long,
-        studentId: Int,
-        roomNo: String,
-        date: LocalDate,
-        startBlock: Int,
-        endBlock: Int,
-        reason: String,
+        studentInfo: String,
+        roomName: String,
+        reservationDateTime: String,
+        actionFieldName: String,
+        actionFieldValue: String,
         photoUrl: String?,
     ) {
         if (webhookUrl.isBlank()) return
 
-        val startTime = blockToTime(startBlock)
-        val endTime = blockToTime(endBlock + 1)
-
         val payload = buildPayload(
-            title = title,
+            content = content,
             reservationId = reservationId,
-            studentId = studentId,
-            roomNo = roomNo,
-            date = date.toString(),
-            time = "$startTime ~ $endTime",
-            reason = reason,
+            studentInfo = studentInfo,
+            roomName = roomName,
+            reservationDateTime = reservationDateTime,
+            actionFieldName = actionFieldName,
+            actionFieldValue = actionFieldValue,
             photoUrl = photoUrl,
         )
 
@@ -53,44 +48,41 @@ class DiscordReservationActionNotificationAdapter(
                 .timeout(Duration.ofSeconds(10))
                 .build()
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // 알림 실패는 무시 (로그는 Logback이 처리)
         }
     }
 
-    private fun blockToTime(block: Int): String {
-        val totalMinutes = block * 30
-        return "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
-    }
-
     private fun buildPayload(
-        title: String,
+        content: String,
         reservationId: Long,
-        studentId: Int,
-        roomNo: String,
-        date: String,
-        time: String,
-        reason: String,
+        studentInfo: String,
+        roomName: String,
+        reservationDateTime: String,
+        actionFieldName: String,
+        actionFieldValue: String,
         photoUrl: String?,
     ): String {
-        val description = escapeJson(
-            "**예약 ID:** $reservationId\n" +
-                "**학번:** $studentId\n" +
-                "**강의실:** $roomNo\n" +
-                "**날짜:** $date\n" +
-                "**시간:** $time\n" +
-                "**사유:** $reason"
-        )
-        val safeTitle = escapeJson(title)
+        val safeContent = escapeJson(content)
+        val safeReservationId = escapeJson(reservationId.toString())
+        val safeStudentInfo = escapeJson(studentInfo)
+        val safeRoomName = escapeJson(roomName)
+        val safeReservationDateTime = escapeJson(reservationDateTime)
+        val safeActionFieldName = escapeJson(actionFieldName)
+        val safeActionFieldValue = escapeJson(actionFieldValue)
         val image = photoUrl?.let { ""","image": { "url": "${escapeJson(it)}" }""" } ?: ""
 
         return """
         {
+          "content": "$safeContent",
           "embeds": [{
-            "title": "$safeTitle",
-            "description": "$description",
-            "color": 15158332
-            $image
+            "fields": [
+              { "name": "예약 고유번호", "value": "$safeReservationId" },
+              { "name": "예약자", "value": "$safeStudentInfo" },
+              { "name": "시설명", "value": "$safeRoomName" },
+              { "name": "예약 날짜 및 시간", "value": "$safeReservationDateTime" },
+              { "name": "$safeActionFieldName", "value": "$safeActionFieldValue" }
+            ]$image
           }]
         }
         """.trimIndent()
