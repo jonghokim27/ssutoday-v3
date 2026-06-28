@@ -3,6 +3,10 @@ spring:
     name: api
   config:
     import: classpath:common.yml
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  jpa:
+    open-in-view: false
   web:
     resources:
       add-mappings: false
