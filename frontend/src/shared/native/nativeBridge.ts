@@ -22,7 +22,7 @@ export type NativeBridge = {
   getPushToken(): Promise<string | null>;
   subscribePushTopic(topic: string): Promise<void>;
   unsubscribePushTopic(topic: string): Promise<void>;
-  openExternalUrl(url: string): Promise<void>;
+  openExternalUrl(url: string, mode?: 'external' | 'internal'): Promise<void>;
   openAppSettings(): Promise<void>;
   requestCameraPermission(): Promise<boolean>;
   captureVerifyPhoto(): Promise<CapturedPhoto | null>;
@@ -77,8 +77,8 @@ class WebViewNativeBridge implements NativeBridge {
     return request<void>(METHOD_FOR.unsubscribePushTopic, { topic });
   }
 
-  openExternalUrl(url: string) {
-    return request<void>(METHOD_FOR.openExternalUrl, { url, mode: 'external' });
+  openExternalUrl(url: string, mode: 'external' | 'internal' = 'external') {
+    return request<void>(METHOD_FOR.openExternalUrl, { url, mode });
   }
 
   openAppSettings() {
@@ -139,7 +139,7 @@ class MockNativeBridge implements NativeBridge {
 
   async unsubscribePushTopic() {}
 
-  async openExternalUrl(url: string) {
+  async openExternalUrl(url: string, _mode?: 'external' | 'internal') {
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
