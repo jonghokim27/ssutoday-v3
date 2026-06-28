@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const TURNSTILE_PAGE = 'https://v3.ssu.today/turnstile.html';
@@ -47,15 +47,11 @@ export default function TurnstileModal({ siteKey, action, onToken, onError }: Pr
   return (
     <Modal transparent animationType="fade">
       <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.iconBadge}>
-              <Text style={styles.iconText}>🔒</Text>
-            </View>
-            <Text style={styles.title}>보안 검사</Text>
-            <Text style={styles.subtitle}>안전한 예약을 위해 잠깐 확인할게요</Text>
+        <View style={styles.content}>
+          <View style={styles.loader}>
+            <ActivityIndicator size={18} color="#6a4cff" />
+            <Text style={styles.label}>보안 검사 중</Text>
           </View>
-          <View style={styles.divider} />
           <WebView
             style={styles.webview}
             source={{ uri }}
@@ -74,54 +70,27 @@ export default function TurnstileModal({ siteKey, action, onToken, onError }: Pr
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 18, 34, 0.45)',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  card: {
-    width: 300,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  header: {
+  content: {
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 20,
+    gap: 16,
   },
-  iconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: 'rgba(79, 124, 255, 0.1)',
+  loader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+    gap: 10,
   },
-  iconText: {
-    fontSize: 24,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0f1222',
-    letterSpacing: -0.3,
-  },
-  subtitle: {
+  label: {
     fontSize: 13,
+    fontWeight: '700',
     color: '#8a8f9c',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f0f1f5',
   },
   webview: {
     width: 300,
     height: 65,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
 });
