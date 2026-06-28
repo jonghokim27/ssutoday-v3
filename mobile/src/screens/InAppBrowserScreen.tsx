@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import WebView, { type WebViewNavigation } from 'react-native-webview';
@@ -9,14 +9,51 @@ export default function InAppBrowserScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const progress = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const animateProgress = useCallback((toValue: number) => {
+    Animated.timing(progress, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  const handleLoadStart = useCallback(() => {
+    opacity.setValue(1);
+    progress.setValue(0);
+    setLoading(true);
+    animateProgress(0.2);
+  }, [opacity, progress, animateProgress]);
+
+  const handleLoadProgress = useCallback(({ nativeEvent }: { nativeEvent: { progress: number } }) => {
+    animateProgress(nativeEvent.progress);
+  }, [animateProgress]);
+
+  const handleLoadEnd = useCallback(() => {
+    animateProgress(1);
+    setLoading(false);
+    Animated.sequence([
+      Animated.delay(200),
+      Animated.timing(opacity, { toValue: 0, duration: 250, useNativeDriver: false }),
+    ]).start();
+  }, [animateProgress, opacity]);
+
+  const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
+    if (state.title) setTitle(state.title);
+  }, []);
 
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
 
-  const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
-    if (state.title) setTitle(state.title);
-  }, []);
+  const barWidth = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -32,9 +69,15 @@ export default function InAppBrowserScreen() {
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
         ) : null}
       </View>
+      <View style={styles.progressTrack}>
+        <Animated.View style={[styles.progressBar, { width: barWidth, opacity }]} />
+      </View>
       <WebView
         source={{ uri: url ?? '' }}
         style={styles.webview}
+        onLoadStart={handleLoadStart}
+        onLoadProgress={handleLoadProgress}
+        onLoadEnd={handleLoadEnd}
         onNavigationStateChange={handleNavigationStateChange}
       />
     </View>
@@ -46,6 +89,8 @@ const COLORS = {
   surface: '#f2f3f8',
   textPrimary: '#0f1222',
   textSecondary: '#4f5566',
+  brandBlue: '#4f7cff',
+  brandPurple: '#9b5cff',
 };
 
 const styles = StyleSheet.create({
@@ -88,6 +133,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textPrimary,
     letterSpacing: -0.6,
+  },
+  progressTrack: {
+    height: 2,
+    backgroundColor: 'transparent',
+  },
+  progressBar: {
+    height: 2,
+    backgroundColor: COLORS.brandBlue,
+    shadowColor: COLORS.brandPurple,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
   },
   webview: {
     flex: 1,
