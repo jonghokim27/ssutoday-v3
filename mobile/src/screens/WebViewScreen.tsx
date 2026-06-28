@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Linking, Platform, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +47,19 @@ export default function WebViewScreen() {
   }, []);
 
   useEffect(() => {
+    registerHandler('browser.openExternalUrl', async (params) => {
+      const { url, mode } = params as { url: string; mode?: string };
+      if (mode === 'internal') {
+        router.push({ pathname: '/browser', params: { url } });
+      } else {
+        await Linking.openURL(url);
+      }
+    });
+
+    registerHandler('system.openAppSettings', async () => {
+      await Linking.openSettings();
+    });
+
     registerHandler('network.checkConnectivity', async () => {
       const state = await NetInfo.fetch();
       const connected = state.isConnected === true && state.isInternetReachable !== false;

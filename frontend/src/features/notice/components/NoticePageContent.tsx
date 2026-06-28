@@ -4,7 +4,7 @@ import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { openLink } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink } from '../../../shared/native/nativeBridge';
 import { appStorage, defaultProviders, type ArticleProvider } from '../../../shared/storage/appStorage';
 import { formatKoreanDateTime } from '../../../shared/utils/date';
 import { departmentCodeToName } from '../../../shared/utils/department';
@@ -215,7 +215,12 @@ export function NoticePageContent() {
       return;
     }
 
-    await openLink(decodeURIComponent(result.data.article.url));
+    const url = decodeURIComponent(result.data.article.url);
+    if (isNativeApp()) {
+      await nativeBridge.openExternalUrl(url, 'internal');
+    } else {
+      await openLink(url);
+    }
     setOpening(false);
   }
 
