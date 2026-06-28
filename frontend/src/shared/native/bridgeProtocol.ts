@@ -19,7 +19,8 @@ export type BridgeMethod =
   | 'auth.signWithBiometrics'
   | 'webview.clearCookies'
   | 'webview.readCookie'
-  | 'analytics.logScreenView';
+  | 'analytics.logScreenView'
+  | 'network.checkConnectivity';
 
 export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed';
 

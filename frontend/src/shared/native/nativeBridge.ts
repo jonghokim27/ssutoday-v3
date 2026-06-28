@@ -30,6 +30,7 @@ export type NativeBridge = {
   clearWebViewCookies(): Promise<void>;
   readCookie(url: string, name: string): Promise<string | null>;
   logScreenView(screenName: string): Promise<void>;
+  checkConnectivity(): Promise<{ online: boolean }>;
 };
 
 const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
@@ -46,6 +47,7 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   clearWebViewCookies: 'webview.clearCookies',
   readCookie: 'webview.readCookie',
   logScreenView: 'analytics.logScreenView',
+  checkConnectivity: 'network.checkConnectivity',
 };
 
 export function hasCapability(method: keyof NativeBridge): boolean {
@@ -104,6 +106,10 @@ class WebViewNativeBridge implements NativeBridge {
   logScreenView(screenName: string) {
     return request<void>(METHOD_FOR.logScreenView, { screenName });
   }
+
+  checkConnectivity() {
+    return request<{ online: boolean }>(METHOD_FOR.checkConnectivity);
+  }
 }
 
 class MockNativeBridge implements NativeBridge {
@@ -157,6 +163,10 @@ class MockNativeBridge implements NativeBridge {
   }
 
   async logScreenView() {}
+
+  async checkConnectivity() {
+    return { online: true };
+  }
 }
 
 export function isNativeApp() {
@@ -346,6 +356,8 @@ function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
     case 'captureVerifyPhoto':
     case 'signWithBiometrics':
       return Promise.resolve(null);
+    case 'checkConnectivity':
+      return Promise.resolve({ online: true });
     default:
       return Promise.resolve(undefined);
   }
@@ -373,6 +385,11 @@ function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): Native
 }
 
 export const nativeBridge: NativeBridge = createGatedNativeBridge(new WebViewNativeBridge(), new MockNativeBridge());
+
+export function notifyNetworkFailure() {
+  if (!isNativeApp()) return;
+  new WebViewNativeBridge().checkConnectivity().catch(() => {});
+}
 
 export async function openLink(url: string) {
   if (isNativeApp()) {
