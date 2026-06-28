@@ -20,7 +20,7 @@ class VerifyPhotoApplicationService(
     private val fileStoragePort: FileStoragePort,
     private val turnstileVerificationPort: TurnstileVerificationPort,
     private val discordVerifyPhotoNotificationPort: DiscordVerifyPhotoNotificationPort,
-    @Value("\${ssutoday.storage.verify-photo-bucket:ssutoday-reserve-verify-photo}")
+    @Value("\${ssutoday.storage.verify-photo-bucket}")
     private val bucket: String,
 ) {
     @Transactional

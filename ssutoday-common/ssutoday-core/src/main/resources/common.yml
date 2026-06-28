@@ -59,3 +59,5 @@ ssutoday:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
       reservation-request: ${RESERVATION_REQUEST_TOPIC:requestReserve}
+  storage:
+    verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
