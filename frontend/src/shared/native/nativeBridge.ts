@@ -160,7 +160,7 @@ class MockNativeBridge implements NativeBridge {
 }
 
 export function isNativeApp() {
-  return navigator.userAgent.startsWith('SSUTODAY');
+  return navigator.userAgent.includes('SSUTODAY');
 }
 
 const APP_DOWNLOAD_URL = 'https://r2.ssu.today/install.html';

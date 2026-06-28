@@ -9,7 +9,7 @@ import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/prot
 import OfflineScreen from './OfflineScreen';
 
 const TARGET_URL = 'https://v3.ssu.today';
-const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr']);
+const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr', 'challenges.cloudflare.com']);
 
 function generateId(): string {
   return `native-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -112,7 +112,7 @@ export default function WebViewScreen() {
       onLoad={sendHandshake}
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-      userAgent="SSUTODAY"
+      userAgent="Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 SSUTODAY"
       originWhitelist={['https://*', 'about:*']}
       allowsBackForwardNavigationGestures
     />
