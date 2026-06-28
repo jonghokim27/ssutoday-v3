@@ -26,7 +26,7 @@ class VerifyPhotoApplicationService(
     @Transactional
     fun upload(command: UploadPhotoCommand): String {
         if (!turnstileVerificationPort.verify(command.turnstileToken)) {
-            throw BusinessException(StatusCode.SSU4003)
+            throw BusinessException(StatusCode.SSU4205)
         }
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
         val key = "${command.reservationId}/${System.currentTimeMillis()}"
@@ -34,7 +34,7 @@ class VerifyPhotoApplicationService(
             try {
                 fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
             } catch (exception: Exception) {
-                throw BusinessException(StatusCode.SSU5200, cause = exception)
+                throw RuntimeException("파일 업로드에 실패했습니다", exception)
             }
         verifyPhotoService.create(command.reservationId, url)
         afterCommit {
