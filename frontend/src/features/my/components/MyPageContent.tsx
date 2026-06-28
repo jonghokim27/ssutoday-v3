@@ -209,7 +209,7 @@ export function MyPageContent() {
         <ConfirmDialog
           confirmLabel="로그아웃"
           icon="logout"
-          message="로그아웃하면 다시 로그인해야 예약 내역을 확인할 수 있어요."
+          message="로그아웃하면 다시 로그인해야 예약 내역을 확인할 수 있어요"
           onCancel={() => setLogoutOpen(false)}
           onConfirm={() => {
             void logout();

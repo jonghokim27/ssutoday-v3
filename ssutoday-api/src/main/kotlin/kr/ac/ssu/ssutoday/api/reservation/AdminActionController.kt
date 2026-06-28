@@ -21,13 +21,13 @@ class AdminActionController(
         val result = reservationCommandApplicationService.executeAdminActionByToken(token, action)
         val (title, message, success) =
             when (result) {
-                0 -> Triple("오류", "예약을 찾을 수 없습니다.", false)
-                1 -> Triple("오류", "이미 취소된 예약입니다.", false)
-                2 -> Triple("오류", "종료된 예약입니다.", false)
-                3 -> Triple("완료", "예약이 취소되었습니다.", true)
-                4 -> Triple("오류", "인증샷이 존재하지 않습니다.", false)
-                5 -> Triple("완료", "인증샷이 삭제되었습니다.", true)
-                else -> Triple("오류", "알 수 없는 오류가 발생했습니다.", false)
+                0 -> Triple("오류", "예약을 찾을 수 없습니다", false)
+                1 -> Triple("오류", "이미 취소된 예약입니다", false)
+                2 -> Triple("오류", "종료된 예약입니다", false)
+                3 -> Triple("완료", "예약이 취소되었습니다", true)
+                4 -> Triple("오류", "인증샷이 존재하지 않습니다", false)
+                5 -> Triple("완료", "인증샷이 삭제되었습니다", true)
+                else -> Triple("오류", "알 수 없는 오류가 발생했습니다", false)
             }
         return ResponseEntity.ok(buildHtml(title, message, success))
     }

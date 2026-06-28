@@ -19,7 +19,7 @@ export class ApiClient {
       });
 
       if (response.status === 521) {
-        return { ok: false, statusCode: 'SSU0000', message: '서버 연결에 실패했습니다.' };
+        return { ok: false, statusCode: 'SSU0000', message: '서버 연결에 실패했습니다' };
       }
 
       const payload = (await response.json()) as ApiResponse<TData>;
@@ -30,11 +30,11 @@ export class ApiClient {
       return {
         ok: false,
         statusCode: payload.statusCode,
-        message: payload.message ?? '요청을 처리하지 못했습니다.',
+        message: payload.message ?? '요청을 처리하지 못했습니다',
       };
     } catch {
       notifyNetworkFailure();
-      return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다.' };
+      return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다' };
     }
   }
 
@@ -51,7 +51,7 @@ export class ApiClient {
       });
 
       if (response.status === 521) {
-        return { ok: false, statusCode: 'SSU0000', message: '서버 연결에 실패했습니다.' };
+        return { ok: false, statusCode: 'SSU0000', message: '서버 연결에 실패했습니다' };
       }
 
       const payload = (await response.json()) as ApiResponse<TData>;
@@ -62,11 +62,11 @@ export class ApiClient {
       return {
         ok: false,
         statusCode: payload.statusCode,
-        message: payload.message ?? '요청을 처리하지 못했습니다.',
+        message: payload.message ?? '요청을 처리하지 못했습니다',
       };
     } catch {
       notifyNetworkFailure();
-      return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다.' };
+      return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다' };
     }
   }
 
