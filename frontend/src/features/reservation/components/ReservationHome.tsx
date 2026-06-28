@@ -17,7 +17,9 @@ import styles from './ReservationHome.module.css';
 
 export function ReservationHome() {
   const safePath = useSafeAreaPath();
-  const [selectedDate, setSelectedDate] = useState(todayString);
+  const [selectedDate, setSelectedDate] = useState(
+    () => sessionStorage.getItem('reservation_selected_date') ?? todayString()
+  );
   const [pickerOpen, setPickerOpen] = useState(false);
   const [timebarScrollLeft, setTimebarScrollLeft] = useState<number | undefined>(undefined);
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
@@ -62,6 +64,7 @@ export function ReservationHome() {
   }, [selectedDate]);
 
   function pickDate(date: string) {
+    sessionStorage.setItem('reservation_selected_date', date);
     setSelectedDate(date);
     setTimebarScrollLeft(undefined);
   }
