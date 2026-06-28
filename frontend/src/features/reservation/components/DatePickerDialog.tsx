@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '../../../shared/ui/Icon';
 import { formatDate, parseDate, todayString } from '../data/dates';
 import styles from './DatePickerDialog.module.css';
@@ -42,7 +43,7 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
     window.setTimeout(onClose, 180);
   }
 
-  return (
+  return createPortal(
     <div className={[styles.backdrop, closing ? styles.closing : ''].join(' ')} onClick={closeWithAnimation}>
       <div className={[styles.dialog, closing ? styles.dialogClosing : ''].join(' ')} onClick={(event) => event.stopPropagation()}>
         <header>
@@ -76,6 +77,7 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
