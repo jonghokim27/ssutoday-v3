@@ -10,6 +10,7 @@
     "expo-device": "^56.0.4",
     "expo-image-picker": "~17.0.11",
     "expo-linking": "~8.0.12",
+    "expo-local-authentication": "^56.0.4",
     "expo-notifications": "^56.0.18",
     "expo-router": "~6.0.24",
     "expo-status-bar": "~3.0.9",
