@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/env';
+import { notifyNetworkFailure } from '../native/nativeBridge';
 import { type ApiClientOptions, type ApiResponse, type ApiResult } from './types';
 
 export class ApiClient {
@@ -32,6 +33,7 @@ export class ApiClient {
         message: payload.message ?? '요청을 처리하지 못했습니다.',
       };
     } catch {
+      notifyNetworkFailure();
       return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다.' };
     }
   }
@@ -63,6 +65,7 @@ export class ApiClient {
         message: payload.message ?? '요청을 처리하지 못했습니다.',
       };
     } catch {
+      notifyNetworkFailure();
       return { ok: false, statusCode: 'SSU0000', message: '네트워크 연결에 실패했습니다.' };
     }
   }

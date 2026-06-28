@@ -4,7 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BridgeHandlerError, dispatch, getHandshakeInfo } from '../bridge/registry';
+import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
 
@@ -30,32 +30,19 @@ export default function WebViewScreen() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    let offlineTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const unsubscribe = NetInfo.addEventListener((state) => {
+    NetInfo.fetch().then((state) => {
       const connected = state.isConnected === true && state.isInternetReachable !== false;
-
-      if (connected) {
-        if (offlineTimer) {
-          clearTimeout(offlineTimer);
-          offlineTimer = null;
-        }
-        setIsOnline(true);
-      } else {
-        // 일시적인 상태 변동은 무시하고 3초 이상 지속될 때만 오프라인으로 전환
-        if (!offlineTimer) {
-          offlineTimer = setTimeout(() => {
-            setIsOnline(false);
-            offlineTimer = null;
-          }, 3000);
-        }
-      }
+      setIsOnline(connected);
     });
+  }, []);
 
-    return () => {
-      unsubscribe();
-      if (offlineTimer) clearTimeout(offlineTimer);
-    };
+  useEffect(() => {
+    registerHandler('network.checkConnectivity', async () => {
+      const state = await NetInfo.fetch();
+      const connected = state.isConnected === true && state.isInternetReachable !== false;
+      if (!connected) setIsOnline(false);
+      return { online: connected };
+    });
   }, []);
 
   const targetUri = `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}`;
