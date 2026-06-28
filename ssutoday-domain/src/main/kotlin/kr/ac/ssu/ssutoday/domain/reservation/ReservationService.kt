@@ -18,8 +18,9 @@ class ReservationService(
     fun validate(
         startBlock: Int,
         endBlock: Int,
+        admin: Boolean = false,
     ) {
-        policy.validateBlocks(startBlock, endBlock)
+        policy.validateBlocks(startBlock, endBlock, admin)
     }
 
     fun hasRoomConflict(

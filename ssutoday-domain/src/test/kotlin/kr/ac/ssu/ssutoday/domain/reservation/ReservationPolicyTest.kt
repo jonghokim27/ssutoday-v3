@@ -18,4 +18,9 @@ class ReservationPolicyTest {
 
         assertEquals(StatusCode.SSU4000, exception.status)
     }
+
+    @Test
+    fun `관리자는 최대 네 블록 제한을 우회한다`() {
+        policy.validateBlocks(12, 16, admin = true)
+    }
 }

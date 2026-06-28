@@ -9,9 +9,10 @@ class ReservationPolicy {
     fun validateBlocks(
         startBlock: Int,
         endBlock: Int,
+        admin: Boolean = false,
     ) {
         if (startBlock > endBlock) throw BusinessException(StatusCode.SSU4000)
-        if (endBlock - startBlock > 3) throw BusinessException(StatusCode.SSU4000)
+        if (!admin && endBlock - startBlock > 3) throw BusinessException(StatusCode.SSU4000)
         if (startBlock !in 12..43 || endBlock !in 12..43) {
             throw BusinessException(StatusCode.SSU4000)
         }

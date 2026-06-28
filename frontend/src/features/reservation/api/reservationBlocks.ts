@@ -13,10 +13,10 @@ export function blockToTime(block: number) {
   return `${String(hour).padStart(2, '0')}:${minute}`;
 }
 
-export function isValidBlockRange(startBlock: number, endBlock: number) {
+export function isValidBlockRange(startBlock: number, endBlock: number, admin = false) {
   if (endBlock < startBlock) {
     return false;
   }
 
-  return endBlock - startBlock + 1 <= MAX_RESERVATION_BLOCKS;
+  return admin || endBlock - startBlock + 1 <= MAX_RESERVATION_BLOCKS;
 }

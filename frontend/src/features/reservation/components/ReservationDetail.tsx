@@ -137,7 +137,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
 
     if (selection.start === selection.end && selection.start !== index) {
       const next = { start: Math.min(selection.start, index), end: Math.max(selection.start, index) };
-      if (!isValidBlockRange(slotToBlock(next.start), slotToBlock(next.end))) {
+      if (!isValidBlockRange(slotToBlock(next.start), slotToBlock(next.end), isAdmin)) {
         flash('한 번에 최대 2시간까지만 예약할 수 있어요');
         return;
       }
