@@ -22,6 +22,8 @@ class VerifyPhotoApplicationService(
     private val discordVerifyPhotoNotificationPort: DiscordVerifyPhotoNotificationPort,
     @Value("\${ssutoday.storage.verify-photo-bucket}")
     private val bucket: String,
+    @Value("\${ssutoday.storage.public-base-url:}")
+    private val publicBaseUrl: String,
 ) {
     @Transactional
     fun upload(command: UploadPhotoCommand): String {
@@ -30,13 +32,14 @@ class VerifyPhotoApplicationService(
         }
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
         val key = "${command.reservationId}/${System.currentTimeMillis()}"
-        val url =
+        val uploadedUrl =
             try {
                 fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
             } catch (exception: Exception) {
                 throw RuntimeException("파일 업로드에 실패했습니다", exception)
             }
-        verifyPhotoService.create(command.reservationId, url)
+        val publicUrl = buildPublicUrl(key, uploadedUrl)
+        verifyPhotoService.create(command.reservationId, publicUrl)
         afterCommit {
             discordVerifyPhotoNotificationPort.send(
                 reservationId = reservation.id,
@@ -46,9 +49,18 @@ class VerifyPhotoApplicationService(
                 date = reservation.date,
                 startBlock = reservation.startBlock,
                 endBlock = reservation.endBlock,
-                photoUrl = url,
+                photoUrl = publicUrl,
             )
         }
-        return url
+        return publicUrl
+    }
+
+    private fun buildPublicUrl(
+        key: String,
+        fallbackUrl: String,
+    ): String {
+        if (publicBaseUrl.isBlank()) return fallbackUrl
+
+        return "${publicBaseUrl.trimEnd('/')}/${key.trimStart('/')}"
     }
 }

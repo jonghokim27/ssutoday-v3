@@ -61,3 +61,4 @@ ssutoday:
       reservation-request: ${RESERVATION_REQUEST_TOPIC:requestReserve}
   storage:
     verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
+    public-base-url: ${S3_PUBLIC_BASE_URL:}
