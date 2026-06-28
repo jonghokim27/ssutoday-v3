@@ -31,6 +31,7 @@ export type NativeBridge = {
   readCookie(url: string, name: string): Promise<string | null>;
   logScreenView(screenName: string): Promise<void>;
   checkConnectivity(): Promise<{ online: boolean }>;
+  getTurnstileToken(siteKey: string, action: string): Promise<string>;
 };
 
 const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
@@ -48,6 +49,7 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   readCookie: 'webview.readCookie',
   logScreenView: 'analytics.logScreenView',
   checkConnectivity: 'network.checkConnectivity',
+  getTurnstileToken: 'security.getTurnstileToken',
 };
 
 export function hasCapability(method: keyof NativeBridge): boolean {
@@ -110,6 +112,10 @@ class WebViewNativeBridge implements NativeBridge {
   checkConnectivity() {
     return request<{ online: boolean }>(METHOD_FOR.checkConnectivity);
   }
+
+  getTurnstileToken(siteKey: string, action: string) {
+    return request<string>(METHOD_FOR.getTurnstileToken, { siteKey, action });
+  }
 }
 
 class MockNativeBridge implements NativeBridge {
@@ -166,6 +172,10 @@ class MockNativeBridge implements NativeBridge {
 
   async checkConnectivity() {
     return { online: true };
+  }
+
+  async getTurnstileToken() {
+    return 'mock-turnstile-token';
   }
 }
 
@@ -358,6 +368,8 @@ function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
       return Promise.resolve(null);
     case 'checkConnectivity':
       return Promise.resolve({ online: true });
+    case 'getTurnstileToken':
+      return Promise.resolve('mock-turnstile-token');
     default:
       return Promise.resolve(undefined);
   }
