@@ -27,8 +27,6 @@ export type NativeBridge = {
   requestCameraPermission(): Promise<boolean>;
   captureVerifyPhoto(): Promise<CapturedPhoto | null>;
   signWithBiometrics(payload: string): Promise<{ signature: string } | null>;
-  clearWebViewCookies(): Promise<void>;
-  readCookie(url: string, name: string): Promise<string | null>;
   logScreenView(screenName: string): Promise<void>;
   checkConnectivity(): Promise<{ online: boolean }>;
   getTurnstileToken(siteKey: string, action: string): Promise<string>;
@@ -45,8 +43,6 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   requestCameraPermission: 'camera.requestPermission',
   captureVerifyPhoto: 'camera.captureVerifyPhoto',
   signWithBiometrics: 'auth.signWithBiometrics',
-  clearWebViewCookies: 'webview.clearCookies',
-  readCookie: 'webview.readCookie',
   logScreenView: 'analytics.logScreenView',
   checkConnectivity: 'network.checkConnectivity',
   getTurnstileToken: 'security.getTurnstileToken',
@@ -95,14 +91,6 @@ class WebViewNativeBridge implements NativeBridge {
 
   signWithBiometrics(payload: string) {
     return request<{ signature: string } | null>(METHOD_FOR.signWithBiometrics, { payload });
-  }
-
-  clearWebViewCookies() {
-    return request<void>(METHOD_FOR.clearWebViewCookies);
-  }
-
-  readCookie(url: string, name: string) {
-    return request<string | null>(METHOD_FOR.readCookie, { url, name });
   }
 
   logScreenView(screenName: string) {
@@ -160,12 +148,6 @@ class MockNativeBridge implements NativeBridge {
 
   async signWithBiometrics(payload: string) {
     return { signature: `mock-signature:${payload}` };
-  }
-
-  async clearWebViewCookies() {}
-
-  async readCookie() {
-    return null;
   }
 
   async logScreenView() {}
@@ -362,7 +344,6 @@ function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
     case 'requestCameraPermission':
       return Promise.resolve(false);
     case 'getPushToken':
-    case 'readCookie':
     case 'captureVerifyPhoto':
     case 'signWithBiometrics':
       return Promise.resolve(null);
