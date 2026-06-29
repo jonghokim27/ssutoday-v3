@@ -8,3 +8,4 @@ firebase.json
 !mobile/firebase.json
 infra/mysql/data/
 infra/redis/data/
+*.keystore
