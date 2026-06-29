@@ -14,11 +14,32 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Register at module level to avoid iOS first-load timing bug where
+// useEffect-registered listeners miss messages before component mounts
+messaging().onMessage(async (remoteMessage) => {
+  console.log('[FCM] onMessage received', JSON.stringify(remoteMessage));
+  // iOS: firebase.json messaging_ios_foreground_presentation_options handles display natively
+  // Android: schedule a local notification manually
+  if (Platform.OS !== 'android') return;
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: remoteMessage.notification?.title ?? '',
+        body: remoteMessage.notification?.body ?? '',
+        data: (remoteMessage.data ?? {}) as Record<string, string>,
+        sound: 'default',
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 1, channelId: 'default', repeats: false },
+    });
+  } catch (error) {
+    console.error('[FCM] scheduleNotificationAsync failed:', error);
+  }
+});
+
 export default function RootLayout() {
   const router = useRouter();
 
   // Android: create HIGH importance channel so foreground local notifications appear as heads-up
-  // iOS: ensure Firebase SDK is initialized for foreground message delivery
   useEffect(() => {
     if (Platform.OS === 'android') {
       void Notifications.setNotificationChannelAsync('default', {
@@ -27,8 +48,6 @@ export default function RootLayout() {
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#4F7CFF',
       });
-    } else {
-      void messaging().requestPermission();
     }
   }, []);
 
@@ -43,28 +62,6 @@ export default function RootLayout() {
     },
     [router],
   );
-
-  // Foreground FCM message → local notification
-  useEffect(() => {
-    return messaging().onMessage(async (remoteMessage) => {
-      console.log('[FCM] onMessage received', JSON.stringify(remoteMessage));
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: remoteMessage.notification?.title ?? '',
-            body: remoteMessage.notification?.body ?? '',
-            data: (remoteMessage.data ?? {}) as Record<string, string>,
-            sound: 'default',
-          },
-          trigger: Platform.OS === 'android'
-            ? { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 1, channelId: 'default', repeats: false }
-            : null,
-        });
-      } catch (error) {
-        console.error('[FCM] scheduleNotificationAsync failed:', error);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     // Foreground: local notification tap
