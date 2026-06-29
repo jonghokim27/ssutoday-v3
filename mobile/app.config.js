@@ -1,5 +1,29 @@
+const { withDangerousMod } = require('@expo/config-plugins');
+const fs = require('fs');
+const path = require('path');
+
+function withGoogleUtilitiesModularHeaders(config) {
+  return withDangerousMod(config, [
+    'ios',
+    async (config) => {
+      const podfilePath = path.join(config.modRequest.platformProjectRoot, 'Podfile');
+      let contents = fs.readFileSync(podfilePath, 'utf8');
+
+      if (!contents.includes("pod 'GoogleUtilities', :modular_headers => true")) {
+        contents = contents.replace(
+          /(\n\s+use_react_native!)/,
+          `\n  pod 'GoogleUtilities', :modular_headers => true$1`,
+        );
+        fs.writeFileSync(podfilePath, contents);
+      }
+
+      return config;
+    },
+  ]);
+}
+
 /** @type {import('@expo/config').ExpoConfig} */
-module.exports = {
+const config = {
   name: '슈투데이',
   slug: 'ssutoday',
   scheme: 'ssutoday',
@@ -44,14 +68,6 @@ module.exports = {
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     [
-      'expo-build-properties',
-      {
-        ios: {
-          useFrameworks: 'static',
-        },
-      },
-    ],
-    [
       'expo-splash-screen',
       {
         backgroundColor: '#FFFFFF',
@@ -67,3 +83,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = withGoogleUtilitiesModularHeaders(config);
