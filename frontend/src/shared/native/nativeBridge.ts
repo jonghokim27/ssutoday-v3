@@ -349,6 +349,13 @@ function fallbackResultFor(method: keyof NativeBridge): Promise<unknown> {
   }
 }
 
+export class HandledError extends Error {
+  constructor() {
+    super('handled');
+    this.name = 'HandledError';
+  }
+}
+
 function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): NativeBridge {
   return new Proxy(mock, {
     get(target, prop, receiver) {
@@ -368,10 +375,10 @@ function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): Native
                   showGlobalToast('설정에서 권한을 허용해 주세요', () => {
                     request('system.openAppSettings').catch(() => {});
                   });
-                  return;
+                  return Promise.reject(new HandledError());
                 } else if (error.code === 'NATIVE_ERROR') {
                   showGlobalToast('오류가 발생했어요. 잠시 후 다시 시도해 주세요');
-                  return;
+                  return Promise.reject(new HandledError());
                 }
               }
               return Promise.reject(error);

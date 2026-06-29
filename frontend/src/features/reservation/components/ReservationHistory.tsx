@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { isNativeApp, nativeBridge, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
+import { HandledError, isNativeApp, nativeBridge, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -237,8 +237,10 @@ export function ReservationHistory() {
       const result = await reservationRepository.uploadVerifyPhoto(item.id);
       flash(result.ok ? '인증샷을 업로드했어요' : result.message);
       if (result.ok) await loadItems(0);
-    } catch {
-      flash('오류가 발생했습니다. 다시 시도해주세요');
+    } catch (error) {
+      if (!(error instanceof HandledError)) {
+        flash('오류가 발생했습니다. 다시 시도해주세요');
+      }
     } finally {
       setActionLoading(false);
     }
