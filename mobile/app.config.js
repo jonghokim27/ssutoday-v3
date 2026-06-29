@@ -45,6 +45,11 @@ const config = {
       ITSAppUsesNonExemptEncryption: false,
     },
   },
+  androidStatusBar: {
+    backgroundColor: '#000000',
+    barStyle: 'light-content',
+    translucent: false,
+  },
   android: {
     ...(process.env.GOOGLE_SERVICES_JSON && {
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
