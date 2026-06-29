@@ -30,7 +30,7 @@
 }
 
 .back {
-  position: fixed;
+  position: absolute;
   z-index: 20;
   top: var(--space-status-top);
   left: var(--space-screen-x);
