@@ -10,7 +10,7 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
 import { openLink, triggerHaptic } from '../../../shared/native/nativeBridge';
-import { getTurnstileToken, prefetchTurnstileToken } from '../../../shared/turnstile/turnstile';
+import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
 import { emptyStudyRoom, type StudyRoom, type TimeBooking } from '../data/reservationData';
@@ -51,10 +51,6 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     setToast(message);
     window.setTimeout(() => setToast(''), 1700);
   }
-
-  useEffect(() => {
-    prefetchTurnstileToken('reservation_request');
-  }, []);
 
   useEffect(() => {
     let mounted = true;
