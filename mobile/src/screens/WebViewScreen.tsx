@@ -286,6 +286,7 @@ export default function WebViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   webview: {
     flex: 1,
@@ -295,7 +296,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 22,
     paddingBottom: 12,
-    backgroundColor: '#ffffff',
   },
   backButton: {
     width: 42,
