@@ -33,7 +33,7 @@
   position: fixed;
   z-index: 20;
   top: var(--space-status-top);
-  left: 20px;
+  left: var(--space-screen-x);
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.35);
