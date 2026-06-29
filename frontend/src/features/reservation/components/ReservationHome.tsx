@@ -23,7 +23,7 @@ export function ReservationHome() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [timebarScrollLeft, setTimebarScrollLeft] = useState<number | undefined>(undefined);
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
-  const [name, setName] = useState('숭실인');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +32,8 @@ export function ReservationHome() {
     async function loadProfile() {
       const profile = await appStorage.getProfile();
       if (profile?.name && mounted) {
-        setName(profile.name.slice(-2));
+        const n = profile.name;
+        setName(n.slice(-Math.min(n.length - 1, 3)));
       }
     }
 
