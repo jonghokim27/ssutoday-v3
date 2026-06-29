@@ -241,8 +241,8 @@ export default function WebViewScreen() {
   return (
     <View style={styles.container}>
       {smartId && (
-        <View style={[styles.smartIdHeader, { paddingTop: insets.top }]}>
-          <View style={styles.smartIdHeaderInner}>
+        <View style={styles.smartIdHeader}>
+          <View style={[styles.smartIdHeaderInner, { paddingTop: insets.top > 0 ? insets.top : 18 }]}>
             <Pressable
               style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
               onPress={handleBack}
@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
   },
   smartIdHeaderInner: {
     paddingHorizontal: 22,
-    paddingTop: 18,
     paddingBottom: 12,
   },
   backButton: {

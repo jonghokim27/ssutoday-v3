@@ -62,7 +62,7 @@
   --space-screen-x: 22px;
   --space-bottom-nav-height: 64px;
   --space-safe-area-top-extra: 0px;
-  --space-status-top: calc(18px + var(--space-safe-area-top-extra));
+  --space-status-top: max(18px, var(--space-safe-area-top-extra));
 
   --font-family-base: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-weight-regular: 500;
