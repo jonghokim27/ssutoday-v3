@@ -30,4 +30,5 @@
     </root>
 
     <logger name="kr.ac.ssu.ssutoday" level="INFO"/>
+    <logger name="org.springframework.web.servlet.PageNotFound" level="ERROR"/>
 </configuration>
