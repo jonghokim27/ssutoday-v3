@@ -176,6 +176,7 @@
 }
 
 .persistDialog {
+  box-sizing: border-box;
   width: calc(100% - 40px);
   max-width: 420px;
   background: var(--color-surface-base);
