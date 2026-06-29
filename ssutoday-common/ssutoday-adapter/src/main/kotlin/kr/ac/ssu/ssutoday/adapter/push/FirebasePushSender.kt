@@ -38,7 +38,7 @@ class FirebasePushSender(
                     ApnsConfig
                         .builder()
                         .putHeader("apns-priority", "10")
-                        .setAps(Aps.builder().setContentAvailable(true).build())
+                        .setAps(Aps.builder().setMutableContent(true).build())
                         .build(),
                 )
 

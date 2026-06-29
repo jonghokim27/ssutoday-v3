@@ -31,14 +31,18 @@ export default function RootLayout() {
   // Foreground FCM message → local notification
   useEffect(() => {
     return messaging().onMessage(async (remoteMessage) => {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: remoteMessage.notification?.title,
-          body: remoteMessage.notification?.body,
-          data: (remoteMessage.data ?? {}) as Record<string, string>,
-        },
-        trigger: null,
-      });
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: remoteMessage.notification?.title ?? '',
+            body: remoteMessage.notification?.body ?? '',
+            data: (remoteMessage.data ?? {}) as Record<string, string>,
+          },
+          trigger: null,
+        });
+      } catch (error) {
+        console.error('[FCM] scheduleNotificationAsync failed:', error);
+      }
     });
   }, []);
 
