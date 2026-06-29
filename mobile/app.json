@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
+      "googleServicesFile": "$GOOGLE_SERVICE_INFO_PLIST",
       "icon": "./assets/icon-ios.png",
       "bundleIdentifier": "com.ssutoday",
       "supportsTablet": true,
@@ -19,6 +20,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "$GOOGLE_SERVICES_JSON",
       "package": "com.ssutoday",
       "adaptiveIcon": {
         "backgroundColor": "#4F7CFF",
