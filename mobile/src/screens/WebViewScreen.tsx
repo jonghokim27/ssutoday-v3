@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -218,6 +218,10 @@ export default function WebViewScreen() {
     setCurrentUrl(state.url);
   }, []);
 
+  const handleBack = useCallback(() => {
+    webviewRef.current?.goBack();
+  }, []);
+
   const handleRetry = useCallback(() => {
     NetInfo.fetch().then((state) => {
       const connected = state.isConnected === true && state.isInternetReachable !== false;
@@ -235,7 +239,7 @@ export default function WebViewScreen() {
   const smartId = isSmartIdUrl(currentUrl);
 
   return (
-    <>
+    <View style={styles.container}>
       {smartId && <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />}
       <WebView
         ref={webviewRef}
@@ -249,6 +253,19 @@ export default function WebViewScreen() {
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures
       />
+      {smartId && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.smartIdBack,
+            { top: insets.top + 18 },
+            pressed && styles.smartIdBackPressed,
+          ]}
+          onPress={handleBack}
+          hitSlop={8}
+        >
+          <View style={styles.chevron} />
+        </Pressable>
+      )}
       {turnstileRequest ? (
         <TurnstileModal
           siteKey={turnstileRequest.siteKey}
@@ -265,12 +282,38 @@ export default function WebViewScreen() {
           }}
         />
       ) : null}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   webview: {
     flex: 1,
+  },
+  smartIdBack: {
+    position: 'absolute',
+    left: 22,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#f2f3f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smartIdBackPressed: {
+    transform: [{ scale: 0.94 }],
+    backgroundColor: '#e9ebf3',
+  },
+  chevron: {
+    width: 9,
+    height: 9,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#4f5566',
+    transform: [{ rotate: '45deg' }],
+    marginLeft: 3,
   },
 });
