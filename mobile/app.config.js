@@ -38,7 +38,7 @@ const config = {
     }),
     icon: './assets/icon-ios.png',
     bundleIdentifier: 'com.ssutoday',
-    supportsTablet: true,
+    supportsTablet: false,
     infoPlist: {
       NSCameraUsageDescription: '슈투데이에서 인증샷을 촬영하기 위해 카메라 권한을 허용해주세요',
       NSFaceIDUsageDescription: '슈투데이에서 본인임을 확인하기 위해 FaceID 인증이 필요해요',
