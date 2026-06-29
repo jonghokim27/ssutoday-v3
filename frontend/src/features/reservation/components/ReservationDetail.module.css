@@ -32,7 +32,7 @@
 .back {
   position: fixed;
   z-index: 20;
-  top: calc(var(--space-status-top) + var(--space-6));
+  top: var(--space-status-top);
   left: 20px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
