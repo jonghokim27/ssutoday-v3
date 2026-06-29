@@ -40,7 +40,12 @@ export function SsoCallbackPage() {
           }
         }
         setSession('authenticated');
-        navigate(safePath('/notices'), { replace: true });
+        const depth = window.history.length - 1;
+        if (depth > 0) {
+          window.history.go(-depth);
+        } else {
+          navigate(safePath('/notices'), { replace: true });
+        }
         return;
       }
 
