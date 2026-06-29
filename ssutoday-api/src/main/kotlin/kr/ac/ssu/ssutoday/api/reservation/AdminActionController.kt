@@ -25,8 +25,9 @@ class AdminActionController(
         @RequestParam token: String,
         @RequestParam action: String,
         @RequestParam(required = false) reason: String?,
+        @RequestParam(required = false) adminName: String?,
     ): ResponseEntity<String> {
-        val result = reservationCommandApplicationService.executeAdminActionByToken(token, action, reason)
+        val result = reservationCommandApplicationService.executeAdminActionByToken(token, action, reason, adminName)
         val (title, message, success) =
             when (result) {
                 0 -> Triple("오류", "예약을 찾을 수 없습니다", false)
@@ -70,6 +71,13 @@ class AdminActionController(
                 ""
             }
         val buttonLabel = if (isCancel) "사유 확인 후 예약 취소" else "인증샷 삭제 실행"
+        val adminNameInput =
+            """
+            <label class="field" for="adminName">
+              <span>처리자</span>
+              <input id="adminName" name="adminName" maxlength="30" placeholder="예: 홍길동" required>
+            </label>
+            """.trimIndent()
         val dangerClass = if (isCancel) " danger" else ""
 
         return """
@@ -90,6 +98,7 @@ class AdminActionController(
                 <form method="post" action="/admin/action" class="form">
                   <input type="hidden" name="token" value="${escapeHtml(token)}">
                   <input type="hidden" name="action" value="${escapeHtml(action)}">
+                  $adminNameInput
                   $textarea
                   <button class="primary$dangerClass" type="submit">$buttonLabel</button>
                 </form>
@@ -230,9 +239,8 @@ class AdminActionController(
             font-weight:700;
             color:var(--color-text-primary);
           }
-          textarea{
+          input,textarea{
             width:100%;
-            min-height:116px;
             padding:14px 15px;
             border:1px solid var(--color-border-default);
             border-radius:18px;
@@ -243,7 +251,13 @@ class AdminActionController(
             font-size:14px;
             line-height:1.5;
           }
-          textarea:focus{
+          input{
+            min-height:52px;
+          }
+          textarea{
+            min-height:116px;
+          }
+          input:focus,textarea:focus{
             border-color:#7b89ff;
             box-shadow:0 0 0 4px rgba(79,124,255,.12);
           }

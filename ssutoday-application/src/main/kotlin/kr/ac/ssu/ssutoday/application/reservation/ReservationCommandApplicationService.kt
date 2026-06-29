@@ -243,6 +243,7 @@ class ReservationCommandApplicationService(
         adminToken: String,
         action: String,
         reason: String? = null,
+        adminName: String? = null,
     ): Int {
         val reservation = reservationService.findByAdminToken(adminToken) ?: return 0
         if (!reservation.active) return 1
@@ -255,7 +256,8 @@ class ReservationCommandApplicationService(
         return when (action) {
             ADMIN_CANCEL -> {
                 val cancelReason = reason?.takeIf(String::isNotBlank) ?: return 99
-                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (사유: $cancelReason / 처리자: Discord)")
+                val processedBy = adminName?.takeIf(String::isNotBlank) ?: return 99
+                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (사유: $cancelReason / 처리자: $processedBy)")
                 val studentId = reservation.studentId
                 val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
                 afterCommit {
@@ -268,12 +270,13 @@ class ReservationCommandApplicationService(
                         content = "**[예약 취소 알림]**",
                         reservation = reservation,
                         actionFieldName = "취소 구분",
-                        actionFieldValue = "관리자 취소 (사유: $cancelReason / 처리자: Discord)",
+                        actionFieldValue = "관리자 취소 (사유: $cancelReason / 처리자: $processedBy)",
                     )
                 }
                 3
             }
             PHOTO_DELETE -> {
+                val processedBy = adminName?.takeIf(String::isNotBlank) ?: return 99
                 val photoUrl = verifyPhotoService.find(reservation.id)?.url
                 if (!verifyPhotoService.delete(reservation.id)) return 4
                 reservationService.resetCreatedAt(reservation.id)
@@ -288,7 +291,7 @@ class ReservationCommandApplicationService(
                         content = "**[인증샷 삭제 알림]**",
                         reservation = reservation,
                         actionFieldName = "처리자",
-                        actionFieldValue = "Discord",
+                        actionFieldValue = processedBy,
                         photoUrl = photoUrl,
                     )
                 }

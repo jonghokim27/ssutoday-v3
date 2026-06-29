@@ -56,8 +56,16 @@ class SecurityConfig(
                 allowedHeaders = listOf("*")
                 allowCredentials = true
             }
+        val adminActionConfiguration =
+            CorsConfiguration().apply {
+                allowedOriginPatterns = listOf("*")
+                allowedMethods = listOf("GET", "POST", "OPTIONS")
+                allowedHeaders = listOf("*")
+                allowCredentials = false
+            }
 
         return UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration("/admin/action", adminActionConfiguration)
             registerCorsConfiguration("/**", configuration)
         }
     }
