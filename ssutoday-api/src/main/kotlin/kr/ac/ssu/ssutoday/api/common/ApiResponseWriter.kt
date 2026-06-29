@@ -16,7 +16,7 @@ class ApiResponseWriter(
         status: StatusCode,
     ) {
         response.status = status.httpStatus().value()
-        response.contentType = "application/json"
+        response.contentType = "application/json;charset=UTF-8"
         response.writer.write(objectMapper.writeValueAsString(ApiResponse.of(status, null, messageSource)))
     }
 }
