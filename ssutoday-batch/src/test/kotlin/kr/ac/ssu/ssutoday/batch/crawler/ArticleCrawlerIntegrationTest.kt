@@ -31,5 +31,9 @@ class ArticleCrawlerIntegrationTest {
                 pages = 1,
                 objectMapper = ObjectMapper(),
             ),
+            MediaCrawler(
+                pages = 1,
+                objectMapper = ObjectMapper(),
+            ),
         )
 }
