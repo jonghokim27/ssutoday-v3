@@ -112,13 +112,13 @@ class ReservationQueryApplicationService(
                         RoomReservation.StudentInfo(
                             studentId = student.id.toString(),
                             name = student.name,
-                            major = student.major
+                            major = student.major,
                         )
                     } else {
                         RoomReservation.StudentInfo(
                             studentId = maskStudentId(student.id),
                             name = maskName(student.name),
-                            major = student.major
+                            major = student.major,
                         )
                     },
                 startBlock = reservation.startBlock,
@@ -142,9 +142,7 @@ class ReservationQueryApplicationService(
         return "${name.first()}${"*".repeat(name.length - 2)}${name.last()}"
     }
 
-    private fun maskStudentId(studentId: Int): String {
-        return "${studentId.toString().take(2)}****${studentId.toString().takeLast(2)}"
-    }
+    private fun maskStudentId(studentId: Int): String = "${studentId.toString().take(2)}****${studentId.toString().takeLast(2)}"
 
     private companion object {
         const val PAGE_SIZE = 10

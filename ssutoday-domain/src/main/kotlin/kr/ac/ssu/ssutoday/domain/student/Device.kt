@@ -20,31 +20,22 @@ class Device(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     var id: Long = 0L,
-
     @Column(nullable = false)
     var studentId: Int,
-
     @Column(nullable = false, length = 10)
     var osType: String,
-
     @Column(nullable = false, length = 200)
     var uuid: String,
-
     @Column(nullable = false, length = 200)
     var pushToken: String,
-
     @Column(nullable = false)
     var notice: Int = 1,
-
     @Column(nullable = false)
     var reserve: Int = 1,
-
     @Column(nullable = false)
     var lms: Int = 1,
-
     @Column(nullable = false)
     var createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
-
     @Column
     var updatedAt: Timestamp? = null,
 ) {

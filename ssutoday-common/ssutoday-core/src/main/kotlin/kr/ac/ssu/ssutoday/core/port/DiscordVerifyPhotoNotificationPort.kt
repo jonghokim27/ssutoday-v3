@@ -1,7 +1,5 @@
 package kr.ac.ssu.ssutoday.core.port
 
-import java.time.LocalDate
-
 interface DiscordVerifyPhotoNotificationPort {
     fun send(
         content: String,

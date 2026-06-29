@@ -87,13 +87,16 @@ class VerifyPhotoApplicationService(
         startBlock: Int,
         endBlock: Int,
     ): String {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
-            set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val dateText = SimpleDateFormat("yyyy년 MM월 dd일").apply {
-            timeZone = TimeZone.getTimeZone("Asia/Seoul")
-        }.format(calendar.time)
+        val calendar =
+            Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
+                set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+        val dateText =
+            SimpleDateFormat("yyyy년 MM월 dd일")
+                .apply {
+                    timeZone = TimeZone.getTimeZone("Asia/Seoul")
+                }.format(calendar.time)
         val day = DAYS[calendar.get(Calendar.DAY_OF_WEEK) - 1]
 
         return "$dateText($day) ${blockToTime(startBlock)} ~ ${blockToTime(endBlock + 1)}"

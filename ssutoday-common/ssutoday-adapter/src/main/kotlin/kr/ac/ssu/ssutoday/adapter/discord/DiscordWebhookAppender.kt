@@ -14,38 +14,46 @@ class DiscordWebhookAppender : AppenderBase<ILoggingEvent>() {
     var webhookUrl: String = ""
     var appName: String = "ssutoday"
 
-    private val httpClient: HttpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build()
+    private val httpClient: HttpClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
 
     override fun append(event: ILoggingEvent) {
         if (webhookUrl.isBlank()) return
 
-        val color = when (event.level) {
-            Level.ERROR -> 15158332  // Red
-            else -> 16776960         // Yellow (WARN)
-        }
+        val color =
+            when (event.level) {
+                Level.ERROR -> 15158332 // Red
+                else -> 16776960 // Yellow (WARN)
+            }
 
         val stackTrace = buildStackTrace(event.throwableProxy)
         val description = buildDescription(event, stackTrace)
-        val title = "[${appName}] [${event.level}] ${event.formattedMessage}".take(256)
+        val title = "[$appName] [${event.level}] ${event.formattedMessage}".take(256)
         val payload = buildJsonPayload(title, description, color)
 
         try {
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create(webhookUrl))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(payload))
-                .timeout(Duration.ofSeconds(10))
-                .build()
+            val request =
+                HttpRequest
+                    .newBuilder()
+                    .uri(URI.create(webhookUrl))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .timeout(Duration.ofSeconds(10))
+                    .build()
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
         } catch (e: Exception) {
             addError("Discord 웹훅 전송 실패", e)
         }
     }
 
-    private fun buildDescription(event: ILoggingEvent, stackTrace: String): String {
-        return buildString {
+    private fun buildDescription(
+        event: ILoggingEvent,
+        stackTrace: String,
+    ): String =
+        buildString {
             append("**Logger:** `${event.loggerName}`\n")
             append("**Message:** ${event.formattedMessage}")
             if (stackTrace.isNotEmpty()) {
@@ -53,7 +61,6 @@ class DiscordWebhookAppender : AppenderBase<ILoggingEvent>() {
                 append("\n\n**Stack Trace:**\n```\n$truncated\n```")
             }
         }.take(4096)
-    }
 
     private fun buildStackTrace(proxy: IThrowableProxy?): String {
         if (proxy == null) return ""
@@ -75,16 +82,21 @@ class DiscordWebhookAppender : AppenderBase<ILoggingEvent>() {
         }
     }
 
-    private fun buildJsonPayload(title: String, description: String, color: Int): String {
+    private fun buildJsonPayload(
+        title: String,
+        description: String,
+        color: Int,
+    ): String {
         val safeTitle = escapeJson(title)
         val safeDesc = escapeJson(description)
         return """{"embeds":[{"title":"$safeTitle","description":"$safeDesc","color":$color}]}"""
     }
 
-    private fun escapeJson(value: String): String = value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
+    private fun escapeJson(value: String): String =
+        value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
 }

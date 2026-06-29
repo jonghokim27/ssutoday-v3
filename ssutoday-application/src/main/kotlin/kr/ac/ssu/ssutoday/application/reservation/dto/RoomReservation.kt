@@ -11,6 +11,6 @@ data class RoomReservation(
     data class StudentInfo(
         val studentId: String,
         val name: String,
-        val major: String
+        val major: String,
     )
 }

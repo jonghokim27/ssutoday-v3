@@ -81,32 +81,32 @@ class AdminActionController(
         val dangerClass = if (isCancel) " danger" else ""
 
         return """
-        <!DOCTYPE html>
-        <html lang="ko">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>$title</title>
-            ${styleBlock()}
-          </head>
-          <body>
-            <main class="shell">
-              <section class="panel">
-                <div class="badge">관리자 작업</div>
-                <h1>$title</h1>
-                <p class="description">$description</p>
-                <form method="post" action="/admin/action" class="form">
-                  <input type="hidden" name="token" value="${escapeHtml(token)}">
-                  <input type="hidden" name="action" value="${escapeHtml(action)}">
-                  $adminNameInput
-                  $textarea
-                  <button class="primary$dangerClass" type="submit">$buttonLabel</button>
-                </form>
-              </section>
-            </main>
-          </body>
-        </html>
-        """.trimIndent()
+            <!DOCTYPE html>
+            <html lang="ko">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>$title</title>
+                ${styleBlock()}
+              </head>
+              <body>
+                <main class="shell">
+                  <section class="panel">
+                    <div class="badge">관리자 작업</div>
+                    <h1>$title</h1>
+                    <p class="description">$description</p>
+                    <form method="post" action="/admin/action" class="form">
+                      <input type="hidden" name="token" value="${escapeHtml(token)}">
+                      <input type="hidden" name="action" value="${escapeHtml(action)}">
+                      $adminNameInput
+                      $textarea
+                      <button class="primary$dangerClass" type="submit">$buttonLabel</button>
+                    </form>
+                  </section>
+                </main>
+              </body>
+            </html>
+            """.trimIndent()
     }
 
     private fun buildResultHtml(
@@ -126,28 +126,28 @@ class AdminActionController(
             }
 
         return """
-        <!DOCTYPE html>
-        <html lang="ko">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${escapeHtml(title)}</title>
-            ${styleBlock()}
-          </head>
-          <body>
-            <main class="shell">
-              <section class="panel">
-                <div class="badge $toneClass">$badge</div>
-                <h1>${escapeHtml(title)}</h1>
-                <p class="description">${escapeHtml(message)}</p>
-                <div class="actions">
-                  $retryButton
-                </div>
-              </section>
-            </main>
-          </body>
-        </html>
-        """.trimIndent()
+            <!DOCTYPE html>
+            <html lang="ko">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${escapeHtml(title)}</title>
+                ${styleBlock()}
+              </head>
+              <body>
+                <main class="shell">
+                  <section class="panel">
+                    <div class="badge $toneClass">$badge</div>
+                    <h1>${escapeHtml(title)}</h1>
+                    <p class="description">${escapeHtml(message)}</p>
+                    <div class="actions">
+                      $retryButton
+                    </div>
+                  </section>
+                </main>
+              </body>
+            </html>
+            """.trimIndent()
     }
 
     private fun styleBlock(): String =

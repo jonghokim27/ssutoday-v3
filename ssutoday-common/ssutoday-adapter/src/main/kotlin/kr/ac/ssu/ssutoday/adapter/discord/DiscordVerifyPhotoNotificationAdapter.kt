@@ -16,9 +16,11 @@ class DiscordVerifyPhotoNotificationAdapter(
     @Value("\${spring.discord.verify-photo-webhook-url:}") private val webhookUrl: String,
     @Value("\${ssutoday.admin.base-url:}") private val adminBaseUrl: String,
 ) : DiscordVerifyPhotoNotificationPort {
-    private val httpClient: HttpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build()
+    private val httpClient: HttpClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
 
     override fun send(
         content: String,
@@ -33,24 +35,27 @@ class DiscordVerifyPhotoNotificationAdapter(
 
         val photoDeleteUrl = buildAdminActionUrl(adminToken, PHOTO_DELETE)
         val cancelUrl = buildAdminActionUrl(adminToken, RESERVE_CANCEL)
-        val payload = buildPayload(
-            content = content,
-            reservationId = reservationId,
-            studentInfo = studentInfo,
-            roomName = roomName,
-            reservationDateTime = reservationDateTime,
-            photoUrl = photoUrl,
-            photoDeleteUrl = photoDeleteUrl,
-            cancelUrl = cancelUrl,
-        )
+        val payload =
+            buildPayload(
+                content = content,
+                reservationId = reservationId,
+                studentInfo = studentInfo,
+                roomName = roomName,
+                reservationDateTime = reservationDateTime,
+                photoUrl = photoUrl,
+                photoDeleteUrl = photoDeleteUrl,
+                cancelUrl = cancelUrl,
+            )
 
         try {
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create(buildWebhookUrl(photoDeleteUrl, cancelUrl)))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(payload))
-                .timeout(Duration.ofSeconds(10))
-                .build()
+            val request =
+                HttpRequest
+                    .newBuilder()
+                    .uri(URI.create(buildWebhookUrl(photoDeleteUrl, cancelUrl)))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .timeout(Duration.ofSeconds(10))
+                    .build()
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
         } catch (_: Exception) {
             // 알림 실패는 무시 (로그는 Logback이 처리)
@@ -76,19 +81,19 @@ class DiscordVerifyPhotoNotificationAdapter(
         val components = buildComponents(photoDeleteUrl, cancelUrl)
 
         return """
-        {
-          "content": "$safeContent",
-          "embeds": [{
-            "image": { "url": "$safePhotoUrl" },
-            "fields": [
-              { "name": "예약 고유번호", "value": "$safeReservationId" },
-              { "name": "예약자", "value": "$safeStudentInfo" },
-              { "name": "시설명", "value": "$safeRoomName" },
-              { "name": "예약 날짜 및 시간", "value": "$safeReservationDateTime" }
-            ]
-          }]$components
-        }
-        """.trimIndent()
+            {
+              "content": "$safeContent",
+              "embeds": [{
+                "image": { "url": "$safePhotoUrl" },
+                "fields": [
+                  { "name": "예약 고유번호", "value": "$safeReservationId" },
+                  { "name": "예약자", "value": "$safeStudentInfo" },
+                  { "name": "시설명", "value": "$safeRoomName" },
+                  { "name": "예약 날짜 및 시간", "value": "$safeReservationDateTime" }
+                ]
+              }]$components
+            }
+            """.trimIndent()
     }
 
     private fun buildWebhookUrl(
@@ -121,14 +126,15 @@ class DiscordVerifyPhotoNotificationAdapter(
         photoDeleteUrl: String?,
         cancelUrl: String?,
     ): String {
-        val buttons = listOfNotNull(
-            photoDeleteUrl?.let {
-                """{ "type": 2, "style": 5, "label": "인증샷 삭제", "url": "${escapeJson(it)}" }"""
-            },
-            cancelUrl?.let {
-                """{ "type": 2, "style": 5, "label": "예약 취소", "url": "${escapeJson(it)}" }"""
-            },
-        )
+        val buttons =
+            listOfNotNull(
+                photoDeleteUrl?.let {
+                    """{ "type": 2, "style": 5, "label": "인증샷 삭제", "url": "${escapeJson(it)}" }"""
+                },
+                cancelUrl?.let {
+                    """{ "type": 2, "style": 5, "label": "예약 취소", "url": "${escapeJson(it)}" }"""
+                },
+            )
         if (buttons.isEmpty()) return ""
 
         return """,
@@ -138,12 +144,13 @@ class DiscordVerifyPhotoNotificationAdapter(
           }]"""
     }
 
-    private fun escapeJson(value: String): String = value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
+    private fun escapeJson(value: String): String =
+        value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
 
     private companion object {
         const val PHOTO_DELETE = "photoDelete"

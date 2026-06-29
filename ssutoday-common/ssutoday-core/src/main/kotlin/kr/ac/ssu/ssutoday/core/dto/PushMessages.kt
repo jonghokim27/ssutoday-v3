@@ -40,14 +40,17 @@ object PushMessages {
 
     // ── 이용 곧 시작 ──────────────────────────────────────────────────────────
     fun reserveStartSoonTitle(roomName: String) = "🛎️ $roomName 이용이 곧 시작돼요"
+
     const val RESERVE_START_SOON_BODY = "5분 뒤 이용이 시작돼요. 이용이 불가능하다면, 다른 이용자를 위해 예약을 취소해주세요"
 
     // ── 이용 곧 종료 ──────────────────────────────────────────────────────────
     fun reserveEndSoonTitle(roomName: String) = "🚨 $roomName 이용이 곧 종료돼요"
+
     const val RESERVE_END_SOON_BODY = "5분 뒤 이용이 종료돼요. 다음 이용자를 위해 자리를 정리하고 퇴실해주세요"
 
     // ── 인증샷 미촬영 자동 취소 ───────────────────────────────────────────────
     fun autoCancelTitle(roomName: String) = "❌ $roomName 예약이 취소되었어요"
+
     const val AUTO_CANCEL_BODY = "인증샷을 촬영하지 않아 예약이 취소되었어요"
 
     // ──────────────────────────────────────────────────────────────────────────

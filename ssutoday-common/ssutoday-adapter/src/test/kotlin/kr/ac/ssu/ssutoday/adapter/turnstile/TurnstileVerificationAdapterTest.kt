@@ -12,8 +12,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-
-
 class TurnstileVerificationAdapterTest {
     @Test
     fun `success가 true이면 검증에 성공한다`() {

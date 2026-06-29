@@ -248,9 +248,10 @@ class ReservationCommandApplicationService(
         val reservation = reservationService.findByAdminToken(adminToken) ?: return 0
         if (!reservation.active) return 1
 
-        val endAt = reservation.date
-            .atStartOfDay()
-            .plusMinutes((reservation.endBlock + 1) * 30L)
+        val endAt =
+            reservation.date
+                .atStartOfDay()
+                .plusMinutes((reservation.endBlock + 1) * 30L)
         if (endAt.isBefore(LocalDateTime.now())) return 2
 
         return when (action) {
@@ -424,13 +425,16 @@ class ReservationCommandApplicationService(
         startBlock: Int,
         endBlock: Int,
     ): String {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
-            set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val dateText = SimpleDateFormat("yyyy년 MM월 dd일").apply {
-            timeZone = TimeZone.getTimeZone("Asia/Seoul")
-        }.format(calendar.time)
+        val calendar =
+            Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
+                set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+        val dateText =
+            SimpleDateFormat("yyyy년 MM월 dd일")
+                .apply {
+                    timeZone = TimeZone.getTimeZone("Asia/Seoul")
+                }.format(calendar.time)
         val day = DAYS[calendar.get(Calendar.DAY_OF_WEEK) - 1]
 
         return "$dateText($day) ${blockToTime(startBlock)} ~ ${blockToTime(endBlock + 1)}"

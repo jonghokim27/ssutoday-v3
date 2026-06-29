@@ -62,7 +62,10 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
           )
         """,
     )
-    fun findMissingPhotoReservations(today: LocalDate, block: Int): List<Reservation>
+    fun findMissingPhotoReservations(
+        today: LocalDate,
+        block: Int,
+    ): List<Reservation>
 
     // 특정 startBlock에 시작하는 활성 예약 (이용 시작 5분 전 알림용)
     fun findAllByDateAndStartBlockAndDeletedAtIsNull(
