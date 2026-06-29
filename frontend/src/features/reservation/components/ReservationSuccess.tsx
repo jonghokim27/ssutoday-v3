@@ -42,8 +42,8 @@ export function ReservationSuccess() {
         </dl>
       </section>
       <div className={styles.buttons}>
-        <Link to={safePath('/reservations/history')}><Button>예약 내역 보기</Button></Link>
-        <Link to={safePath('/reservations')}><Button variant="secondary">예약 화면으로</Button></Link>
+        <Link to={safePath('/reservations/history')} replace><Button>예약 내역 보기</Button></Link>
+        <Link to={safePath('/reservations')} replace><Button variant="secondary">예약 화면으로</Button></Link>
       </div>
     </div>
   );

@@ -145,7 +145,7 @@ export function AuthTerms() {
   function redirectToSso() {
     setRedirecting(true);
     window.setTimeout(() => {
-      window.location.assign(getSsoLoginUrl());
+      window.location.replace(getSsoLoginUrl());
     }, 120);
   }
 

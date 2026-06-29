@@ -26,8 +26,8 @@ export function ReservationFailed() {
       <h1>예약 실패</h1>
       <p className={styles.guide}>{result.message ?? '예약 처리 중 문제가 발생했어요'}</p>
       <div className={styles.buttons}>
-        <Link to={retryPath}><Button>다시 예약하기</Button></Link>
-        <Link to={safePath('/reservations')}><Button variant="secondary">예약 화면으로</Button></Link>
+        <Link to={retryPath} replace><Button>다시 예약하기</Button></Link>
+        <Link to={safePath('/reservations')} replace><Button variant="secondary">예약 화면으로</Button></Link>
       </div>
     </div>
   );
