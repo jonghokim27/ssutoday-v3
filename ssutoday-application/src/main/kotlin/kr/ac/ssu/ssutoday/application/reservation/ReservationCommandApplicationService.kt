@@ -242,6 +242,7 @@ class ReservationCommandApplicationService(
     fun executeAdminActionByToken(
         adminToken: String,
         action: String,
+        reason: String? = null,
     ): Int {
         val reservation = reservationService.findByAdminToken(adminToken) ?: return 0
         if (!reservation.active) return 1
@@ -253,20 +254,21 @@ class ReservationCommandApplicationService(
 
         return when (action) {
             ADMIN_CANCEL -> {
-                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (Discord)")
+                val cancelReason = reason?.takeIf(String::isNotBlank) ?: return 99
+                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (사유: $cancelReason / 처리자: Discord)")
                 val studentId = reservation.studentId
                 val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
                 afterCommit {
                     sendReservationPush(
                         studentId = studentId,
                         title = PushMessages.adminCancelTitle(roomName),
-                        body = PushMessages.adminCancelBody("Discord"),
+                        body = PushMessages.adminCancelBody(cancelReason),
                     )
                     sendReservationDiscordNotice(
                         content = "**[예약 취소 알림]**",
                         reservation = reservation,
                         actionFieldName = "취소 구분",
-                        actionFieldValue = "관리자 취소 (Discord)",
+                        actionFieldValue = "관리자 취소 (사유: $cancelReason / 처리자: Discord)",
                     )
                 }
                 3
