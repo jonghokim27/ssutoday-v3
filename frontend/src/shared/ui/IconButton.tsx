@@ -10,7 +10,7 @@ export function IconButton({ children, className, onClick, ...props }: IconButto
   return (
     <button
       className={[styles.button, className].filter(Boolean).join(' ')}
-      onClick={(e) => { triggerHaptic('heavy'); onClick?.(e); }}
+      onClick={(e) => { triggerHaptic('medium'); onClick?.(e); }}
       {...props}
     >
       {children}

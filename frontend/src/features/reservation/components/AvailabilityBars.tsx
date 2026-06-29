@@ -99,7 +99,7 @@ export function AvailabilityBars({
                   disabled={slotState === 'past' && !isBooked}
                   key={index}
                   onClick={() => {
-                    triggerHaptic('heavy');
+                    triggerHaptic('medium');
                     if (slotState === 'current') {
                       onCurrentSlotClick?.();
                     }

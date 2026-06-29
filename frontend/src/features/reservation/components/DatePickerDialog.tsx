@@ -48,11 +48,11 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
     <div className={[styles.backdrop, closing ? styles.closing : ''].join(' ')} onClick={closeWithAnimation}>
       <div className={[styles.dialog, closing ? styles.dialogClosing : ''].join(' ')} onClick={(event) => event.stopPropagation()}>
         <header>
-          <button aria-label="이전 달" onClick={() => { triggerHaptic('heavy'); moveMonth(-1); }} type="button"><Icon name="chevronLeft" /></button>
+          <button aria-label="이전 달" onClick={() => { triggerHaptic('medium'); moveMonth(-1); }} type="button"><Icon name="chevronLeft" /></button>
           <h2>{viewYear}년 {monthNames[viewMonth]}</h2>
           <div className={styles.headerActions}>
-            <button aria-label="다음 달" onClick={() => { triggerHaptic('heavy'); moveMonth(1); }} type="button"><Icon name="chevronRight" /></button>
-            <button aria-label="닫기" onClick={() => { triggerHaptic('heavy'); closeWithAnimation(); }} type="button"><Icon name="x" /></button>
+            <button aria-label="다음 달" onClick={() => { triggerHaptic('medium'); moveMonth(1); }} type="button"><Icon name="chevronRight" /></button>
+            <button aria-label="닫기" onClick={() => { triggerHaptic('medium'); closeWithAnimation(); }} type="button"><Icon name="x" /></button>
           </div>
         </header>
         <div className={styles.weekdays}>
@@ -69,7 +69,7 @@ export function DatePickerDialog({ selectedDate, onClose, onPick }: DatePickerDi
               <button
                 className={[selected ? styles.selected : '', today && !selected ? styles.today : ''].filter(Boolean).join(' ')}
                 key={date}
-                onClick={() => { triggerHaptic('heavy'); pickDay(day); }}
+                onClick={() => { triggerHaptic('medium'); pickDay(day); }}
                 type="button"
               >
                 {day}

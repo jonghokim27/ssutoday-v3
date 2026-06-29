@@ -12,7 +12,7 @@ export function Button({ className, variant = 'primary', onClick, ...props }: Bu
   return (
     <button
       className={[styles.button, styles[variant], className].filter(Boolean).join(' ')}
-      onClick={(e) => { triggerHaptic('heavy'); onClick?.(e); }}
+      onClick={(e) => { triggerHaptic('medium'); onClick?.(e); }}
       {...props}
     />
   );

@@ -35,7 +35,7 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
         if (pointerMovedRef.current) {
           event.preventDefault();
         } else {
-          triggerHaptic('heavy');
+          triggerHaptic('medium');
         }
       }}
       onPointerDown={(event) => {

@@ -24,7 +24,7 @@ export function DateStrip({ selectedDate, onOpenPicker, onPickDate }: DateStripP
             <button
               className={[styles.date, active ? styles.active : '', isToday && !active ? styles.today : ''].filter(Boolean).join(' ')}
               key={date.date}
-              onClick={() => { triggerHaptic('heavy'); onPickDate(date.date); }}
+              onClick={() => { triggerHaptic('medium'); onPickDate(date.date); }}
               type="button"
             >
               <span>{date.month !== selectedMonth ? `${date.month}월` : date.dow}</span>
@@ -34,7 +34,7 @@ export function DateStrip({ selectedDate, onOpenPicker, onPickDate }: DateStripP
         })}
       </div>
       <div className={styles.meta}>
-        <button className={styles.dateFull} onClick={() => { triggerHaptic('heavy'); onOpenPicker(); }} type="button">
+        <button className={styles.dateFull} onClick={() => { triggerHaptic('medium'); onOpenPicker(); }} type="button">
           <Icon name="calendar" /> {formatDateLabel(selectedDate)}
           <Icon name="chevronDown" width="14" height="14" />
         </button>
