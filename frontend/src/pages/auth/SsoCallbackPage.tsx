@@ -38,8 +38,6 @@ export function SsoCallbackPage() {
               await nativeBridge.subscribePushTopic(result.data.major);
             }
           }
-          await nativeBridge.reloadApp();
-          return;
         }
         setSession('authenticated');
         navigate(safePath('/notices'), { replace: true });

@@ -30,7 +30,6 @@ export type NativeBridge = {
   signWithBiometrics(payload: string): Promise<{ signature: string } | null>;
   checkConnectivity(): Promise<{ online: boolean }>;
   getTurnstileToken(siteKey: string, action: string): Promise<string>;
-  reloadApp(): Promise<void>;
 };
 
 const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
@@ -46,7 +45,6 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   signWithBiometrics: 'auth.signWithBiometrics',
   checkConnectivity: 'network.checkConnectivity',
   getTurnstileToken: 'security.getTurnstileToken',
-  reloadApp: 'auth.reloadApp',
 };
 
 export function hasCapability(method: keyof NativeBridge): boolean {
@@ -101,10 +99,6 @@ class WebViewNativeBridge implements NativeBridge {
   getTurnstileToken(siteKey: string, action: string) {
     return request<string>(METHOD_FOR.getTurnstileToken, { siteKey, action });
   }
-
-  reloadApp() {
-    return request<void>(METHOD_FOR.reloadApp);
-  }
 }
 
 class MockNativeBridge implements NativeBridge {
@@ -158,8 +152,6 @@ class MockNativeBridge implements NativeBridge {
   async getTurnstileToken() {
     return 'mock-turnstile-token';
   }
-
-  async reloadApp() {}
 }
 
 export function isNativeApp() {

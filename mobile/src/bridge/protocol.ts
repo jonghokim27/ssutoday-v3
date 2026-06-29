@@ -22,8 +22,7 @@ export type BridgeMethod =
   | 'auth.signWithBiometrics'
   | 'network.checkConnectivity'
   | 'security.getTurnstileToken'
-  | 'haptic.impact'
-  | 'auth.reloadApp';
+  | 'haptic.impact';
 
 export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed' | 'app.backPressed';
 

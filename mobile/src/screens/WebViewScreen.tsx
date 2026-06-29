@@ -59,7 +59,6 @@ export default function WebViewScreen() {
   const [isOnline, setIsOnline] = useState(true);
   const [currentUrl, setCurrentUrl] = useState(TARGET_URL);
   const [webviewCanGoBack, setWebviewCanGoBack] = useState(false);
-  const [webviewKey, setWebviewKey] = useState(0);
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
   const webviewReady = useRef(false);
@@ -255,10 +254,6 @@ export default function WebViewScreen() {
         setTurnstileRequest({ siteKey, action });
       });
     });
-
-    registerHandler('auth.reloadApp', async () => {
-      setTimeout(() => setWebviewKey(k => k + 1), 50);
-    });
   }, []);
 
   const targetUri = `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}&safeAreaBottom=${Math.round(insets.bottom)}`;
@@ -377,7 +372,6 @@ export default function WebViewScreen() {
         </View>
       )}
       <WebView
-        key={webviewKey}
         ref={webviewRef}
         style={styles.webview}
         source={{ uri: targetUri }}
