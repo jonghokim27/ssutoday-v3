@@ -148,7 +148,7 @@ function getSlotTimeState(date: string | undefined, index: number) {
 
   if (start <= now && now < end) {
     const minutesPassed = (now.getTime() - start.getTime()) / (60 * 1000);
-    return minutesPassed >= 16 ? 'past' : 'current';
+    return minutesPassed >= 15 ? 'past' : 'current';
   }
 
   return 'future';
