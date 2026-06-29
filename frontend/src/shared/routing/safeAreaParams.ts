@@ -11,8 +11,11 @@ export const SAFE_AREA_TOP_PARAMS = [
   'statusBarHeight',
   'top',
 ];
+export const SAFE_AREA_BOTTOM_PARAMS = ['safeAreaBottom', 'bottomInset', 'insetBottom'];
 export const MAX_SAFE_AREA_TOP = 120;
-const SAFE_AREA_SESSION_KEY = 'ssu_safe_area_top';
+export const MAX_SAFE_AREA_BOTTOM = 60;
+const SAFE_AREA_TOP_SESSION_KEY = 'ssu_safe_area_top';
+const SAFE_AREA_BOTTOM_SESSION_KEY = 'ssu_safe_area_bottom';
 
 export function getSafeAreaTopParamValue(search: string) {
   const params = new URLSearchParams(search);
@@ -21,18 +24,34 @@ export function getSafeAreaTopParamValue(search: string) {
 }
 
 export function getSafeAreaTopExtra() {
-  const stored = sessionStorage.getItem(SAFE_AREA_SESSION_KEY);
+  const stored = sessionStorage.getItem(SAFE_AREA_TOP_SESSION_KEY);
   const value = parseCssPixelNumber(stored);
   if (value == null) return 0;
   return Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_TOP);
 }
 
-// Reads from URL, stores to sessionStorage if found. Returns true if param was present.
+export function getSafeAreaBottomExtra() {
+  const stored = sessionStorage.getItem(SAFE_AREA_BOTTOM_SESSION_KEY);
+  const value = parseCssPixelNumber(stored);
+  if (value == null) return 0;
+  return Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_BOTTOM);
+}
+
 export function extractAndStoreSafeAreaTop(search: string): boolean {
   const value = getSafeAreaTopParamValue(search);
   if (value == null) return false;
   const clamped = Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_TOP);
-  sessionStorage.setItem(SAFE_AREA_SESSION_KEY, String(clamped));
+  sessionStorage.setItem(SAFE_AREA_TOP_SESSION_KEY, String(clamped));
+  return true;
+}
+
+export function extractAndStoreSafeAreaBottom(search: string): boolean {
+  const params = new URLSearchParams(search);
+  const namedValue = SAFE_AREA_BOTTOM_PARAMS.map((p) => params.get(p)).find((v) => v != null);
+  const value = parseCssPixelNumber(namedValue);
+  if (value == null) return false;
+  const clamped = Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_BOTTOM);
+  sessionStorage.setItem(SAFE_AREA_BOTTOM_SESSION_KEY, String(clamped));
   return true;
 }
 
