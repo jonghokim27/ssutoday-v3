@@ -240,7 +240,19 @@ export default function WebViewScreen() {
 
   return (
     <View style={styles.container}>
-      {smartId && <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />}
+      {smartId && (
+        <View style={[styles.smartIdHeader, { paddingTop: insets.top }]}>
+          <View style={styles.smartIdHeaderInner}>
+            <Pressable
+              style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+              onPress={handleBack}
+              hitSlop={8}
+            >
+              <View style={styles.chevron} />
+            </Pressable>
+          </View>
+        </View>
+      )}
       <WebView
         ref={webviewRef}
         style={styles.webview}
@@ -253,19 +265,6 @@ export default function WebViewScreen() {
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures
       />
-      {smartId && (
-        <Pressable
-          style={({ pressed }) => [
-            styles.smartIdBack,
-            { top: insets.top + 18 },
-            pressed && styles.smartIdBackPressed,
-          ]}
-          onPress={handleBack}
-          hitSlop={8}
-        >
-          <View style={styles.chevron} />
-        </Pressable>
-      )}
       {turnstileRequest ? (
         <TurnstileModal
           siteKey={turnstileRequest.siteKey}
@@ -293,9 +292,15 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
-  smartIdBack: {
-    position: 'absolute',
-    left: 22,
+  smartIdHeader: {
+    backgroundColor: '#ffffff',
+  },
+  smartIdHeaderInner: {
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 12,
+  },
+  backButton: {
     width: 42,
     height: 42,
     borderRadius: 14,
@@ -303,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  smartIdBackPressed: {
+  backButtonPressed: {
     transform: [{ scale: 0.94 }],
     backgroundColor: '#e9ebf3',
   },
