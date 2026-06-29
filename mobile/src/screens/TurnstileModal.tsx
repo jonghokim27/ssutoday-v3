@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const TURNSTILE_PAGE = 'https://v3.ssu.today/turnstile.html';
@@ -45,23 +45,17 @@ export default function TurnstileModal({ siteKey, action, onToken, onError }: Pr
   };
 
   return (
-    <Modal transparent animationType="fade">
+    <Modal transparent animationType="none">
       <View style={styles.overlay}>
-        <View style={styles.content}>
-          <View style={styles.loader}>
-            <ActivityIndicator size={18} color="#6a4cff" />
-            <Text style={styles.label}>보안 검사 중</Text>
-          </View>
-          <WebView
-            style={styles.webview}
-            source={{ uri }}
-            onMessage={handleMessage}
-            javaScriptEnabled
-            domStorageEnabled
-            originWhitelist={['https://*', 'about:*']}
-            scrollEnabled={false}
-          />
-        </View>
+        <WebView
+          style={styles.webview}
+          source={{ uri }}
+          onMessage={handleMessage}
+          javaScriptEnabled
+          domStorageEnabled
+          originWhitelist={['https://*', 'about:*']}
+          scrollEnabled={false}
+        />
       </View>
     </Modal>
   );
@@ -70,23 +64,9 @@ export default function TurnstileModal({ siteKey, action, onToken, onError }: Pr
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  content: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  loader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#8a8f9c',
   },
   webview: {
     width: 300,
