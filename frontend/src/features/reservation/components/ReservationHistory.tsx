@@ -111,10 +111,56 @@ export function ReservationHistory() {
     [],
   );
 
+  const silentRefreshActive = useCallback(async () => {
+    if (tabRef.current !== 'active') return;
+
+    const currentPage = pageRef.current;
+    const requestSeq = requestSeqRef.current;
+
+    const results = await Promise.all(
+      Array.from({ length: currentPage + 1 }, (_, p) =>
+        reservationRepository.listReserves(1, p)
+      )
+    );
+
+    if (requestSeq !== requestSeqRef.current) return;
+
+    const allItems: HistoryViewItem[] = [];
+    let latestTotalPages = totalPagesRef.current;
+
+    for (const result of results) {
+      if (!result.ok) return;
+      latestTotalPages = result.data.totalPages;
+      for (const r of result.data.reserves) {
+        allItems.push(reserveToHistoryView(r));
+      }
+    }
+
+    const seen = new Set<number>();
+    const deduped = allItems.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+
+    itemsRef.current = deduped;
+    setItems(deduped);
+    totalPagesRef.current = latestTotalPages;
+    itemsLengthRef.current = deduped.length;
+    hasMoreRef.current = latestTotalPages > 0 && currentPage + 1 < latestTotalPages;
+    setHasMore(hasMoreRef.current);
+  }, []);
+
   useEffect(() => {
     tabRef.current = tab;
     void loadItems(0);
   }, [loadItems, tab]);
+
+  useEffect(() => {
+    if (tab !== 'active') return;
+    const intervalId = window.setInterval(() => { void silentRefreshActive(); }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [tab, silentRefreshActive]);
 
   function flash(message: string) {
     setToast(message);
