@@ -10,9 +10,9 @@ export default function UpdateRequiredScreen() {
         <Text style={styles.iconGlyph}>!</Text>
       </View>
       <Text style={styles.message}>업데이트가 필요합니다</Text>
-      <Text style={styles.sub}>서비스를 이용하려면 최신 버전으로{'\n'}업데이트해주세요</Text>
+      <Text style={styles.sub}>원활한 서비스 이용을 위해 슈투데이 앱을{"\n"}최신 버전으로 업데이트해 주세요</Text>
       <Pressable style={styles.updateButton} onPress={() => Linking.openURL(STORE_URL)}>
-        <Text style={styles.updateText}>업데이트하기</Text>
+        <Text style={styles.updateText}>업데이트 하기</Text>
       </Pressable>
     </SafeAreaView>
   );
