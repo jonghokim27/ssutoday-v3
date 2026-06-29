@@ -39,8 +39,8 @@ class GlobalControllerAdvice(
         request: ServerHttpRequest,
         response: ServerHttpResponse,
     ): ApiResponse<Any> {
-        val declaredStatus = requireNotNull(returnType.getMethodAnnotation(ResponseStatus::class.java)).status
-        val status = body as? StatusCode ?: declaredStatus
+        val declaredStatus = returnType.getMethodAnnotation(ResponseStatus::class.java)?.status
+        val status = requireNotNull(body as? StatusCode ?: declaredStatus)
         val data = body.takeUnless { it == Unit || it is StatusCode }
         response.setStatusCode(status.httpStatus())
         return ApiResponse.of(status, data, messageSource)

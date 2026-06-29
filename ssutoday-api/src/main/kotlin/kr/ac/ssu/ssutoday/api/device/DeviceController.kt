@@ -42,7 +42,6 @@ class DeviceController(
     }
 
     @PostMapping("/checkVersion")
-    @ResponseStatus(StatusCode.SSU2070)
     fun checkVersion(
         @Valid @RequestBody request: DeviceVersionRequest,
     ): StatusCode =
