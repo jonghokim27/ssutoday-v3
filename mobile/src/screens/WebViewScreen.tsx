@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import messaging from '@react-native-firebase/messaging';
 import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
+import { deepLink } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
 import TurnstileModal from './TurnstileModal';
@@ -52,6 +53,8 @@ export default function WebViewScreen() {
   const [currentUrl, setCurrentUrl] = useState(TARGET_URL);
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
+  const webviewReady = useRef(false);
+  const pendingReservationNav = useRef(false);
 
   useEffect(() => {
     NetInfo.fetch().then((state) => {
@@ -59,6 +62,36 @@ export default function WebViewScreen() {
       setIsOnline(connected);
     });
   }, []);
+
+  const injectReservationNavigation = useCallback(() => {
+    webviewRef.current?.injectJavaScript(`
+      (function() {
+        var attempt = 0;
+        var iv = setInterval(function() {
+          attempt++;
+          if (typeof window.__spaNavigate === 'function') {
+            clearInterval(iv);
+            window.__spaNavigate('/reservations/history');
+          } else if (attempt >= 100) {
+            clearInterval(iv);
+          }
+        }, 50);
+      })();
+      true;
+    `);
+  }, []);
+
+  useEffect(() => {
+    return deepLink.subscribe((payload) => {
+      if (payload.type === 'reservation') {
+        if (webviewReady.current) {
+          injectReservationNavigation();
+        } else {
+          pendingReservationNav.current = true;
+        }
+      }
+    });
+  }, [injectReservationNavigation]);
 
   useEffect(() => {
     registerHandler('device.getInfo', async () => {
@@ -185,7 +218,12 @@ export default function WebViewScreen() {
   const sendHandshake = useCallback(() => {
     const handshake = { v: 1 as const, kind: 'handshake' as const, id: generateId(), ...getHandshakeInfo() };
     webviewRef.current?.postMessage(JSON.stringify(handshake));
-  }, []);
+    webviewReady.current = true;
+    if (pendingReservationNav.current) {
+      pendingReservationNav.current = false;
+      injectReservationNavigation();
+    }
+  }, [injectReservationNavigation]);
 
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     const envelope = parseBridgeEnvelope(event.nativeEvent.data);
