@@ -6,8 +6,7 @@ export const profile = {
 
 export const notificationRows = [
   { key: 'notice', label: '공지사항', enabled: false },
-  { key: 'reservation', label: '예약', enabled: true },
-  { key: 'lms', label: 'LMS', enabled: false },
+  { key: 'reservation', label: '예약', enabled: true }
 ];
 
 export const appInfo = {
