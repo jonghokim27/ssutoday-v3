@@ -17,6 +17,8 @@ type TurnstileOptions = {
   action?: string;
   callback?: (token: string) => void;
   'error-callback'?: () => void;
+  'before-interactive-callback'?: () => void;
+  'after-interactive-callback'?: () => void;
   appearance?: 'always' | 'execute' | 'interaction-only';
 };
 
@@ -48,16 +50,24 @@ function loadScript(): Promise<void> {
 function getContainer(): HTMLElement {
   if (!container) {
     container = document.createElement('div');
-    // display:none 사용 시 Turnstile이 실행되지 않으므로 화면 밖으로 배치
     container.style.position = 'fixed';
-    container.style.bottom = '-9999px';
-    container.style.right = '-9999px';
-    container.style.width = '0';
-    container.style.height = '0';
-    container.style.overflow = 'hidden';
+    container.style.zIndex = '9999';
+    hideContainer();
     document.body.appendChild(container);
   }
   return container;
+}
+
+function hideContainer(): void {
+  if (!container) return;
+  container.style.bottom = '-9999px';
+  container.style.right = '-9999px';
+}
+
+function showContainer(): void {
+  if (!container) return;
+  container.style.bottom = '16px';
+  container.style.right = '16px';
 }
 
 export async function getTurnstileToken(action: string): Promise<string> {
@@ -82,8 +92,10 @@ export async function getTurnstileToken(action: string): Promise<string> {
     currentWidgetId = window.turnstile!.render(el, {
       sitekey: TURNSTILE_SITE_KEY,
       action,
-      callback: resolve,
-      'error-callback': () => reject(new Error('Turnstile 인증에 실패했습니다')),
+      callback: (token) => { hideContainer(); resolve(token); },
+      'error-callback': () => { hideContainer(); reject(new Error('Turnstile 인증에 실패했습니다')); },
+      'before-interactive-callback': showContainer,
+      'after-interactive-callback': hideContainer,
       appearance: 'interaction-only',
     });
   });
