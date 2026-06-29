@@ -59,8 +59,4 @@ subprojects {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
     }
-
-    tasks.withType<ProcessResources>().configureEach {
-        filteringCharset = "UTF-8"
-    }
 }

@@ -1,7 +1,4 @@
 spring:
-  messages:
-    basename: messages
-    encoding: UTF-8
   datasource:
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: ${MYSQL_USER}
