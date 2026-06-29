@@ -176,9 +176,8 @@
 }
 
 .persistDialog {
-  box-sizing: border-box;
   width: calc(100% - 40px);
-  max-width: 420px;
+  max-width: 362px;
   background: var(--color-surface-base);
   border-radius: var(--radius-dialog, 26px);
   box-shadow: 0 24px 60px -20px rgba(20, 20, 40, 0.42);
