@@ -10,7 +10,7 @@
 
 .topbar {
   flex: none;
-  padding: var(--space-status-top) var(--space-8) 6px;
+  padding: var(--space-status-top) var(--space-screen-x) 6px;
 }
 
 .headline {
