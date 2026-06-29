@@ -147,7 +147,7 @@ export default function WebViewScreen() {
       const result = await Notifications.requestPermissionsAsync();
       const { granted } = result as unknown as { granted: boolean };
       if (!granted) {
-        throw new BridgeHandlerError('PERMISSION_DENIED', '푸시 알림 권한이 거부되었습니다');
+        throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 알림 권한을 허용해 주세요');
       }
       return granted;
     });
@@ -213,7 +213,7 @@ export default function WebViewScreen() {
     registerHandler('camera.captureVerifyPhoto', async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        throw new BridgeHandlerError('PERMISSION_DENIED', '카메라 권한이 없습니다');
+        throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
       }
 
       const result = await ImagePicker.launchCameraAsync({

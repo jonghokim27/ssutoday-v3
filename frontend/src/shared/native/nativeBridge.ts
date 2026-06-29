@@ -372,7 +372,7 @@ function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): Native
             return result.catch((error: unknown) => {
               if (error instanceof BridgeError) {
                 if (error.code === 'PERMISSION_DENIED') {
-                  showGlobalToast('설정에서 권한을 허용해 주세요', () => {
+                  showGlobalToast(error.message || '설정에서 권한을 허용해 주세요', () => {
                     request('system.openAppSettings').catch(() => {});
                   });
                   return Promise.reject(new HandledError());
