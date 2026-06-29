@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   extractAndStoreSafeAreaTop,
   extractAndStoreSafeAreaBottom,
@@ -9,6 +9,8 @@ import {
   SAFE_AREA_BOTTOM_PARAMS,
 } from '../routing/safeAreaParams';
 import { BottomNavigation } from './BottomNavigation';
+import { Toast } from '../ui/Toast';
+import type { GlobalToastDetail } from '../ui/globalToast';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -17,6 +19,23 @@ export function AppLayout() {
   const isReservationDetail = Boolean(location.pathname.match(/^\/reservations\/[^/]+$/));
   const isAuthFlow = ['/landing', '/terms', '/sso_callback'].includes(location.pathname);
   const showBottomNavigation = !isReservationDetail && !isAuthFlow;
+
+  const [globalToastMessage, setGlobalToastMessage] = useState('');
+  const globalToastOnTap = useRef<(() => void) | undefined>(undefined);
+  const globalToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function handleGlobalToast(e: Event) {
+      const { message, onTap } = (e as CustomEvent<GlobalToastDetail>).detail;
+      if (globalToastTimer.current) clearTimeout(globalToastTimer.current);
+      globalToastOnTap.current = onTap;
+      setGlobalToastMessage(message);
+      globalToastTimer.current = setTimeout(() => setGlobalToastMessage(''), 3000);
+    }
+
+    document.addEventListener('global-toast', handleGlobalToast);
+    return () => document.removeEventListener('global-toast', handleGlobalToast);
+  }, []);
 
   // Store synchronously so CSS variables are correct on first paint.
   extractAndStoreSafeAreaTop(location.search);
@@ -58,6 +77,11 @@ export function AppLayout() {
           </div>
         </main>
         {showBottomNavigation ? <BottomNavigation /> : null}
+        <Toast
+          message={globalToastMessage}
+          onTap={globalToastOnTap.current}
+          bottomOffset={showBottomNavigation ? 96 : 32}
+        />
       </div>
     </div>
   );

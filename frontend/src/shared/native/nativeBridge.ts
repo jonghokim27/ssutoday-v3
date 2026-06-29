@@ -1,4 +1,5 @@
-import { hasCapability as hasBridgeCapability, request } from './bridgeTransport';
+import { BridgeError, hasCapability as hasBridgeCapability, request } from './bridgeTransport';
+import { showGlobalToast } from '../ui/globalToast';
 import type { BridgeMethod } from './bridgeProtocol';
 
 export type NativePlatform = 'ios' | 'android';
@@ -359,7 +360,22 @@ function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): Native
       return (...args: unknown[]) => {
         if (isNativeApp()) {
           const realValue = Reflect.get(real, prop, real);
-          return (realValue as (...fnArgs: unknown[]) => unknown).apply(real, args);
+          const result = (realValue as (...fnArgs: unknown[]) => unknown).apply(real, args);
+          if (result instanceof Promise) {
+            return result.catch((error: unknown) => {
+              if (error instanceof BridgeError) {
+                if (error.code === 'PERMISSION_DENIED') {
+                  showGlobalToast('설정에서 권한을 허용해 주세요', () => {
+                    request('system.openAppSettings').catch(() => {});
+                  });
+                } else if (error.code === 'NATIVE_ERROR') {
+                  showGlobalToast('오류가 발생했어요. 잠시 후 다시 시도해 주세요');
+                }
+              }
+              return Promise.reject(error);
+            });
+          }
+          return result;
         }
 
         showNativeOnlyModal();

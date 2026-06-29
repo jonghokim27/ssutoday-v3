@@ -22,6 +22,12 @@
   animation: floatDown 0.3s ease both;
 }
 
+.tappable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @keyframes floatDown {
   from {
     opacity: 1;
