@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
@@ -93,6 +94,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar style="light" backgroundColor="#000000" translucent={false} />
       <Stack screenOptions={{ headerShown: false }} />
     </SafeAreaProvider>
   );
