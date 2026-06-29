@@ -80,9 +80,7 @@ export default function WebViewScreen() {
       const result = await Notifications.getPermissionsAsync();
       if (!(result as unknown as { granted: boolean }).granted) return null;
       try {
-        const token = await Notifications.getExpoPushTokenAsync({
-          projectId: Constants.expoConfig?.extra?.eas?.projectId as string,
-        });
+        const token = await Notifications.getDevicePushTokenAsync();
         return token.data;
       } catch {
         return null;
