@@ -7,6 +7,8 @@ spring:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   jpa:
     open-in-view: false
+  mvc:
+    throw-exception-if-no-handler-found: true
   web:
     resources:
       add-mappings: false
