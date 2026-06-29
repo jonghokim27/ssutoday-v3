@@ -44,6 +44,14 @@ module.exports = {
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     [
+      'expo-build-properties',
+      {
+        ios: {
+          useModularHeaders: true,
+        },
+      },
+    ],
+    [
       'expo-splash-screen',
       {
         backgroundColor: '#FFFFFF',
