@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, type CSSProperties } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import {
   extractAndStoreSafeAreaTop,
   extractAndStoreSafeAreaBottom,
@@ -35,26 +35,6 @@ export function AppLayout() {
     document.documentElement.style.setProperty('--space-safe-area-bottom-extra', `${safeAreaBottomSpacing}px`);
   }, [safeAreaTopExtra, safeAreaBottomSpacing]);
 
-  // 애니메이션 종료 후 GPU 컴포지팅 레이어와 텍스처 캐시를 해제한다.
-  useEffect(() => {
-    const handler = (e: AnimationEvent) => {
-      const el = e.target as HTMLElement;
-      el.style.animation = 'none';
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-    };
-    document.addEventListener('animationend', handler);
-    return () => document.removeEventListener('animationend', handler);
-  }, []);
-
-  const handleRouteFrameAnimationEnd = useCallback((e: React.AnimationEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      e.currentTarget.style.animation = 'none';
-      e.currentTarget.style.opacity = '1';
-      e.currentTarget.style.transform = 'none';
-    }
-  }, []);
-
   // Remove safe area params from URL after storing them.
   useEffect(() => {
     const hasTop = extractAndStoreSafeAreaTop(location.search);
@@ -73,7 +53,7 @@ export function AppLayout() {
     <div className={styles.viewport}>
       <div className={styles.device} style={deviceStyle}>
         <main className={styles.main}>
-          <div className={styles.routeFrame} key={location.pathname} onAnimationEnd={handleRouteFrameAnimationEnd}>
+          <div className={styles.routeFrame} key={location.pathname}>
             <Outlet />
           </div>
         </main>

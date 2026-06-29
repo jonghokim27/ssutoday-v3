@@ -92,7 +92,6 @@ a {
 @keyframes slideInR {
   from {
     opacity: 0;
-    transform: translateX(34px);
   }
   to {
     opacity: 1;
@@ -102,7 +101,6 @@ a {
 @keyframes slideInL {
   from {
     opacity: 0;
-    transform: translateX(-34px);
   }
   to {
     opacity: 1;

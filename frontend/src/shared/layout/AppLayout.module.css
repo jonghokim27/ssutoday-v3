@@ -35,7 +35,6 @@
 @keyframes routeIn {
   from {
     opacity: 0;
-    transform: translateX(22px);
   }
   to {
     opacity: 1;
