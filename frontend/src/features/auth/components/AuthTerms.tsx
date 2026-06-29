@@ -224,7 +224,7 @@ export function AuthTerms() {
         </Button>
       </div>
       {showPersistDialog ? (
-        <div className={styles.persistOverlay} onClick={(e) => { if (e.target === e.currentTarget) { handlePersistChoice(false); } }}>
+        <div className={styles.persistOverlay} onClick={(e) => { if (e.target === e.currentTarget) { setShowPersistDialog(false); } }}>
           <div className={styles.persistDialog}>
             <h3>이 기기에서 로그인을 유지할까요?</h3>
             <p>유지하면 브라우저를 닫아도 로그인이 유지돼요</p>
