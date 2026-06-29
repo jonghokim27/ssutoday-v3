@@ -17,7 +17,7 @@ export function AuthLanding() {
         <p>스터디룸 예약과 공지사항 확인을 한번에</p>
       </section>
       <section className={styles.cta}>
-        <Button onClick={() => navigate(safePath('/terms'))} type="button">
+        <Button onClick={() => navigate(safePath('/terms'), { replace: true })} type="button">
           <Icon name="lock" /> 유세인트로 로그인
         </Button>
         <p>숭실대학교 통합 계정(SSO)으로 로그인해요</p>
