@@ -58,6 +58,7 @@ export default function WebViewScreen() {
   const [versionStatus, setVersionStatus] = useState<VersionStatus>('checking');
   const [isOnline, setIsOnline] = useState(true);
   const [currentUrl, setCurrentUrl] = useState(TARGET_URL);
+  const [webviewCanGoBack, setWebviewCanGoBack] = useState(false);
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
   const webviewReady = useRef(false);
@@ -294,6 +295,7 @@ export default function WebViewScreen() {
 
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
     setCurrentUrl(state.url);
+    setWebviewCanGoBack(state.canGoBack);
   }, []);
 
   const backPressedOnce = useRef(false);
@@ -305,6 +307,11 @@ export default function WebViewScreen() {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       if (versionStatus !== 'ok' || !isOnline) return false;
 
+      if (webviewCanGoBack) {
+        webviewRef.current?.goBack();
+        return true;
+      }
+
       if (backPressedOnce.current) {
         BackHandler.exitApp();
         return true;
@@ -315,7 +322,7 @@ export default function WebViewScreen() {
 
       backPressTimer.current = setTimeout(() => {
         backPressedOnce.current = false;
-      }, 5000);
+      }, 3000);
 
       return true;
     });
@@ -324,7 +331,7 @@ export default function WebViewScreen() {
       subscription.remove();
       if (backPressTimer.current) clearTimeout(backPressTimer.current);
     };
-  }, [versionStatus, isOnline]);
+  }, [versionStatus, isOnline, webviewCanGoBack]);
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
