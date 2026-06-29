@@ -82,6 +82,12 @@ const config = {
       projectId: 'bab41217-d412-490f-b208-c5b9cc2f5dab',
     },
   },
+  updates: {
+    url: "https://u.expo.dev/bab41217-d412-490f-b208-c5b9cc2f5dab"
+  },
+  runtimeVersion: {
+    policy: "appVersion"
+  }
 };
 
 module.exports = withGoogleUtilitiesModularHeaders(config);
