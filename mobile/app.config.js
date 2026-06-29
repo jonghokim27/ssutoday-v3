@@ -72,7 +72,7 @@ const config = {
       {
         backgroundColor: '#FFFFFF',
         image: './assets/splash-icon.png',
-        imageWidth: 150,
+        imageWidth: 120,
       },
     ],
   ],
