@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Platform, StyleSheet } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -232,16 +232,14 @@ export default function WebViewScreen() {
     return <OfflineScreen onRetry={handleRetry} />;
   }
 
-  const webviewStyle = [
-    styles.webview,
-    isSmartIdUrl(currentUrl) ? { marginTop: insets.top } : null,
-  ];
+  const smartId = isSmartIdUrl(currentUrl);
 
   return (
     <>
+      {smartId && <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />}
       <WebView
         ref={webviewRef}
-        style={webviewStyle}
+        style={styles.webview}
         source={{ uri: targetUri }}
         onLoad={sendHandshake}
         onMessage={handleMessage}
