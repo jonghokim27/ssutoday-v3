@@ -96,7 +96,6 @@ a {
   }
   to {
     opacity: 1;
-    transform: translateX(0);
   }
 }
 
@@ -107,7 +106,6 @@ a {
   }
   to {
     opacity: 1;
-    transform: translateX(0);
   }
 }
 
