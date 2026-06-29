@@ -12,16 +12,7 @@ export const SAFE_AREA_TOP_PARAMS = [
   'top',
 ];
 export const MAX_SAFE_AREA_TOP = 120;
-
-export function getSafeAreaTopExtra(search: string) {
-  const parsedValue = getSafeAreaTopParamValue(search);
-
-  if (parsedValue == null) {
-    return 0;
-  }
-
-  return Math.min(Math.max(Math.round(parsedValue), 0), MAX_SAFE_AREA_TOP);
-}
+const SAFE_AREA_SESSION_KEY = 'ssu_safe_area_top';
 
 export function getSafeAreaTopParamValue(search: string) {
   const params = new URLSearchParams(search);
@@ -29,33 +20,25 @@ export function getSafeAreaTopParamValue(search: string) {
   return parseCssPixelNumber(namedValue);
 }
 
-export function withSafeAreaParams(to: string, currentSearch: string) {
-  const currentParams = new URLSearchParams(currentSearch);
-  const safeAreaParams = SAFE_AREA_TOP_PARAMS.flatMap((param) => {
-    const value = currentParams.get(param);
-    return value == null ? [] : [[param, value] as const];
-  });
+export function getSafeAreaTopExtra() {
+  const stored = sessionStorage.getItem(SAFE_AREA_SESSION_KEY);
+  const value = parseCssPixelNumber(stored);
+  if (value == null) return 0;
+  return Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_TOP);
+}
 
-  if (safeAreaParams.length === 0) {
-    return to;
-  }
+// Reads from URL, stores to sessionStorage if found. Returns true if param was present.
+export function extractAndStoreSafeAreaTop(search: string): boolean {
+  const value = getSafeAreaTopParamValue(search);
+  if (value == null) return false;
+  const clamped = Math.min(Math.max(Math.round(value), 0), MAX_SAFE_AREA_TOP);
+  sessionStorage.setItem(SAFE_AREA_SESSION_KEY, String(clamped));
+  return true;
+}
 
-  const hashIndex = to.indexOf('#');
-  const pathAndSearch = hashIndex === -1 ? to : to.slice(0, hashIndex);
-  const hash = hashIndex === -1 ? '' : to.slice(hashIndex);
-  const searchIndex = pathAndSearch.indexOf('?');
-  const path = searchIndex === -1 ? pathAndSearch : pathAndSearch.slice(0, searchIndex);
-  const targetSearch = searchIndex === -1 ? '' : pathAndSearch.slice(searchIndex + 1);
-  const targetParams = new URLSearchParams(targetSearch);
-
-  safeAreaParams.forEach(([param, value]) => {
-    if (!targetParams.has(param)) {
-      targetParams.set(param, value);
-    }
-  });
-
-  const nextSearch = targetParams.toString();
-  return `${path}${nextSearch ? `?${nextSearch}` : ''}${hash}`;
+// No longer propagates params through URL — kept for call-site compatibility.
+export function withSafeAreaParams(to: string, _currentSearch: string) {
+  return to;
 }
 
 export function useSafeAreaPath() {
