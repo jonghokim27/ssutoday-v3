@@ -48,12 +48,13 @@ function loadScript(): Promise<void> {
 function getContainer(): HTMLElement {
   if (!container) {
     container = document.createElement('div');
-    // display:none 사용 시 Turnstile이 실행되지 않으므로 off-screen으로 배치
+    // display:none 사용 시 Turnstile이 실행되지 않으므로 화면 밖으로 배치
     container.style.position = 'fixed';
-    container.style.top = '50%';
-    container.style.left = '50%';
-    container.style.transform = 'translate(-50%, -50%)';
-    container.style.zIndex = '9999';
+    container.style.bottom = '-9999px';
+    container.style.right = '-9999px';
+    container.style.width = '0';
+    container.style.height = '0';
+    container.style.overflow = 'hidden';
     document.body.appendChild(container);
   }
   return container;
