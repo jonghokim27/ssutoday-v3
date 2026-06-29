@@ -17,7 +17,7 @@ import { deviceRepository, type NotificationOptions } from '../api/deviceReposit
 import styles from './MyPageContent.module.css';
 
 const SUPPORT_URL = 'https://open.kakao.com/o/sjCaLNTf';
-const GITHUB_URL = 'https://github.com/jonghokim27/ssutoday';
+const GITHUB_URL = 'https://github.com/jonghokim27/ssutoday-v3';
 
 export function MyPageContent() {
   const navigate = useNavigate();
