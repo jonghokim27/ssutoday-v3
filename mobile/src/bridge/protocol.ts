@@ -24,13 +24,14 @@ export type BridgeMethod =
   | 'security.getTurnstileToken'
   | 'haptic.impact';
 
-export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed';
+export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed' | 'app.backPressed';
 
 export type BridgeEventPayloadMap = {
   'push.opened': { data: Record<string, string> };
   'deeplink.navigate': { url: string };
   'app.foregroundChanged': { state: 'foreground' | 'background' };
   'network.changed': { online: boolean };
+  'app.backPressed': undefined;
 };
 
 export type BridgeHandshakeEnvelope = {

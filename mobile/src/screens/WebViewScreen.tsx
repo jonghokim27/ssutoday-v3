@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -291,6 +291,36 @@ export default function WebViewScreen() {
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
     setCurrentUrl(state.url);
   }, []);
+
+  const backPressedOnce = useRef(false);
+  const backPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (versionStatus !== 'ok' || !isOnline) return false;
+
+      if (backPressedOnce.current) {
+        BackHandler.exitApp();
+        return true;
+      }
+
+      backPressedOnce.current = true;
+      webviewRef.current?.postMessage(JSON.stringify({ v: 1, kind: 'event', event: 'app.backPressed' }));
+
+      backPressTimer.current = setTimeout(() => {
+        backPressedOnce.current = false;
+      }, 5000);
+
+      return true;
+    });
+
+    return () => {
+      subscription.remove();
+      if (backPressTimer.current) clearTimeout(backPressTimer.current);
+    };
+  }, [versionStatus, isOnline]);
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

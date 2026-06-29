@@ -11,6 +11,8 @@ import {
 import { BottomNavigation } from './BottomNavigation';
 import { Toast } from '../ui/Toast';
 import type { GlobalToastDetail } from '../ui/globalToast';
+import { showGlobalToast } from '../ui/globalToast';
+import { on } from '../native/bridgeTransport';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -23,6 +25,12 @@ export function AppLayout() {
   const [globalToastMessage, setGlobalToastMessage] = useState('');
   const globalToastOnTap = useRef<(() => void) | undefined>(undefined);
   const globalToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return on('app.backPressed', () => {
+      showGlobalToast('한 번 더 누르면 앱이 종료됩니다');
+    });
+  }, []);
 
   useEffect(() => {
     function handleGlobalToast(e: Event) {
