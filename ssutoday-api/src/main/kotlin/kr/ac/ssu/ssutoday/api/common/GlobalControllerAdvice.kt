@@ -29,7 +29,7 @@ class GlobalControllerAdvice(
     override fun supports(
         returnType: MethodParameter,
         converterType: Class<out HttpMessageConverter<*>>,
-    ): Boolean = returnType.hasMethodAnnotation(ResponseStatus::class.java)
+    ): Boolean = returnType.hasMethodAnnotation(ResponseStatus::class.java) || returnType.parameterType == StatusCode::class.java
 
     override fun beforeBodyWrite(
         body: Any?,
