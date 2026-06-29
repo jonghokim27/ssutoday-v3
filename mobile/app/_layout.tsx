@@ -3,8 +3,11 @@ import { Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import * as SplashScreen from 'expo-splash-screen';
 import messaging from '@react-native-firebase/messaging';
 import { deepLink } from '../src/utils/deepLink';
+
+SplashScreen.preventAutoHideAsync();
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

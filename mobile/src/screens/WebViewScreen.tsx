@@ -3,6 +3,7 @@ import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
+import * as SplashScreen from 'expo-splash-screen';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -16,9 +17,11 @@ import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from 
 import { deepLink } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
+import UpdateRequiredScreen from './UpdateRequiredScreen';
 import TurnstileModal from './TurnstileModal';
 
 const TARGET_URL = 'https://v3.ssu.today';
+const VERSION_CHECK_URL = 'https://api.ssu.today/device/checkVersion';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 const OS_INFO = `${Platform.OS} ${Platform.Version}`;
@@ -47,9 +50,12 @@ function isSmartIdUrl(url: string): boolean {
   }
 }
 
+type VersionStatus = 'checking' | 'ok' | 'update-required' | 'offline';
+
 export default function WebViewScreen() {
   const insets = useSafeAreaInsets();
   const webviewRef = useRef<WebView>(null);
+  const [versionStatus, setVersionStatus] = useState<VersionStatus>('checking');
   const [isOnline, setIsOnline] = useState(true);
   const [currentUrl, setCurrentUrl] = useState(TARGET_URL);
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
@@ -57,12 +63,26 @@ export default function WebViewScreen() {
   const webviewReady = useRef(false);
   const pendingReservationNav = useRef(false);
 
-  useEffect(() => {
-    NetInfo.fetch().then((state) => {
-      const connected = state.isConnected === true && state.isInternetReachable !== false;
-      setIsOnline(connected);
-    });
+  const checkVersion = useCallback(async () => {
+    setVersionStatus('checking');
+    try {
+      const res = await fetch(VERSION_CHECK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ osType: Platform.OS as 'ios' | 'android', version: APP_VERSION }),
+      });
+      const json = await res.json() as { statusCode: string };
+      setVersionStatus(json.statusCode === 'SSU2071' ? 'update-required' : 'ok');
+    } catch {
+      setVersionStatus('offline');
+    } finally {
+      void SplashScreen.hideAsync();
+    }
   }, []);
+
+  useEffect(() => {
+    void checkVersion();
+  }, [checkVersion]);
 
   const injectReservationNavigation = useCallback(() => {
     webviewRef.current?.injectJavaScript(`
@@ -286,6 +306,10 @@ export default function WebViewScreen() {
       }
     });
   }, []);
+
+  if (versionStatus === 'checking') return null;
+  if (versionStatus === 'update-required') return <UpdateRequiredScreen />;
+  if (versionStatus === 'offline') return <OfflineScreen onRetry={checkVersion} />;
 
   if (!isOnline) {
     return <OfflineScreen onRetry={handleRetry} />;
