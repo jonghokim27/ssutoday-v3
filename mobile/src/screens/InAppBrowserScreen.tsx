@@ -55,9 +55,11 @@ export default function InAppBrowserScreen() {
     outputRange: ['0%', '100%'],
   });
 
+  const headerPaddingTop = insets.top > 0 ? insets.top : 18;
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
         <Pressable
           style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
           onPress={handleBack}
@@ -103,7 +105,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 22,
-    paddingTop: 18,
     paddingBottom: 12,
   },
   backButton: {
