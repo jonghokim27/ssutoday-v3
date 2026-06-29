@@ -208,7 +208,7 @@ class ReservationCommandApplicationService(
                         content = "**[인증샷 삭제 알림]**",
                         reservation = reservation,
                         actionFieldName = "처리자",
-                        actionFieldValue = "관리자",
+                        actionFieldValue = command.adminName,
                         photoUrl = photoUrl,
                     )
                 }
@@ -228,7 +228,7 @@ class ReservationCommandApplicationService(
                         content = "**[인증샷 촬영 예외 알림]**",
                         reservation = reservation,
                         actionFieldName = "처리자",
-                        actionFieldValue = "관리자",
+                        actionFieldValue = command.adminName,
                         photoUrl = photoUrl,
                     )
                 }

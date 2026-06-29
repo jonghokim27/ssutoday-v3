@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.application.reservation.dto
 
 data class AdminReservationCommand(
-    val administratorId: Int,
+    val adminName: String,
     val type: String,
     val osType: String,
     val uuid: String,
