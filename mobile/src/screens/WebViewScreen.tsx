@@ -241,16 +241,14 @@ export default function WebViewScreen() {
   return (
     <View style={styles.container}>
       {smartId && (
-        <View style={styles.smartIdHeader}>
-          <View style={[styles.smartIdHeaderInner, { paddingTop: insets.top > 0 ? insets.top : 18 }]}>
-            <Pressable
-              style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-              onPress={handleBack}
-              hitSlop={8}
-            >
-              <View style={styles.chevron} />
-            </Pressable>
-          </View>
+        <View style={[styles.smartIdHeader, { paddingTop: insets.top > 0 ? insets.top : 18 }]}>
+          <Pressable
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+            onPress={handleBack}
+            hitSlop={8}
+          >
+            <View style={styles.chevron} />
+          </Pressable>
         </View>
       )}
       <WebView
@@ -293,11 +291,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   smartIdHeader: {
-    backgroundColor: '#ffffff',
-  },
-  smartIdHeaderInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 22,
     paddingBottom: 12,
+    backgroundColor: '#ffffff',
   },
   backButton: {
     width: 42,
