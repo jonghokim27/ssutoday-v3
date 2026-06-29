@@ -46,8 +46,8 @@ const config = {
     },
   },
   androidStatusBar: {
-    backgroundColor: '#000000',
-    barStyle: 'light-content',
+    backgroundColor: '#ffffff',
+    barStyle: 'dark-content',
     translucent: false,
   },
   android: {
