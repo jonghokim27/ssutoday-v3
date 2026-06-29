@@ -145,7 +145,11 @@ export default function WebViewScreen() {
 
     registerHandler('push.requestPermission', async () => {
       const result = await Notifications.requestPermissionsAsync();
-      return (result as unknown as { granted: boolean }).granted;
+      const { granted } = result as unknown as { granted: boolean };
+      if (!granted) {
+        throw new BridgeHandlerError('PERMISSION_DENIED', '푸시 알림 권한이 거부되었습니다');
+      }
+      return granted;
     });
 
     registerHandler('push.getToken', async () => {

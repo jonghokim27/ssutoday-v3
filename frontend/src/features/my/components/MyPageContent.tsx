@@ -53,7 +53,7 @@ export function MyPageContent() {
       }
 
       const enabled = await appStorage.getItem('notificationEnabled');
-      if (enabled === 'false') {
+      if (enabled !== 'true') {
         if (mounted) {
           setNotificationEnabled(false);
           setNotifications(allNotificationRows(false));
@@ -117,12 +117,21 @@ export function MyPageContent() {
     setNotificationEnabled(next);
     setNotifications(allNotificationRows(next));
     await appStorage.setItem('notificationEnabled', next ? 'true' : 'false');
-    if (next) {
-      await deviceRepository.register();
-    } else {
-      await deviceRepository.unregister();
+    try {
+      if (next) {
+        await deviceRepository.register();
+      } else {
+        await deviceRepository.unregister();
+      }
+    } catch {
+      if (next) {
+        setNotificationEnabled(false);
+        setNotifications(allNotificationRows(false));
+        await appStorage.setItem('notificationEnabled', 'false');
+      }
+    } finally {
+      setActionLoading(false);
     }
-    setActionLoading(false);
   }
 
   function flash(message: string) {
