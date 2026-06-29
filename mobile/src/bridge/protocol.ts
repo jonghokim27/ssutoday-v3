@@ -21,7 +21,8 @@ export type BridgeMethod =
   | 'camera.captureVerifyPhoto'
   | 'auth.signWithBiometrics'
   | 'network.checkConnectivity'
-  | 'security.getTurnstileToken';
+  | 'security.getTurnstileToken'
+  | 'haptic.impact';
 
 export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed';
 

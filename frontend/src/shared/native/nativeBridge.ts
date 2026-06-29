@@ -384,3 +384,10 @@ export async function openLink(url: string) {
 
   window.open(url, '_blank', 'noopener,noreferrer');
 }
+
+export type HapticStyle = 'light' | 'medium' | 'heavy' | 'selection';
+
+export function triggerHaptic(style: HapticStyle = 'light'): void {
+  if (!isNativeApp()) return;
+  request<void>('haptic.impact', { style }).catch(() => {});
+}

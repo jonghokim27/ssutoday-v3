@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useSafeAreaPath } from '../routing/safeAreaParams';
 import { Icon, type IconName } from '../ui/Icon';
+import { triggerHaptic } from '../native/nativeBridge';
 import styles from './BottomNavigation.module.css';
 
 const navItems = [
@@ -23,6 +24,7 @@ export function BottomNavigation() {
           }
           key={item.to}
           to={safePath(item.to)}
+          onClick={() => triggerHaptic('selection')}
         >
           <Icon name={item.icon} />
           <span className={styles.label}>{item.label}</span>

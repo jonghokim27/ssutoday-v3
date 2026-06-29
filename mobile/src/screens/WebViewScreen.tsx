@@ -3,6 +3,7 @@ import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
+import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
@@ -94,6 +95,23 @@ export default function WebViewScreen() {
   }, [injectReservationNavigation]);
 
   useEffect(() => {
+    registerHandler('haptic.impact', async (params) => {
+      const { style } = (params ?? {}) as { style?: string };
+      switch (style) {
+        case 'medium':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          break;
+        case 'heavy':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          break;
+        case 'selection':
+          await Haptics.selectionAsync();
+          break;
+        default:
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    });
+
     registerHandler('device.getInfo', async () => {
       const uuid = Platform.OS === 'ios'
         ? ((await Application.getIosIdForVendorAsync()) ?? 'unknown')
@@ -255,6 +273,7 @@ export default function WebViewScreen() {
   }, []);
 
   const handleBack = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     webviewRef.current?.goBack();
   }, []);
 
