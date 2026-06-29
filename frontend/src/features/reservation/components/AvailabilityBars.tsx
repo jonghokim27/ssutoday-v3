@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { isToday } from '../data/dates';
 import { bookedSlots, getNowPositionRatio, hourTicks, smallSlotGap, smallSlotWidth, slotCount } from '../data/time';
 import { type StudyRoom, type TimeBooking } from '../data/reservationData';
+import { triggerHaptic } from '../../../shared/native/nativeBridge';
 import styles from './AvailabilityBars.module.css';
 
 type AvailabilityBarsProps = {
@@ -98,6 +99,7 @@ export function AvailabilityBars({
                   disabled={slotState === 'past' && !isBooked}
                   key={index}
                   onClick={() => {
+                    triggerHaptic('heavy');
                     if (slotState === 'current') {
                       onCurrentSlotClick?.();
                     }

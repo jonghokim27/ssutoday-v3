@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useRef } from 'react';
+import { triggerHaptic } from '../../../shared/native/nativeBridge';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Badge } from '../../../shared/ui/Badge';
 import { Card } from '../../../shared/ui/Card';
@@ -33,6 +34,8 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
       onClick={(event) => {
         if (pointerMovedRef.current) {
           event.preventDefault();
+        } else {
+          triggerHaptic('heavy');
         }
       }}
       onPointerDown={(event) => {

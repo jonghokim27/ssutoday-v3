@@ -9,7 +9,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
 import { authRepository } from '../../auth/api/authRepository';
-import { isNativeApp, nativeBridge, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { appStorage, type StoredProfile } from '../../../shared/storage/appStorage';
 import { departmentCodeToName } from '../../../shared/utils/department';
 import { appInfo, notificationRows, profile as fallbackProfile } from '../data/myPageData';
@@ -181,11 +181,11 @@ export function MyPageContent() {
       </section>
 
       <section className={styles.menu}>
-        <button onClick={() => void openLink(SUPPORT_URL)} type="button">
+        <button onClick={() => { triggerHaptic('heavy'); void openLink(SUPPORT_URL); }} type="button">
           <span>지원</span>
           <Icon name="chevronRight" />
         </button>
-        <button onClick={() => setDevOpen((value) => !value)} type="button">
+        <button onClick={() => { triggerHaptic('heavy'); setDevOpen((value) => !value); }} type="button">
           <span>개발자 정보</span>
           <Icon className={devOpen ? styles.open : ''} name="chevronDown" />
         </button>
@@ -195,7 +195,7 @@ export function MyPageContent() {
             <p><span>기여하기</span><strong onClick={() => void openLink(GITHUB_URL)}>{GITHUB_URL}</strong></p>
           </div>
         ) : null}
-        <button className={styles.logout} onClick={() => setLogoutOpen(true)} type="button">
+        <button className={styles.logout} onClick={() => { triggerHaptic('heavy'); setLogoutOpen(true); }} type="button">
           <span>로그아웃</span>
           <Icon name="logout" />
         </button>
@@ -254,7 +254,7 @@ type SwitchProps = {
 
 function Switch({ checked, disabled = false, onClick }: SwitchProps) {
   return (
-    <button className={[styles.switch, checked ? styles.switchOn : ''].join(' ')} disabled={disabled} onClick={onClick} type="button">
+    <button className={[styles.switch, checked ? styles.switchOn : ''].join(' ')} disabled={disabled} onClick={() => { triggerHaptic('heavy'); onClick(); }} type="button">
       <span />
     </button>
   );

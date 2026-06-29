@@ -4,7 +4,7 @@ import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { isNativeApp, nativeBridge, openLink } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { appStorage, defaultProviders, type ArticleProvider } from '../../../shared/storage/appStorage';
 import { formatKoreanDateTime } from '../../../shared/utils/date';
 import { departmentCodeToName } from '../../../shared/utils/department';
@@ -250,7 +250,7 @@ export function NoticePageContent() {
       <div className={styles.header}>
         <BrandHeader
           action={
-            <button className={styles.sortButton} onClick={() => setLatest((value) => !value)} type="button">
+            <button className={styles.sortButton} onClick={() => { triggerHaptic('heavy'); setLatest((value) => !value); }} type="button">
               <Icon className={latest ? '' : styles.sortReverse} name="arrowDown" />
               {latest ? '최신순' : '오래된순'}
             </button>
@@ -266,6 +266,7 @@ export function NoticePageContent() {
               className={styles.clearSearchButton}
               onClick={(event) => {
                 event.preventDefault();
+                triggerHaptic('heavy');
                 setQuery('');
               }}
               type="button"
@@ -275,15 +276,15 @@ export function NoticePageContent() {
           ) : null}
         </label>
         <div className={styles.filters}>
-          <button className={starredOnly ? styles.starOn : styles.star} onClick={() => setStarredOnly((value) => !value)}>
+          <button className={starredOnly ? styles.starOn : styles.star} onClick={() => { triggerHaptic('heavy'); setStarredOnly((value) => !value); }}>
             <Icon name="star" width="13" height="13" /> 별표 {starredCount}
           </button>
           <span className={styles.divider} />
-          <button className={isAllProvidersSelected(selectedProviders) ? styles.filterOn : styles.filter} onClick={() => void selectAllProviders()}>
+          <button className={isAllProvidersSelected(selectedProviders) ? styles.filterOn : styles.filter} onClick={() => { triggerHaptic('heavy'); void selectAllProviders(); }}>
             전체
           </button>
           {defaultProviders.map((provider) => (
-            <button className={selectedProviders.includes(provider) ? styles.filterOn : styles.filter} key={provider} onClick={() => void toggleProvider(provider)}>
+            <button className={selectedProviders.includes(provider) ? styles.filterOn : styles.filter} key={provider} onClick={() => { triggerHaptic('heavy'); void toggleProvider(provider); }}>
               {provider === 'major' ? majorLabel : providerLabel(provider)}
             </button>
           ))}
@@ -314,7 +315,7 @@ export function NoticePageContent() {
       {showTopButton ? (
         <button
           className={styles.topButton}
-          onClick={() => screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => { triggerHaptic('heavy'); screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }}
           type="button"
           aria-label="맨 위로 이동"
         >
@@ -416,11 +417,13 @@ function NoticeItem({ notice, isStarred, isLast, onOpen, onToggleStar }: NoticeI
     }
 
     if (drag.dx <= -72) {
+      triggerHaptic('heavy');
       onToggleStar();
       return;
     }
 
     if (!drag.moved) {
+      triggerHaptic('heavy');
       onOpen();
     }
   }
@@ -444,6 +447,7 @@ function NoticeItem({ notice, isStarred, isLast, onOpen, onToggleStar }: NoticeI
           className={[styles.starButton, isStarred ? styles.starred : ''].join(' ')}
           onClick={(event) => {
             event.stopPropagation();
+            triggerHaptic('heavy');
             onToggleStar();
           }}
           onKeyDown={(event) => {

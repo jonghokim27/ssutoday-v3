@@ -24,7 +24,7 @@ export function BottomNavigation() {
           }
           key={item.to}
           to={safePath(item.to)}
-          onClick={() => triggerHaptic('selection')}
+          onClick={() => triggerHaptic('heavy')}
         >
           <Icon name={item.icon} />
           <span className={styles.label}>{item.label}</span>

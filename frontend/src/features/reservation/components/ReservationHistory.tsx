@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { isNativeApp, nativeBridge, openLink, requireNativeApp } from '../../../shared/native/nativeBridge';
+import { isNativeApp, nativeBridge, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -251,10 +251,10 @@ export function ReservationHistory() {
         <h1>예약 내역</h1>
       </header>
       <div className={styles.tabs}>
-        <button className={tab === 'active' ? styles.active : ''} onClick={() => setTab('active')} type="button">
+        <button className={tab === 'active' ? styles.active : ''} onClick={() => { triggerHaptic('heavy'); setTab('active'); }} type="button">
           이용 중 · 대기
         </button>
-        <button className={tab === 'done' ? styles.active : ''} onClick={() => setTab('done')} type="button">
+        <button className={tab === 'done' ? styles.active : ''} onClick={() => { triggerHaptic('heavy'); setTab('done'); }} type="button">
           이용 완료
         </button>
       </div>
@@ -280,17 +280,17 @@ export function ReservationHistory() {
                     <div className={styles.statusCell}>
                       <Badge strong tone={statusTone(item.state)}>{item.status}</Badge>
                     </div>
-                    <button className={styles.doneSubAction} onClick={() => setDoneTarget(item)} type="button">
+                    <button className={styles.doneSubAction} onClick={() => { triggerHaptic('heavy'); setDoneTarget(item); }} type="button">
                       이용을 종료하려면 선택
                     </button>
                   </div>
                   {item.canShootPhoto ? (
-                    <button className={styles.shotButton} onClick={() => void shootPhoto(item)} type="button">
+                    <button className={styles.shotButton} onClick={() => { triggerHaptic('heavy'); void shootPhoto(item); }} type="button">
                       <span className={styles.blinkAction}>인증샷 촬영<i /></span>
                       <span>촬영 기한: {item.shotDeadline} 까지</span>
                     </button>
                   ) : item.canViewPhoto ? (
-                    <button className={styles.shotButton} onClick={() => void viewPhoto(item)} type="button">
+                    <button className={styles.shotButton} onClick={() => { triggerHaptic('heavy'); void viewPhoto(item); }} type="button">
                       인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
                     </button>
                   ) : (
@@ -306,12 +306,12 @@ export function ReservationHistory() {
                     {item.deletedAtLabel ? <span>{item.deletedAtLabel}</span> : null}
                   </div>
                   {item.canDone ? (
-                    <button className={styles.primaryAction} onClick={() => setDoneTarget(item)} type="button">
+                    <button className={styles.primaryAction} onClick={() => { triggerHaptic('heavy'); setDoneTarget(item); }} type="button">
                       이용 종료<span>종료하려면 선택</span>
                     </button>
                   ) : null}
                   {item.canViewPhoto ? (
-                    <button className={styles.shotButton} onClick={() => void viewPhoto(item)} type="button">
+                    <button className={styles.shotButton} onClick={() => { triggerHaptic('heavy'); void viewPhoto(item); }} type="button">
                       인증샷 보기<span>{item.verifyPhotoCreatedAt}</span>
                     </button>
                   ) : null}
@@ -322,7 +322,7 @@ export function ReservationHistory() {
                   ) : null}
                 </>
               )}
-              {item.cancelable ? <button className={styles.danger} onClick={() => setCancelTarget(item)} type="button">예약 취소</button> : null}
+              {item.cancelable ? <button className={styles.danger} onClick={() => { triggerHaptic('heavy'); setCancelTarget(item); }} type="button">예약 취소</button> : null}
               {item.canRebook ? <Link className={styles.rebook} to={safePath(`/reservations/${item.roomNo}?date=${item.rawDate}`)}>다시 예약하기</Link> : null}
             </div>
           </article>
@@ -338,7 +338,7 @@ export function ReservationHistory() {
       {showTopButton ? (
         <button
           className={styles.topButton}
-          onClick={() => screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => { triggerHaptic('heavy'); screenRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }}
           type="button"
           aria-label="맨 위로 이동"
         >

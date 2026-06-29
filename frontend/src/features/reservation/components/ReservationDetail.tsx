@@ -9,7 +9,7 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
-import { openLink } from '../../../shared/native/nativeBridge';
+import { openLink, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken, prefetchTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
@@ -255,7 +255,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
         </div>
 
         <div className={styles.dateRow}>
-          <button className={styles.dateButton} onClick={() => setPickerOpen(true)} type="button">
+          <button className={styles.dateButton} onClick={() => { triggerHaptic('heavy'); setPickerOpen(true); }} type="button">
             {formatDateLabel(selectedDate)} <Icon name="calendar" width="17" height="17" />
           </button>
           <span className={styles.live}><i /> 실시간</span>
@@ -283,7 +283,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
             <span>{selection ? '선택된 시간' : '시간 선택'}</span>
             <strong>{summary}</strong>
           </div>
-          <button className={styles.reset} onClick={() => setSelection(null)} type="button">
+          <button className={styles.reset} onClick={() => { triggerHaptic('heavy'); setSelection(null); }} type="button">
             <Icon name="refresh" />
             <span>초기화</span>
           </button>
