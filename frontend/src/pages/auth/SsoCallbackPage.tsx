@@ -4,6 +4,7 @@ import { useAuthSession } from '../../app/authSessionContext';
 import { authRepository } from '../../features/auth/api/authRepository';
 import { deviceRepository } from '../../features/my/api/deviceRepository';
 import { isNativeApp, nativeBridge } from '../../shared/native/nativeBridge';
+import { appStorage } from '../../shared/storage/appStorage';
 import { useSafeAreaPath } from '../../shared/routing/safeAreaParams';
 import { Button } from '../../shared/ui/Button';
 import styles from './SsoCallbackPage.module.css';
@@ -29,10 +30,13 @@ export function SsoCallbackPage() {
     authRepository.login({ sToken, sIdno, persistLogin }).then(async (result) => {
       if (result.ok) {
         if (isNativeApp()) {
-          await deviceRepository.register();
-          await nativeBridge.subscribePushTopic('all');
-          if (result.data.major) {
-            await nativeBridge.subscribePushTopic(result.data.major);
+          const registered = await deviceRepository.registerOnLogin();
+          await appStorage.setItem('notificationEnabled', registered ? 'true' : 'false');
+          if (registered) {
+            await nativeBridge.subscribePushTopic('all');
+            if (result.data.major) {
+              await nativeBridge.subscribePushTopic(result.data.major);
+            }
           }
         }
         setSession('authenticated');
