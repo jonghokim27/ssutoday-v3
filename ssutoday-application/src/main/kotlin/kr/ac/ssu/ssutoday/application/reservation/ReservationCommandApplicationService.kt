@@ -407,7 +407,7 @@ class ReservationCommandApplicationService(
                     token = token,
                     title = title,
                     body = body,
-                    link = "ssutoday://reservations",
+                    category = "reservation",
                 ),
             )
         }

@@ -11,5 +11,6 @@ constructor(
     @JsonProperty("token") val token: String? = null,
     @JsonProperty("title") val title: String,
     @JsonProperty("body") val body: String,
-    @JsonProperty("link") val link: String,
+    @JsonProperty("category") val category: String,
+    @JsonProperty("url") val url: String? = null,
 )

@@ -71,11 +71,12 @@ class ArticleApplicationService(
         afterCommit {
             pushMessagePublisher.publish(
                 PushMessage(
-                    "topic",
+                    type = "topic",
                     topic = topic,
                     title = "새 공지사항이 등록되었어요!",
                     body = "[${article.provider}] ${article.title}",
-                    link = "ssutoday://notice/${article.idx}",
+                    category = "notice",
+                    url = article.url,
                 ),
             )
         }
