@@ -115,7 +115,7 @@ class ReservationController(
         val status =
             reservationCommandApplicationService.executeAdminAction(
                 AdminReservationCommand(
-                    administratorId = student.id,
+                    adminName = student.name,
                     type = request.type,
                     osType = request.osType,
                     uuid = request.uuid,
