@@ -4,7 +4,5 @@
 *.iml
 .env
 firebase.json
-mobile/google-services.json
-mobile/GoogleService-Info.plist
 infra/mysql/data/
 infra/redis/data/
