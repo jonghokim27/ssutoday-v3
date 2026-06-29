@@ -40,6 +40,14 @@ export function SsoCallbackPage() {
           }
         }
         setSession('authenticated');
+        if (isNativeApp() && window.history.length >= 3) {
+          // Auth flow adds exactly 2 entries (/terms push + SSO redirect).
+          // history.go(-2) jumps directly to /landing (position 0),
+          // skipping the cross-origin SSO URL at position 1.
+          // PublicOnlyRoute then replaces position 0 with /notices → canGoBack = false.
+          window.history.go(-2);
+          return;
+        }
         navigate(safePath('/notices'), { replace: true });
         return;
       }
