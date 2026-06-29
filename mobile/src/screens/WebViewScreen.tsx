@@ -10,6 +10,7 @@ import NetInfo from '@react-native-community/netinfo';
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import messaging from '@react-native-firebase/messaging';
 import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
@@ -80,8 +81,7 @@ export default function WebViewScreen() {
       const result = await Notifications.getPermissionsAsync();
       if (!(result as unknown as { granted: boolean }).granted) return null;
       try {
-        const token = await Notifications.getDevicePushTokenAsync();
-        return token.data;
+        return await messaging().getToken();
       } catch {
         return null;
       }

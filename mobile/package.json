@@ -4,6 +4,8 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@react-native-community/netinfo": "11.4.1",
+    "@react-native-firebase/app": "^25.1.0",
+    "@react-native-firebase/messaging": "^25.1.0",
     "expo": "~54.0.0",
     "expo-application": "~7.0.8",
     "expo-constants": "~18.0.13",
