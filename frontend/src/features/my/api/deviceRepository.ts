@@ -32,7 +32,7 @@ export class ApiDeviceRepository implements DeviceRepository {
   async registerOnLogin(): Promise<boolean> {
     let granted = false;
     try {
-      granted = await request<boolean>('push.requestPermission');
+      granted = await request<boolean>('push.requestPermission', undefined, 0);
     } catch (e) {
       if (e instanceof BridgeError && e.code === 'PERMISSION_DENIED') {
         return false;
