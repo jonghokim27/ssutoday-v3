@@ -13,6 +13,7 @@ import { Toast } from '../ui/Toast';
 import type { GlobalToastDetail } from '../ui/globalToast';
 import { showGlobalToast } from '../ui/globalToast';
 import { on } from '../native/bridgeTransport';
+import { getNativePlatform } from '../native/nativeBridge';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -50,17 +51,21 @@ export function AppLayout() {
   extractAndStoreSafeAreaBottom(location.search);
   const safeAreaTopExtra = getSafeAreaTopExtra();
   const safeAreaBottomExtra = getSafeAreaBottomExtra();
-  const safeAreaBottomSpacing = safeAreaBottomExtra / 2;
+  const isAndroid = getNativePlatform() === 'android';
+  // Android: status bar is shorter than iOS notch, add 8px breathing room
+  const effectiveSafeAreaTop = isAndroid ? safeAreaTopExtra + 8 : safeAreaTopExtra;
+  // Android: navigation bar is opaque — use full inset; iOS: home indicator is transparent — half suffices
+  const safeAreaBottomSpacing = isAndroid ? safeAreaBottomExtra : safeAreaBottomExtra / 2;
 
   const deviceStyle = {
-    '--space-safe-area-top-extra': `${safeAreaTopExtra}px`,
+    '--space-safe-area-top-extra': `${effectiveSafeAreaTop}px`,
     '--space-safe-area-bottom-extra': `${safeAreaBottomSpacing}px`,
   } as CSSProperties;
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--space-safe-area-top-extra', `${safeAreaTopExtra}px`);
+    document.documentElement.style.setProperty('--space-safe-area-top-extra', `${effectiveSafeAreaTop}px`);
     document.documentElement.style.setProperty('--space-safe-area-bottom-extra', `${safeAreaBottomSpacing}px`);
-  }, [safeAreaTopExtra, safeAreaBottomSpacing]);
+  }, [effectiveSafeAreaTop, safeAreaBottomSpacing]);
 
   // Remove safe area params from URL after storing them.
   useEffect(() => {

@@ -2,6 +2,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: none;
   padding: var(--space-status-top) var(--space-screen-x) calc(var(--space-bottom-nav-height) + var(--space-8));
   scrollbar-width: none;
 }

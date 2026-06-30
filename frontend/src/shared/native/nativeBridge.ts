@@ -158,6 +158,12 @@ export function isNativeApp() {
   return navigator.userAgent.includes('SSUTODAY');
 }
 
+export function getNativePlatform(): NativePlatform | null {
+  // User-Agent: SSUTODAY/{version}/{platform} {os-version}/{device}
+  const match = navigator.userAgent.match(/^SSUTODAY\/[^/]+\/(android|ios)\s/i);
+  return match ? (match[1].toLowerCase() as NativePlatform) : null;
+}
+
 const APP_DOWNLOAD_URL = 'https://r2.ssu.today/install.html';
 
 let nativeOnlyOverlay: HTMLDivElement | null = null;

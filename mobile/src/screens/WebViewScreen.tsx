@@ -402,6 +402,7 @@ export default function WebViewScreen() {
         userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
+        overScrollMode="never"
       />
       {smartId && (
         <View
