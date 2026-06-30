@@ -153,11 +153,17 @@ export function MyPageContent() {
       await nativeBridge.unsubscribePushTopic('all');
     }
     await authRepository.logout();
-    setSession('anonymous');
     if (isNativeApp() && window.history.length > 1) {
-      window.history.go(-(window.history.length - 1));
+      const depth = window.history.length - 1;
+      function handlePop() {
+        window.removeEventListener('popstate', handlePop);
+        window.location.replace(safePath('/landing'));
+      }
+      window.addEventListener('popstate', handlePop);
+      window.history.go(-depth);
       return;
     }
+    setSession('anonymous');
     navigate(safePath('/landing'), { replace: true });
   }
 
