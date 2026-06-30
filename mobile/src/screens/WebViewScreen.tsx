@@ -324,7 +324,9 @@ export default function WebViewScreen() {
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
     const nowSmartId = isSmartIdUrl(state.url);
     if (prevSmartIdRef.current !== nowSmartId) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      if (nowSmartId) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       prevSmartIdRef.current = nowSmartId;
     }
     setCurrentUrl(state.url);
@@ -340,7 +342,7 @@ export default function WebViewScreen() {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       if (versionStatus !== 'ok' || !isOnline) return false;
 
-      if (webviewCanGoBack) {
+      if (webviewCanGoBack && !currentUrl.includes('/landing')) {
         webviewRef.current?.goBack();
         return true;
       }
@@ -365,7 +367,7 @@ export default function WebViewScreen() {
       if (backPressTimer.current) clearTimeout(backPressTimer.current);
       backPressedOnce.current = false;
     };
-  }, [versionStatus, isOnline, webviewCanGoBack]);
+  }, [versionStatus, isOnline, webviewCanGoBack, currentUrl]);
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

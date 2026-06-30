@@ -153,14 +153,8 @@ export function MyPageContent() {
       await nativeBridge.unsubscribePushTopic('all');
     }
     await authRepository.logout();
-    if (isNativeApp() && window.history.length > 1) {
-      const depth = window.history.length - 1;
-      function handlePop() {
-        window.removeEventListener('popstate', handlePop);
-        window.location.replace(safePath('/landing'));
-      }
-      window.addEventListener('popstate', handlePop);
-      window.history.go(-depth);
+    if (isNativeApp()) {
+      window.location.replace(safePath('/landing'));
       return;
     }
     setSession('anonymous');
