@@ -2,6 +2,43 @@ const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
+function withAndroidCookieFlush(config) {
+  return withDangerousMod(config, [
+    'android',
+    async (config) => {
+      const mainActivityPath = path.join(
+        config.modRequest.platformProjectRoot,
+        'app/src/main/java/com/ssutoday/MainActivity.kt',
+      );
+
+      if (!fs.existsSync(mainActivityPath)) {
+        return config;
+      }
+
+      let contents = fs.readFileSync(mainActivityPath, 'utf8');
+
+      if (contents.includes('CookieManager.getInstance().flush()')) {
+        return config;
+      }
+
+      if (!contents.includes('import android.webkit.CookieManager')) {
+        contents = contents.replace(
+          'import android.os.Bundle',
+          'import android.os.Bundle\nimport android.webkit.CookieManager',
+        );
+      }
+
+      const lastBrace = contents.lastIndexOf('}');
+      const onPause =
+        '\n  override fun onPause() {\n    super.onPause()\n    CookieManager.getInstance().flush()\n  }\n';
+      contents = contents.slice(0, lastBrace) + onPause + contents.slice(lastBrace);
+
+      fs.writeFileSync(mainActivityPath, contents);
+      return config;
+    },
+  ]);
+}
+
 function withGoogleUtilitiesModularHeaders(config) {
   return withDangerousMod(config, [
     'ios',
@@ -90,4 +127,4 @@ const config = {
   }
 };
 
-module.exports = withGoogleUtilitiesModularHeaders(config);
+module.exports = withAndroidCookieFlush(withGoogleUtilitiesModularHeaders(config));
