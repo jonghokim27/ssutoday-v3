@@ -8,7 +8,3 @@ spring:
       group-id: ${KAFKA_CONSUMER_GROUP:ssutoday}
   main:
     web-application-type: none
-
-ssutoday:
-  firebase:
-    credentials: ${FIREBASE_CREDENTIALS:firebase.json}

@@ -58,3 +58,5 @@ ssutoday:
   storage:
     verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
     public-base-url: ${S3_PUBLIC_BASE_URL:}
+  firebase:
+    credentials: ${FIREBASE_CREDENTIALS:firebase.json}
