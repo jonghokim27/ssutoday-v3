@@ -398,7 +398,7 @@ export default function WebViewScreen() {
       />
       {smartId && (
         <View
-          style={[styles.smartIdHeader, { paddingTop: insets.top > 0 ? insets.top : 18 }]}
+          style={[styles.smartIdHeader, { paddingTop: (insets.top > 0 ? insets.top : 18) + (Platform.OS === 'android' ? 8 : 0) }]}
           onLayout={(e) => {
             const h = e.nativeEvent.layout.height;
             smartIdHeaderHeightRef.current = h;

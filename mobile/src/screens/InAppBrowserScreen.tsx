@@ -66,7 +66,7 @@ export default function InAppBrowserScreen() {
     outputRange: ['0%', '100%'],
   });
 
-  const headerPaddingTop = insets.top > 0 ? insets.top : 18;
+  const headerPaddingTop = (insets.top > 0 ? insets.top : 18) + (Platform.OS === 'android' ? 8 : 0);
 
   return (
     <View style={styles.container}>
