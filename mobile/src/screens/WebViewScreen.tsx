@@ -290,8 +290,12 @@ export default function WebViewScreen() {
   }, []);
 
   const handleShouldStartLoadWithRequest = useCallback((request: WebViewNavigation) => {
+    // SSO 등 외부 도메인에 있을 때는 HTTPS 네비게이션을 모두 허용 (SSO 리다이렉트 체인 통과)
+    if (!currentUrl.startsWith(TARGET_URL)) {
+      return request.url.startsWith('https://') || request.url.startsWith('about:');
+    }
     return isAllowedNavigation(request.url);
-  }, []);
+  }, [currentUrl]);
 
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
     setCurrentUrl(state.url);
@@ -381,7 +385,7 @@ export default function WebViewScreen() {
         onNavigationStateChange={handleNavigationStateChange}
         userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
-        allowsBackForwardNavigationGestures
+        allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
       />
       {turnstileRequest ? (
         <TurnstileModal
