@@ -273,7 +273,7 @@ export default function WebViewScreen() {
     sendHandshake();
     if (isSmartIdUrl(e.nativeEvent.url) && smartIdHeaderHeightRef.current > 0) {
       webviewRef.current?.injectJavaScript(
-        `document.body.style.marginTop='${smartIdHeaderHeightRef.current + 20}px';true;`
+        `document.body.style.marginTop='${smartIdHeaderHeightRef.current + 40}px';true;`
       );
     }
   }, [sendHandshake]);
@@ -410,7 +410,7 @@ export default function WebViewScreen() {
             const h = e.nativeEvent.layout.height;
             smartIdHeaderHeightRef.current = h;
             webviewRef.current?.injectJavaScript(
-              `document.body.style.marginTop='${h + 20}px';true;`
+              `document.body.style.marginTop='${h + 40}px';true;`
             );
           }}
         >
