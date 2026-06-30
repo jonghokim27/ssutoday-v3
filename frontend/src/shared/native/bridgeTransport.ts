@@ -26,7 +26,7 @@ export class BridgeError extends Error {
 type PendingEntry = {
   resolve: (result: unknown) => void;
   reject: (error: BridgeError) => void;
-  timeoutId: ReturnType<typeof setTimeout>;
+  timeoutId: ReturnType<typeof setTimeout> | null;
 };
 
 type HandshakeInfo = {
@@ -79,7 +79,7 @@ function handleMessageEvent(event: MessageEvent) {
     }
 
     pending.delete(envelope.id);
-    clearTimeout(entry.timeoutId);
+    if (entry.timeoutId !== null) clearTimeout(entry.timeoutId);
 
     if (envelope.ok) {
       entry.resolve(envelope.result);
@@ -128,10 +128,11 @@ export function request<T = unknown>(method: BridgeMethod, params?: unknown, tim
   }
 
   const id = generateId();
-  const timeout = timeoutMs ?? BRIDGE_REQUEST_TIMEOUT_MS;
+  const noTimeout = timeoutMs === 0;
+  const timeout = noTimeout ? 0 : (timeoutMs ?? BRIDGE_REQUEST_TIMEOUT_MS);
 
   return new Promise<T>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = noTimeout ? null : setTimeout(() => {
       pending.delete(id);
       reject(new BridgeError('TIMEOUT', `${method} 응답이 ${timeout}ms 내에 도착하지 않았습니다`));
     }, timeout);

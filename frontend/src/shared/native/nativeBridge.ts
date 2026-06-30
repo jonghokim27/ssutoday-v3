@@ -57,7 +57,7 @@ class WebViewNativeBridge implements NativeBridge {
   }
 
   requestPushPermission() {
-    return request<boolean>(METHOD_FOR.requestPushPermission);
+    return request<boolean>(METHOD_FOR.requestPushPermission, undefined, 0);
   }
 
   getPushToken() {
@@ -85,7 +85,7 @@ class WebViewNativeBridge implements NativeBridge {
   }
 
   captureVerifyPhoto() {
-    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto, undefined, 120_000);
+    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto, undefined, 0);
   }
 
   signWithBiometrics(payload: string) {
