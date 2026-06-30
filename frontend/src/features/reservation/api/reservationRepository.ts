@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/apiClient';
 import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
-import { nativeBridge } from '../../../shared/native/nativeBridge';
+import { nativeBridge, isNativeApp, HandledError } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { blockToTime, timeToBlock } from './reservationBlocks';
 
@@ -124,9 +124,14 @@ export class ApiReservationRepository implements ReservationRepository {
 
   async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {
     const device = await nativeBridge.getDeviceInfo();
+    if (!isNativeApp()) {
+      // 앱 설치 모달이 이미 표시됨 (getDeviceInfo 프록시가 showNativeOnlyModal 호출)
+      throw new HandledError();
+    }
     const signed = await nativeBridge.signWithBiometrics(`${params.type}:${params.idx}`);
     if (!signed) {
-      return apiFailure('SSU0000', '생체 인증을 사용할 수 없습니다');
+      // 사용자가 생체 인증을 취소함 — 추가 토스트 불필요
+      throw new HandledError();
     }
 
     return apiClient.post<

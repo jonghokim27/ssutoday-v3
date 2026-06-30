@@ -401,9 +401,9 @@ export function notifyNetworkFailure() {
   new WebViewNativeBridge().checkConnectivity().catch(() => {});
 }
 
-export async function openLink(url: string) {
+export async function openLink(url: string, mode: 'external' | 'internal' = 'external') {
   if (isNativeApp()) {
-    await nativeBridge.openExternalUrl(url);
+    await nativeBridge.openExternalUrl(url, mode);
     return;
   }
 

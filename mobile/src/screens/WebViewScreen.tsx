@@ -191,7 +191,7 @@ export default function WebViewScreen() {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!compatible || !enrolled) {
-        return null;
+        throw new BridgeHandlerError('PERMISSION_DENIED', '기기에서 생체 인증을 설정해 주세요');
       }
 
       const result = await LocalAuthentication.authenticateAsync({

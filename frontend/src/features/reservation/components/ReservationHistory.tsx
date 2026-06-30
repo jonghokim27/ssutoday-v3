@@ -7,7 +7,7 @@ import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { Toast } from '../../../shared/ui/Toast';
-import { HandledError, isNativeApp, nativeBridge, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
+import { HandledError, isNativeApp, openLink, requireNativeApp, triggerHaptic } from '../../../shared/native/nativeBridge';
 import { reserveToHistoryView } from '../api/reservationMappers';
 import { reservationRepository } from '../api/reservationRepository';
 import styles from './ReservationHistory.module.css';
@@ -219,12 +219,7 @@ export function ReservationHistory() {
   }
 
   async function viewPhoto(item: HistoryViewItem) {
-    const url = item.verifyPhotoUrl ?? '';
-    if (isNativeApp()) {
-      await nativeBridge.openExternalUrl(url, 'internal');
-    } else {
-      await openLink(url);
-    }
+    await openLink(item.verifyPhotoUrl ?? '', 'internal');
   }
 
   async function shootPhoto(item: HistoryViewItem) {

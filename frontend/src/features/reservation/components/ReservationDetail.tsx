@@ -9,7 +9,7 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
-import { openLink, triggerHaptic } from '../../../shared/native/nativeBridge';
+import { openLink, triggerHaptic, HandledError } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
@@ -209,7 +209,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       return;
     }
 
-    await openLink(booking.verifyPhotoUrl);
+    await openLink(booking.verifyPhotoUrl, 'internal');
   }
 
   function runAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking) {
@@ -232,10 +232,17 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     }
 
     setSubmitting(true);
-    const result = await reservationRepository.adminTool({ type, idx: booking.idx, text });
-    flash(result.ok ? adminResultMessage(result.data) : result.message);
-    setReservedBooking(null);
-    setSubmitting(false);
+    try {
+      const result = await reservationRepository.adminTool({ type, idx: booking.idx, text });
+      flash(result.ok ? adminResultMessage(result.data) : result.message);
+      setReservedBooking(null);
+    } catch (error) {
+      if (!(error instanceof HandledError)) {
+        flash('오류가 발생했습니다. 다시 시도해주세요');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
