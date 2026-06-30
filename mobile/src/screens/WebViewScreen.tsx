@@ -402,7 +402,6 @@ export default function WebViewScreen() {
         userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
-        injectedJavaScriptBeforeContentLoaded="(function(){if(window.location.hostname==='r2.ssu.today')return;var m=document.querySelector('meta[name=viewport]');if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}m.content='width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1';})();true;"
       />
       {smartId && (
         <View
