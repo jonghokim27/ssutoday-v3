@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 import java.sql.Timestamp
 import java.sql.Types
 
 @Component
+@Order(1)
 class StudentMigration(
     @Qualifier(DB.OLD_JDBC) private val oldDb: JdbcTemplate,
     @Qualifier(DB.NEW_JDBC) private val newDb: JdbcTemplate,

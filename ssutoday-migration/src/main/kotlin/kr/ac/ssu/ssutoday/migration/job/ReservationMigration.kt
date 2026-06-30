@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
 import java.sql.Date
@@ -15,6 +16,7 @@ import java.sql.Types
 import java.util.Base64
 
 @Component
+@Order(8)
 class ReservationMigration(
     @Qualifier(DB.OLD_JDBC) private val oldDb: JdbcTemplate,
     @Qualifier(DB.NEW_JDBC) private val newDb: JdbcTemplate,

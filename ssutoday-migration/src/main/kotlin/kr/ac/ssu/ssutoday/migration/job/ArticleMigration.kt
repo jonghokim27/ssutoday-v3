@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 import java.sql.Timestamp
@@ -15,6 +16,7 @@ import java.sql.Types
 // `Article`이 원본 테이블이므로 해당 테이블에서만 읽어옴.
 // provider 필터: ssucatch, cse
 @Component
+@Order(6)
 class ArticleMigration(
     @Qualifier(DB.OLD_JDBC) private val oldDb: JdbcTemplate,
     @Qualifier(DB.NEW_JDBC) private val newDb: JdbcTemplate,

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 import java.sql.Timestamp
@@ -14,6 +15,7 @@ import java.sql.Types
 // 구DB는 (StudentId, osType, uuid) UNIQUE 제약이 없어 중복이 존재할 수 있음.
 // 신DB는 UNIQUE(student_id, os_type, uuid) 제약이 있으므로 그룹별 MAX(idx)만 가져옴.
 @Component
+@Order(7)
 class DeviceMigration(
     @Qualifier(DB.OLD_JDBC) private val oldDb: JdbcTemplate,
     @Qualifier(DB.NEW_JDBC) private val newDb: JdbcTemplate,
