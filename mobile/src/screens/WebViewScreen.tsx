@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, LayoutAnimation, Linking, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
+import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -84,12 +84,6 @@ export default function WebViewScreen() {
   useEffect(() => {
     void checkVersion();
   }, [checkVersion]);
-
-  useEffect(() => {
-    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-  }, []);
 
   const injectReservationNavigation = useCallback(() => {
     webviewRef.current?.injectJavaScript(`
@@ -274,6 +268,14 @@ export default function WebViewScreen() {
     }
   }, [injectReservationNavigation]);
 
+  const handleLoad = useCallback((e: { nativeEvent: WebViewNavigation }) => {
+    sendHandshake();
+    if (isSmartIdUrl(e.nativeEvent.url)) {
+      const marginTop = (insets.top > 0 ? insets.top : 18) + 42 + 12;
+      webviewRef.current?.injectJavaScript(`document.body.style.marginTop='${marginTop}px';true;`);
+    }
+  }, [sendHandshake, insets.top]);
+
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     const envelope = parseBridgeEnvelope(event.nativeEvent.data);
     if (!envelope || envelope.kind !== 'request') {
@@ -319,16 +321,7 @@ export default function WebViewScreen() {
     return isAllowedNavigation(request.url);
   }, [currentUrl]);
 
-  const prevSmartIdRef = useRef(false);
-
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
-    const nowSmartId = isSmartIdUrl(state.url);
-    if (prevSmartIdRef.current !== nowSmartId) {
-      if (nowSmartId) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      }
-      prevSmartIdRef.current = nowSmartId;
-    }
     setCurrentUrl(state.url);
     setWebviewCanGoBack(state.canGoBack);
   }, []);
@@ -396,6 +389,18 @@ export default function WebViewScreen() {
 
   return (
     <View style={styles.container}>
+      <WebView
+        ref={webviewRef}
+        style={styles.webview}
+        source={{ uri: targetUri }}
+        onLoad={handleLoad}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        onNavigationStateChange={handleNavigationStateChange}
+        userAgent={USER_AGENT}
+        originWhitelist={['https://*', 'about:*']}
+        allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
+      />
       {smartId && (
         <View style={[styles.smartIdHeader, { paddingTop: insets.top > 0 ? insets.top : 18 }]}>
           <Pressable
@@ -407,18 +412,6 @@ export default function WebViewScreen() {
           </Pressable>
         </View>
       )}
-      <WebView
-        ref={webviewRef}
-        style={styles.webview}
-        source={{ uri: targetUri }}
-        onLoad={sendHandshake}
-        onMessage={handleMessage}
-        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        onNavigationStateChange={handleNavigationStateChange}
-        userAgent={USER_AGENT}
-        originWhitelist={['https://*', 'about:*']}
-        allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
-      />
       {turnstileRequest ? (
         <TurnstileModal
           siteKey={turnstileRequest.siteKey}
@@ -448,10 +441,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   smartIdHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 22,
     paddingBottom: 12,
+    backgroundColor: '#ffffff',
+    zIndex: 1,
   },
   backButton: {
     width: 42,
