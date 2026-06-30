@@ -27,6 +27,7 @@ export function MyPageContent() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [profile, setProfile] = useState<StoredProfile | null>(null);
+  const [nativeAppVersion, setNativeAppVersion] = useState<string | null>(null);
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -51,6 +52,11 @@ export function MyPageContent() {
         }
         return;
       }
+
+      try {
+        const deviceInfo = await nativeBridge.getDeviceInfo();
+        if (mounted) setNativeAppVersion(deviceInfo.appVersion);
+      } catch {}
 
       const enabled = await appStorage.getItem('notificationEnabled');
       if (enabled !== 'true') {
@@ -215,7 +221,8 @@ export function MyPageContent() {
       </section>
 
       <footer className={styles.footer}>
-        <p>{appInfo.version}</p>
+        {nativeAppVersion ? <p>앱 버전 {nativeAppVersion}</p> : null}
+        <p>웹 버전 {appInfo.version}</p>
         <p>{appInfo.copyright}</p>
       </footer>
       {logoutOpen ? (
