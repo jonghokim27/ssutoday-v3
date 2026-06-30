@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { BackHandler, LayoutAnimation, Linking, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -63,7 +63,6 @@ export default function WebViewScreen() {
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
   const webviewReady = useRef(false);
   const pendingReservationNav = useRef(false);
-  const smartIdHeaderHeightRef = useRef(0);
 
   const checkVersion = useCallback(async () => {
     setVersionStatus('checking');
@@ -85,6 +84,12 @@ export default function WebViewScreen() {
   useEffect(() => {
     void checkVersion();
   }, [checkVersion]);
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   const injectReservationNavigation = useCallback(() => {
     webviewRef.current?.injectJavaScript(`
@@ -269,15 +274,6 @@ export default function WebViewScreen() {
     }
   }, [injectReservationNavigation]);
 
-  const handleLoad = useCallback((e: { nativeEvent: WebViewNavigation }) => {
-    sendHandshake();
-    if (isSmartIdUrl(e.nativeEvent.url) && smartIdHeaderHeightRef.current > 0) {
-      webviewRef.current?.injectJavaScript(
-        `document.body.style.marginTop='${smartIdHeaderHeightRef.current}px';true;`
-      );
-    }
-  }, [sendHandshake]);
-
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     const envelope = parseBridgeEnvelope(event.nativeEvent.data);
     if (!envelope || envelope.kind !== 'request') {
@@ -323,7 +319,16 @@ export default function WebViewScreen() {
     return isAllowedNavigation(request.url);
   }, [currentUrl]);
 
+  const prevSmartIdRef = useRef(false);
+
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
+    const nowSmartId = isSmartIdUrl(state.url);
+    if (prevSmartIdRef.current !== nowSmartId) {
+      if (nowSmartId) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
+      prevSmartIdRef.current = nowSmartId;
+    }
     setCurrentUrl(state.url);
     setWebviewCanGoBack(state.canGoBack);
   }, []);
@@ -391,29 +396,8 @@ export default function WebViewScreen() {
 
   return (
     <View style={styles.container}>
-      <WebView
-        ref={webviewRef}
-        style={styles.webview}
-        source={{ uri: targetUri }}
-        onLoad={handleLoad}
-        onMessage={handleMessage}
-        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        onNavigationStateChange={handleNavigationStateChange}
-        userAgent={USER_AGENT}
-        originWhitelist={['https://*', 'about:*']}
-        allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
-      />
       {smartId && (
-        <View
-          style={[styles.smartIdHeader, { paddingTop: insets.top > 0 ? insets.top : 18 }]}
-          onLayout={(e) => {
-            const h = e.nativeEvent.layout.height;
-            smartIdHeaderHeightRef.current = h;
-            webviewRef.current?.injectJavaScript(
-              `document.body.style.marginTop='${h}px';true;`
-            );
-          }}
-        >
+        <View style={[styles.smartIdHeader, { paddingTop: insets.top > 0 ? insets.top : 18 }]}>
           <Pressable
             style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
             onPress={handleBack}
@@ -423,6 +407,18 @@ export default function WebViewScreen() {
           </Pressable>
         </View>
       )}
+      <WebView
+        ref={webviewRef}
+        style={styles.webview}
+        source={{ uri: targetUri }}
+        onLoad={sendHandshake}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        onNavigationStateChange={handleNavigationStateChange}
+        userAgent={USER_AGENT}
+        originWhitelist={['https://*', 'about:*']}
+        allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
+      />
       {turnstileRequest ? (
         <TurnstileModal
           siteKey={turnstileRequest.siteKey}
@@ -452,16 +448,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   smartIdHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 22,
     paddingBottom: 12,
-    backgroundColor: '#ffffff',
   },
   backButton: {
     width: 42,
