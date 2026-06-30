@@ -439,9 +439,9 @@ function adminResultMessage(status: ReserveStatus) {
   if (status === 1) return '이미 취소된 예약이에요';
   if (status === 2) return '이미 종료된 예약이에요';
   if (status === 3) return '예약을 취소했어요';
-  if (status === 4) return '인증 사진이 촬영되지 않았어요';
-  if (status === 5) return '인증 사진을 삭제했어요';
-  if (status === 6) return '인증 사진이 이미 촬영됐어요';
-  if (status === 7) return '인증 사진 예외 처리했어요';
+  if (status === 4) return '인증샷이 촬영되지 않았어요';
+  if (status === 5) return '인증샷을 삭제했어요';
+  if (status === 6) return '인증샷이 이미 촬영됐어요';
+  if (status === 7) return '인증샷을 예외 처리했어요';
   return '관리자 작업을 처리했어요';
 }
