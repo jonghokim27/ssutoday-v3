@@ -290,6 +290,22 @@ export default function WebViewScreen() {
   }, []);
 
   const handleShouldStartLoadWithRequest = useCallback((request: WebViewNavigation) => {
+    // iOS 스와이프 뒤로가기/앞으로가기 인터셉트
+    if (request.navigationType === 'backforward') {
+      try {
+        const dest = new URL(request.url);
+        if (dest.host !== 'v3.ssu.today') return false; // SSO 등 외부 페이지로 복귀 차단
+        const curr = new URL(currentUrl);
+        const onAuthenticatedPage =
+          curr.host === 'v3.ssu.today' &&
+          !curr.pathname.startsWith('/landing') &&
+          !curr.pathname.startsWith('/terms');
+        if (onAuthenticatedPage) return true; // 인증 앱 내부: 자유롭게 뒤로가기 허용
+        return dest.pathname.startsWith('/landing'); // 인증 플로우 중: /landing으로만 허용
+      } catch {
+        return false;
+      }
+    }
     // SSO 등 외부 도메인에 있을 때는 HTTPS 네비게이션을 모두 허용 (SSO 리다이렉트 체인 통과)
     if (!currentUrl.startsWith(TARGET_URL)) {
       return request.url.startsWith('https://') || request.url.startsWith('about:');
@@ -334,6 +350,7 @@ export default function WebViewScreen() {
     return () => {
       subscription.remove();
       if (backPressTimer.current) clearTimeout(backPressTimer.current);
+      backPressedOnce.current = false;
     };
   }, [versionStatus, isOnline, webviewCanGoBack]);
 
