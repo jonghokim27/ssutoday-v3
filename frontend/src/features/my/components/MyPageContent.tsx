@@ -154,6 +154,10 @@ export function MyPageContent() {
     }
     await authRepository.logout();
     setSession('anonymous');
+    if (isNativeApp() && window.history.length > 1) {
+      window.history.go(-(window.history.length - 1));
+      return;
+    }
     navigate(safePath('/landing'), { replace: true });
   }
 
