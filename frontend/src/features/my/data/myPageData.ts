@@ -1,7 +1,7 @@
 export const profile = {
-  department: '컴퓨터학부',
-  name: '김종호',
-  studentId: '20221488',
+  department: '',
+  name: '',
+  studentId: '',
 };
 
 export const notificationRows = [
@@ -10,6 +10,6 @@ export const notificationRows = [
 ];
 
 export const appInfo = {
-  version: 'v3.0.0_2026.06.29',
+  version: 'v3.0.0_2026.06.30',
   copyright: '© 슈투데이. 모든 권리 보유',
 };
