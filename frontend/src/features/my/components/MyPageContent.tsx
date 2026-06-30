@@ -103,13 +103,6 @@ export function MyPageContent() {
       return;
     }
 
-    if (option === 'notice') {
-      const topicAction = next ? nativeBridge.subscribePushTopic.bind(nativeBridge) : nativeBridge.unsubscribePushTopic.bind(nativeBridge);
-      await topicAction('all');
-      if (profile?.major) {
-        await topicAction(profile.major);
-      }
-    }
     setActionLoading(false);
   }
 
@@ -153,10 +146,6 @@ export function MyPageContent() {
       if (enabled !== 'false') {
         await deviceRepository.unregister();
       }
-      if (profile?.major) {
-        await nativeBridge.unsubscribePushTopic(profile.major);
-      }
-      await nativeBridge.unsubscribePushTopic('all');
     }
     await authRepository.logout();
     if (isNativeApp()) {

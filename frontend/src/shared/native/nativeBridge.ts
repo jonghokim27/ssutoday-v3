@@ -21,8 +21,6 @@ export type NativeBridge = {
   getDeviceInfo(): Promise<NativeDeviceInfo>;
   requestPushPermission(): Promise<boolean>;
   getPushToken(): Promise<string | null>;
-  subscribePushTopic(topic: string): Promise<void>;
-  unsubscribePushTopic(topic: string): Promise<void>;
   openExternalUrl(url: string, mode?: 'external' | 'internal'): Promise<void>;
   openAppSettings(): Promise<void>;
   requestCameraPermission(): Promise<boolean>;
@@ -36,8 +34,6 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   getDeviceInfo: 'device.getInfo',
   requestPushPermission: 'push.requestPermission',
   getPushToken: 'push.getToken',
-  subscribePushTopic: 'push.subscribeTopic',
-  unsubscribePushTopic: 'push.unsubscribeTopic',
   openExternalUrl: 'browser.openExternalUrl',
   openAppSettings: 'system.openAppSettings',
   requestCameraPermission: 'camera.requestPermission',
@@ -62,14 +58,6 @@ class WebViewNativeBridge implements NativeBridge {
 
   getPushToken() {
     return request<string | null>(METHOD_FOR.getPushToken);
-  }
-
-  subscribePushTopic(topic: string) {
-    return request<void>(METHOD_FOR.subscribePushTopic, { topic });
-  }
-
-  unsubscribePushTopic(topic: string) {
-    return request<void>(METHOD_FOR.unsubscribePushTopic, { topic });
   }
 
   openExternalUrl(url: string, mode: 'external' | 'internal' = 'external') {
@@ -117,10 +105,6 @@ class MockNativeBridge implements NativeBridge {
   async getPushToken() {
     return 'mock-web-push-token';
   }
-
-  async subscribePushTopic() {}
-
-  async unsubscribePushTopic() {}
 
   async openExternalUrl(url: string, _mode?: 'external' | 'internal') {
     window.open(url, '_blank', 'noopener,noreferrer');

@@ -14,21 +14,23 @@ class DeviceService(
         osType: String,
         uuid: String,
         pushToken: String,
-    ) {
+    ): Device {
         val device =
             devices
                 .findByStudentIdAndOsTypeAndUuid(studentId, osType, uuid)
                 ?.apply { updatePushToken(pushToken) }
                 ?: Device(studentId = studentId, osType = osType, uuid = uuid, pushToken = pushToken)
-        devices.save(device)
+        return devices.save(device)
     }
 
     fun unregister(
         studentId: Int,
         osType: String,
         uuid: String,
-    ) {
-        devices.delete(getDevice(studentId, osType, uuid, StatusCode.SSU4050))
+    ): Device {
+        val device = getDevice(studentId, osType, uuid, StatusCode.SSU4050)
+        devices.delete(device)
+        return device
     }
 
     fun getOptions(
@@ -46,8 +48,10 @@ class DeviceService(
         uuid: String,
         option: DeviceOption,
         enabled: Boolean,
-    ) {
-        getDevice(studentId, osType, uuid, StatusCode.SSU4180).change(option, enabled)
+    ): Device {
+        val device = getDevice(studentId, osType, uuid, StatusCode.SSU4180)
+        device.change(option, enabled)
+        return device
     }
 
     fun getRequiredVersion(osType: String): String = versions.getByOsType(osType).requiredVersion

@@ -13,8 +13,6 @@ export type BridgeMethod =
   | 'device.getInfo'
   | 'push.requestPermission'
   | 'push.getToken'
-  | 'push.subscribeTopic'
-  | 'push.unsubscribeTopic'
   | 'browser.openExternalUrl'
   | 'system.openAppSettings'
   | 'camera.requestPermission'

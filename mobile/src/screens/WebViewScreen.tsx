@@ -164,14 +164,6 @@ export default function WebViewScreen() {
       }
     });
 
-    registerHandler('push.subscribeTopic', async () => {
-      // FCM topic 구독은 Firebase SDK 필요 - 서버에서 관리
-    });
-
-    registerHandler('push.unsubscribeTopic', async () => {
-      // FCM topic 구독 해제는 Firebase SDK 필요 - 서버에서 관리
-    });
-
     registerHandler('browser.openExternalUrl', async (params) => {
       const { url, mode } = params as { url: string; mode?: string };
       if (mode === 'internal') {

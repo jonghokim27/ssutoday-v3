@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthSession } from '../../app/authSessionContext';
 import { authRepository } from '../../features/auth/api/authRepository';
 import { deviceRepository } from '../../features/my/api/deviceRepository';
-import { isNativeApp, nativeBridge } from '../../shared/native/nativeBridge';
+import { isNativeApp } from '../../shared/native/nativeBridge';
 import { appStorage } from '../../shared/storage/appStorage';
 import { useSafeAreaPath } from '../../shared/routing/safeAreaParams';
 import { Button } from '../../shared/ui/Button';
@@ -32,12 +32,6 @@ export function SsoCallbackPage() {
         if (isNativeApp()) {
           const registered = await deviceRepository.registerOnLogin();
           await appStorage.setItem('notificationEnabled', registered ? 'true' : 'false');
-          if (registered) {
-            await nativeBridge.subscribePushTopic('all');
-            if (result.data.major) {
-              await nativeBridge.subscribePushTopic(result.data.major);
-            }
-          }
         }
         setSession('authenticated');
         if (isNativeApp() && window.history.length >= 3) {
