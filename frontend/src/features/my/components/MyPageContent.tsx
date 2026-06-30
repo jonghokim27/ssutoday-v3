@@ -221,8 +221,7 @@ export function MyPageContent() {
       </section>
 
       <footer className={styles.footer}>
-        {nativeAppVersion ? <p>앱 버전 {nativeAppVersion}</p> : null}
-        <p>웹 버전 {appInfo.version}</p>
+        <p>{nativeAppVersion ? `앱 버전: ${nativeAppVersion} / ` : null}웹 버전: {appInfo.version}</p>
         <p>{appInfo.copyright}</p>
       </footer>
       {logoutOpen ? (
