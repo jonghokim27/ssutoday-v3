@@ -214,7 +214,6 @@ Kafka consumer 실행 모듈이다.
 | `S3_PUBLIC_BASE_URL` | 인증샷 공개 URL base |
 | `VERIFY_PHOTO_BUCKET` | 인증샷 저장 bucket |
 | `FIREBASE_CREDENTIALS` | Firebase Admin credential JSON 경로 |
-| `TIME_ZONE` | 기본 타임존, 기본값 `Asia/Seoul` |
 | `DISCORD_ERROR_WEBHOOK_URL` | WARN 이상 로그 Discord 알림 webhook |
 | `DISCORD_VERIFYPHOTO_WEBHOOK_URL` | 인증샷/예약 액션 Discord 알림 webhook |
 | `ADMIN_BASE_URL` | Discord 관리자 액션 링크 base URL |

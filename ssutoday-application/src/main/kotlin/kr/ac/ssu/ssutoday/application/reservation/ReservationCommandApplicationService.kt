@@ -23,11 +23,7 @@ import kr.ac.ssu.ssutoday.domain.student.DeviceService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Calendar
-import java.util.TimeZone
 
 @Service
 class ReservationCommandApplicationService(
@@ -389,7 +385,12 @@ class ReservationCommandApplicationService(
             reservationId = reservation.id,
             studentInfo = buildStudentInfo(student.name, student.id, student.major),
             roomName = roomName,
-            reservationDateTime = buildReservationDateTime(reservation.date, reservation.startBlock, reservation.endBlock),
+            reservationDateTime =
+                ReservationDateTimeFormatter.format(
+                    reservation.date,
+                    reservation.startBlock,
+                    reservation.endBlock,
+                ),
             actionFieldName = actionFieldName,
             actionFieldValue = actionFieldValue,
             photoUrl = photoUrl,
@@ -420,31 +421,6 @@ class ReservationCommandApplicationService(
         major: String,
     ): String = "$name ($studentId/${majorShortName(major)})"
 
-    private fun buildReservationDateTime(
-        date: LocalDate,
-        startBlock: Int,
-        endBlock: Int,
-    ): String {
-        val calendar =
-            Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
-                set(date.year, date.monthValue - 1, date.dayOfMonth, 0, 0, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-        val dateText =
-            SimpleDateFormat("yyyy년 MM월 dd일")
-                .apply {
-                    timeZone = TimeZone.getTimeZone("Asia/Seoul")
-                }.format(calendar.time)
-        val day = DAYS[calendar.get(Calendar.DAY_OF_WEEK) - 1]
-
-        return "$dateText($day) ${blockToTime(startBlock)} ~ ${blockToTime(endBlock + 1)}"
-    }
-
-    private fun blockToTime(block: Int): String {
-        val totalMinutes = block * 30
-        return "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
-    }
-
     private fun majorShortName(major: String): String =
         when (major) {
             "cse" -> "컴"
@@ -459,6 +435,5 @@ class ReservationCommandApplicationService(
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
-        val DAYS = arrayOf("일", "월", "화", "수", "목", "금", "토")
     }
 }

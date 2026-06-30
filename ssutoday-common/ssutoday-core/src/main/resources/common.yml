@@ -14,11 +14,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        jdbc:
-          time_zone: ${TIME_ZONE:Asia/Seoul}
         physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-  jackson:
-    time-zone: ${TIME_ZONE:Asia/Seoul}
   kafka:
     bootstrap-servers: ${KAFKA_HOST}
     producer:

@@ -74,11 +74,19 @@ class ArticleApplicationService(
                     type = "topic",
                     topic = topic,
                     title = "새 공지사항이 등록되었어요!",
-                    body = "[${article.provider}] ${article.title}",
+                    body = "[${article.provider.toProviderName()}] ${article.title}",
                     category = "notice",
                     url = article.url,
                 ),
             )
         }
+    }
+
+    private fun String.toProviderName() = when (this) {
+        "ssucatch" -> "SSU:Catch"
+        "stu" -> "총학생회"
+        "cse" -> "컴퓨터학부"
+        "media" -> "글로벌미디어학부"
+        else -> this
     }
 }
