@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
-import java.sql.Timestamp
 import java.sql.Types
 
 // 구DB는 (StudentId, osType, uuid) UNIQUE 제약이 없어 중복이 존재할 수 있음.
@@ -57,8 +56,8 @@ class DeviceMigration(
                         ps.setInt(6, row["notice"] as Int)
                         ps.setInt(7, row["reserve"] as Int)
                         ps.setInt(8, row["lms"] as Int)
-                        ps.setTimestamp(9, row["createdAt"] as Timestamp)
-                        val updatedAt = row["updatedAt"] as? Timestamp
+                        ps.setTimestamp(9, row.timestamp("createdAt"))
+                        val updatedAt = row.nullableTimestamp("updatedAt")
                         if (updatedAt != null) ps.setTimestamp(10, updatedAt) else ps.setNull(10, Types.TIMESTAMP)
                     }
 

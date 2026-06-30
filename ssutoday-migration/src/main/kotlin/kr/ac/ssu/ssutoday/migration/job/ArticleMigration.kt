@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
-import java.sql.Timestamp
 import java.sql.Types
 
 // 구DB에는 `Article`(PascalCase)과 `article`(lowercase) 두 테이블이 존재함.
@@ -46,8 +45,8 @@ class ArticleMigration(
                         val content = row["content"] as? String
                         if (content != null) ps.setString(5, content) else ps.setNull(5, Types.LONGNVARCHAR)
                         ps.setString(6, row["url"] as String)
-                        ps.setTimestamp(7, row["createdAt"] as Timestamp)
-                        val updatedAt = row["updatedAt"] as? Timestamp
+                        ps.setTimestamp(7, row.timestamp("createdAt"))
+                        val updatedAt = row.nullableTimestamp("updatedAt")
                         if (updatedAt != null) ps.setTimestamp(8, updatedAt) else ps.setNull(8, Types.TIMESTAMP)
                     }
 

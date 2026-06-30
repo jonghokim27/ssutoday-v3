@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
-import java.sql.Timestamp
 
 @Component
 @Order(10)
@@ -38,7 +37,7 @@ class VerifyPhotoMigration(
                         ps.setLong(1, (row["idx"] as Int).toLong())
                         ps.setLong(2, (row["ReserveIdx"] as Int).toLong())
                         ps.setString(3, row["url"] as String)
-                        ps.setTimestamp(4, row["createdAt"] as Timestamp)
+                        ps.setTimestamp(4, row.timestamp("createdAt"))
                     }
 
                     override fun getBatchSize(): Int = chunk.size

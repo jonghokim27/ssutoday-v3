@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
-import java.sql.Timestamp
 import java.sql.Types
 
 @Component
@@ -42,8 +41,8 @@ class StudentMigration(
                         val xnApiToken = row["xnApiToken"] as? String
                         if (xnApiToken != null) ps.setString(4, xnApiToken) else ps.setNull(4, Types.VARCHAR)
                         ps.setInt(5, row["isAdmin"] as Int)
-                        ps.setTimestamp(6, row["createdAt"] as Timestamp)
-                        val updatedAt = row["updatedAt"] as? Timestamp
+                        ps.setTimestamp(6, row.timestamp("createdAt"))
+                        val updatedAt = row.nullableTimestamp("updatedAt")
                         if (updatedAt != null) ps.setTimestamp(7, updatedAt) else ps.setNull(7, Types.TIMESTAMP)
                     }
 

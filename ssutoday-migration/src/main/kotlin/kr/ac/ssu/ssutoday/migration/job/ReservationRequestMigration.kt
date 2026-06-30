@@ -8,9 +8,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
-import java.sql.Date
 import java.sql.PreparedStatement
-import java.sql.Timestamp
 import java.sql.Types
 
 @Component
@@ -40,12 +38,12 @@ class ReservationRequestMigration(
                         ps.setLong(1, (row["idx"] as Int).toLong())
                         ps.setInt(2, row["StudentId"] as Int)
                         ps.setString(3, row["roomNo"] as String)
-                        ps.setDate(4, row["date"] as Date)
+                        ps.setDate(4, row.date("date"))
                         ps.setInt(5, row["startBlock"] as Int)
                         ps.setInt(6, row["endBlock"] as Int)
                         ps.setInt(7, row["status"] as Int)
-                        ps.setTimestamp(8, row["createdAt"] as Timestamp)
-                        val updatedAt = row["updatedAt"] as? Timestamp
+                        ps.setTimestamp(8, row.timestamp("createdAt"))
+                        val updatedAt = row.nullableTimestamp("updatedAt")
                         if (updatedAt != null) ps.setTimestamp(9, updatedAt) else ps.setNull(9, Types.TIMESTAMP)
                     }
 

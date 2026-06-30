@@ -24,6 +24,7 @@ class DataSourceConfig {
                 this.username = username
                 this.password = password
                 maximumPoolSize = 5
+                isReadOnly = true
             },
         )
 
