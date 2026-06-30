@@ -1,11 +1,11 @@
 package kr.ac.ssu.ssutoday.adapter.push
 
 import kr.ac.ssu.ssutoday.core.port.PushTopicManager
-import org.springframework.context.annotation.Profile
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("default")
+@ConditionalOnMissingBean(PushTopicManager::class)
 class MockPushTopicManager : PushTopicManager {
     override fun subscribe(token: String, topics: List<String>) {}
     override fun unsubscribe(token: String, topics: List<String>) {}
