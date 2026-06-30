@@ -8,4 +8,5 @@ include(
     "ssutoday-common:ssutoday-core",
     "ssutoday-application",
     "ssutoday-domain",
+    "ssutoday-migration",
 )

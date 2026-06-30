@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: migration
+  main:
+    web-application-type: none
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration
+      - org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
+
+old-db:
+  url: ${OLD_DB_URL}
+  username: ${OLD_DB_USERNAME}
+  password: ${OLD_DB_PASSWORD}
+
+new-db:
+  url: ${NEW_DB_URL}
+  username: ${NEW_DB_USERNAME}
+  password: ${NEW_DB_PASSWORD}
+
+migration:
+  batch-size: ${MIGRATION_BATCH_SIZE:500}
