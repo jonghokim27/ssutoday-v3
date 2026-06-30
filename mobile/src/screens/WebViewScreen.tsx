@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { BackHandler, LayoutAnimation, Linking, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
@@ -84,6 +84,12 @@ export default function WebViewScreen() {
   useEffect(() => {
     void checkVersion();
   }, [checkVersion]);
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   const injectReservationNavigation = useCallback(() => {
     webviewRef.current?.injectJavaScript(`
@@ -313,7 +319,14 @@ export default function WebViewScreen() {
     return isAllowedNavigation(request.url);
   }, [currentUrl]);
 
+  const prevSmartIdRef = useRef(false);
+
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
+    const nowSmartId = isSmartIdUrl(state.url);
+    if (prevSmartIdRef.current !== nowSmartId) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      prevSmartIdRef.current = nowSmartId;
+    }
     setCurrentUrl(state.url);
     setWebviewCanGoBack(state.canGoBack);
   }, []);
