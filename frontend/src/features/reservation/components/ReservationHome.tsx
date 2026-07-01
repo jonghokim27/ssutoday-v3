@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { IconButton } from '../../../shared/ui/IconButton';
@@ -25,6 +25,37 @@ export function ReservationHome() {
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
+  const scrollersRef = useRef<Set<HTMLDivElement>>(new Set());
+  const scrollPersistTimeoutRef = useRef<number | undefined>(undefined);
+
+  const registerTimebarScroller = useCallback((el: HTMLDivElement) => {
+    scrollersRef.current.add(el);
+    return () => {
+      scrollersRef.current.delete(el);
+    };
+  }, []);
+
+  const syncTimebarScroll = useCallback((scrollLeft: number) => {
+    // Write straight to sibling DOM nodes instead of routing through React
+    // state, so every card tracks the scroll in real time without forcing a
+    // re-render of the whole list on each frame. The diff check also means
+    // the scrolling card itself (already at `scrollLeft`) is skipped, so no
+    // explicit "source" tracking is needed.
+    scrollersRef.current.forEach((el) => {
+      if (Math.abs(el.scrollLeft - scrollLeft) > 1) {
+        el.scrollLeft = scrollLeft;
+      }
+    });
+
+    window.clearTimeout(scrollPersistTimeoutRef.current);
+    scrollPersistTimeoutRef.current = window.setTimeout(() => {
+      setTimebarScrollLeft(scrollLeft);
+    }, 200);
+  }, []);
+
+  useEffect(() => {
+    return () => window.clearTimeout(scrollPersistTimeoutRef.current);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -92,7 +123,8 @@ export function ReservationHome() {
           <StudyRoomCard
             key={room.id}
             date={selectedDate}
-            onTimebarScroll={setTimebarScrollLeft}
+            onTimebarScroll={syncTimebarScroll}
+            registerScroller={registerTimebarScroller}
             room={room}
             timebarScrollLeft={timebarScrollLeft}
           />

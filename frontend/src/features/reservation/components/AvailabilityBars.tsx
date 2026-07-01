@@ -15,6 +15,7 @@ type AvailabilityBarsProps = {
   onCurrentSlotClick?: () => void;
   scrollLeft?: number;
   onScrollLeftChange?: (scrollLeft: number) => void;
+  registerScroller?: (el: HTMLDivElement) => () => void;
 };
 
 export function AvailabilityBars({
@@ -27,6 +28,7 @@ export function AvailabilityBars({
   onCurrentSlotClick,
   scrollLeft,
   onScrollLeftChange,
+  registerScroller,
 }: AvailabilityBarsProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const booked = bookedSlots(room);
@@ -52,20 +54,29 @@ export function AvailabilityBars({
 
   useEffect(() => {
     const el = scrollerRef.current;
+    if (!el || large || !registerScroller) return;
+    return registerScroller(el);
+  }, [large, registerScroller]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
     if (!el || large) return;
 
-    let timer: number;
+    // rAF-throttled: reports at most once per frame so siblings can be synced
+    // live without piling up React updates faster than the browser can paint.
+    let rafId = 0;
     function handleScroll() {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
         onScrollLeftChange?.(el!.scrollLeft);
-      }, 32);
+      });
     }
 
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       el.removeEventListener('scroll', handleScroll);
-      window.clearTimeout(timer);
+      window.cancelAnimationFrame(rafId);
     };
   }, [large, onScrollLeftChange]);
 

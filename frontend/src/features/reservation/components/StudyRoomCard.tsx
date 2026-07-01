@@ -15,10 +15,11 @@ type StudyRoomCardProps = {
   room: StudyRoom;
   timebarScrollLeft?: number;
   onTimebarScroll: (scrollLeft: number) => void;
+  registerScroller?: (el: HTMLDivElement) => () => void;
   date?: string;
 };
 
-export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }: StudyRoomCardProps) {
+export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, registerScroller, date }: StudyRoomCardProps) {
   const safePath = useSafeAreaPath();
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const pointerMovedRef = useRef(false);
@@ -70,7 +71,7 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, date }
           </div>
           <Badge tone={congestion.tone}>{congestion.label}</Badge>
         </div>
-        <AvailabilityBars date={date} onScrollLeftChange={onTimebarScroll} room={room} scrollLeft={timebarScrollLeft} />
+        <AvailabilityBars date={date} onScrollLeftChange={onTimebarScroll} registerScroller={registerScroller} room={room} scrollLeft={timebarScrollLeft} />
       </Card>
     </Link>
   );
