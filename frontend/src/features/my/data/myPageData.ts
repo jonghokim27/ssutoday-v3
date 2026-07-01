@@ -10,6 +10,6 @@ export const notificationRows = [
 ];
 
 export const appInfo = {
-  version: '3.0.0',
+  version: '2026.07.01',
   copyright: '© 슈투데이. 모든 권리 보유',
 };
