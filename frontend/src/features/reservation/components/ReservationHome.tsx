@@ -26,25 +26,31 @@ export function ReservationHome() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
   const scrollersRef = useRef<Set<HTMLDivElement>>(new Set());
+  // Tracks each scroller's last-known position so syncing never has to read
+  // `el.scrollLeft` back from the DOM: reading right after writing forces a
+  // synchronous layout recalculation, and doing that across several sibling
+  // cards every frame was the main source of dropped frames while dragging.
+  const lastKnownScrollRef = useRef<Map<HTMLDivElement, number>>(new Map());
   const scrollPersistTimeoutRef = useRef<number | undefined>(undefined);
 
   const registerTimebarScroller = useCallback((el: HTMLDivElement) => {
     scrollersRef.current.add(el);
+    lastKnownScrollRef.current.set(el, el.scrollLeft);
     return () => {
       scrollersRef.current.delete(el);
+      lastKnownScrollRef.current.delete(el);
     };
   }, []);
 
-  const syncTimebarScroll = useCallback((scrollLeft: number) => {
-    // Write straight to sibling DOM nodes instead of routing through React
-    // state, so every card tracks the scroll in real time without forcing a
-    // re-render of the whole list on each frame. The diff check also means
-    // the scrolling card itself (already at `scrollLeft`) is skipped, so no
-    // explicit "source" tracking is needed.
+  const syncTimebarScroll = useCallback((scrollLeft: number, source: HTMLDivElement) => {
+    lastKnownScrollRef.current.set(source, scrollLeft);
+
     scrollersRef.current.forEach((el) => {
-      if (Math.abs(el.scrollLeft - scrollLeft) > 1) {
-        el.scrollLeft = scrollLeft;
+      if (el === source || lastKnownScrollRef.current.get(el) === scrollLeft) {
+        return;
       }
+      el.scrollLeft = scrollLeft;
+      lastKnownScrollRef.current.set(el, scrollLeft);
     });
 
     window.clearTimeout(scrollPersistTimeoutRef.current);

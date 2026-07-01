@@ -14,7 +14,7 @@ const NOON_SLOT = toSlot('12:00');
 type StudyRoomCardProps = {
   room: StudyRoom;
   timebarScrollLeft?: number;
-  onTimebarScroll: (scrollLeft: number) => void;
+  onTimebarScroll: (scrollLeft: number, source: HTMLDivElement) => void;
   registerScroller?: (el: HTMLDivElement) => () => void;
   date?: string;
 };

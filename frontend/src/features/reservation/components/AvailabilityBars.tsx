@@ -14,7 +14,7 @@ type AvailabilityBarsProps = {
   onSlotClick?: (index: number, booking?: TimeBooking) => void;
   onCurrentSlotClick?: () => void;
   scrollLeft?: number;
-  onScrollLeftChange?: (scrollLeft: number) => void;
+  onScrollLeftChange?: (scrollLeft: number, source: HTMLDivElement) => void;
   registerScroller?: (el: HTMLDivElement) => () => void;
 };
 
@@ -31,6 +31,9 @@ export function AvailabilityBars({
   registerScroller,
 }: AvailabilityBarsProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  // True while this card was itself scrolled very recently, so the prop-driven
+  // sync below never fights an in-progress touch/momentum gesture on it.
+  const isActiveRef = useRef(false);
   const booked = bookedSlots(room);
   const width = large ? 58 : smallSlotWidth;
   const gap = large ? 4 : smallSlotGap;
@@ -38,7 +41,7 @@ export function AvailabilityBars({
   const nowPositionRatio = getNowPositionRatio();
 
   useEffect(() => {
-    if (!scrollerRef.current) {
+    if (!scrollerRef.current || isActiveRef.current) {
       return;
     }
 
@@ -65,11 +68,18 @@ export function AvailabilityBars({
     // rAF-throttled: reports at most once per frame so siblings can be synced
     // live without piling up React updates faster than the browser can paint.
     let rafId = 0;
+    let activeTimeout: number;
     function handleScroll() {
+      isActiveRef.current = true;
+      window.clearTimeout(activeTimeout);
+      activeTimeout = window.setTimeout(() => {
+        isActiveRef.current = false;
+      }, 250);
+
       if (rafId) return;
       rafId = window.requestAnimationFrame(() => {
         rafId = 0;
-        onScrollLeftChange?.(el!.scrollLeft);
+        onScrollLeftChange?.(el!.scrollLeft, el!);
       });
     }
 
@@ -77,6 +87,7 @@ export function AvailabilityBars({
     return () => {
       el.removeEventListener('scroll', handleScroll);
       window.cancelAnimationFrame(rafId);
+      window.clearTimeout(activeTimeout);
     };
   }, [large, onScrollLeftChange]);
 
