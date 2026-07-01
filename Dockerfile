@@ -1,6 +1,7 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 COPY . .
+RUN chmod +x gradlew
 ARG MODULE=ssutoday-api
 RUN ./gradlew :${MODULE}:bootJar --no-daemon
 
