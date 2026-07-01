@@ -24,9 +24,9 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           port: ${{secrets.SSH_PORT}}
           username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
-          script_stop: true
 
           script: |
+            set -e
             cd ssutoday-v3
             git branch -m main
             git pull https://jonghokim27:${{ secrets.GIT_TOKEN }}@github.com/jonghokim27/ssutoday-v3.git main
