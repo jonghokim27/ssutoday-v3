@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -53,6 +53,16 @@ export default function RootLayout() {
         lightColor: '#4F7CFF',
       });
     }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void Notifications.dismissAllNotificationsAsync();
+      }
+    });
+    return () => subscription.remove();
   }, []);
 
   const handleDeepLink = useCallback(
