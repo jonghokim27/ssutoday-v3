@@ -268,7 +268,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
         <AvailabilityBars
           date={selectedDate}
           large
-          onCurrentSlotClick={() => flash('이미 진행 중인 시간을 선택했어요.\n일부만 사용해도 하루 최대 예약 가능 시간은 동일하게 차감돼요.')}
+          onCurrentSlotClick={() => flash('이미 진행 중인 시간을 선택했어요. 일부만 사용해도 하루 최대 예약 가능 시간은 동일하게 차감돼요.')}
           onSlotClick={handleSlotClick}
           room={room}
           selectedEnd={selection?.end ?? null}

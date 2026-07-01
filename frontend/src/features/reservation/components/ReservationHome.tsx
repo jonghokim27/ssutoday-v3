@@ -88,7 +88,7 @@ export function ReservationHome() {
       <DateStrip onOpenPicker={() => setPickerOpen(true)} onPickDate={pickDate} selectedDate={selectedDate} />
       <section className={styles.list}>
         {loading ? <LoadingState label="스터디룸 현황을 불러오는 중" /> : null}
-        {rooms.map((room) => (
+        {!loading ? rooms.map((room) => (
           <StudyRoomCard
             key={room.id}
             date={selectedDate}
@@ -96,7 +96,16 @@ export function ReservationHome() {
             room={room}
             timebarScrollLeft={timebarScrollLeft}
           />
-        ))}
+        )) : null}
+        {!loading && rooms.length === 0 ? (
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon} aria-hidden="true">
+              <Icon name="calendar" />
+            </div>
+            <strong>이용 가능한 스터디룸이 없어요</strong>
+            <p>다른 시설을 이용해주세요</p>
+          </div>
+        ) : null}
       </section>
       {pickerOpen ? (
         <DatePickerDialog
