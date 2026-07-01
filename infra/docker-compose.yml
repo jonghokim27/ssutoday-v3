@@ -24,6 +24,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: live
     ports: ["80:8080"]
+    volumes:
+      - ../firebase.json:/run/secrets/firebase.json:ro
     depends_on:
       redis:
         condition: service_started
@@ -37,6 +39,8 @@ services:
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
+    volumes:
+      - ../firebase.json:/run/secrets/firebase.json:ro
     depends_on:
       kafka:
         condition: service_started

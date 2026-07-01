@@ -1,0 +1,17 @@
+.git
+.github
+.claude
+.agents
+.idea
+.gradle
+.kotlin
+**/build/
+*.iml
+.env
+.env.example
+firebase.json
+mobile
+frontend
+README.md
+AGENTS.md
+LICENSE
