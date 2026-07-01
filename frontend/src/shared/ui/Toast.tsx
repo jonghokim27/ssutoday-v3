@@ -31,7 +31,7 @@ export function Toast({ message, bottomOffset = 104, onTap }: ToastProps) {
   return (
     <div
       className={`${styles.toast}${visible ? '' : ` ${styles.hiding}`}${displayOnTap ? ` ${styles.tappable}` : ''}`}
-      style={{ bottom: bottomOffset }}
+      style={{ bottom: `calc(${bottomOffset}px + var(--space-sys-nav-bottom, 0px))` }}
       onClick={displayOnTap}
       role={displayOnTap ? 'button' : undefined}
     >
