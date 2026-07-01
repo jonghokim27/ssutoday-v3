@@ -29,7 +29,7 @@ jobs:
           script: |
             cd ssutoday-v3
             git branch -m main
-            git pull https://jonghokim27:${{ secrets.GIT_TOKEN }}@github.com/jonghokim27/ssutoday-backend.git main
+            git pull https://jonghokim27:${{ secrets.GIT_TOKEN }}@github.com/jonghokim27/ssutoday-v3.git main
             rm -rf .env
             echo '${{secrets.ENV}}' >> .env
             rm -rf firebase.json
