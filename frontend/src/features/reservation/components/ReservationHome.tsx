@@ -100,7 +100,7 @@ export function ReservationHome() {
         {!loading && rooms.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon} aria-hidden="true">
-              <Icon name="calendar" />
+              <Icon name="alertTriangle" />
             </div>
             <strong>이용 가능한 스터디룸이 없어요</strong>
             <p>다른 시설을 이용해주세요</p>
