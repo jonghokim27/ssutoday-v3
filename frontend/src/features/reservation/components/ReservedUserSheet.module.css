@@ -6,11 +6,12 @@
   backdrop-filter: blur(2px);
   display: flex;
   align-items: flex-end;
+  justify-content: center;
   animation: fadeIn 0.2s ease both;
 }
 
 .sheet {
-  width: 100%;
+  width: min(402px, 100%);
   border-radius: var(--radius-sheet);
   background: var(--color-surface-base);
   box-shadow: var(--shadow-bottom-sheet);
