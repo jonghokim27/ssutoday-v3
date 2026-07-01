@@ -22,7 +22,7 @@
 .headline h1 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: var(--font-size-hero-title);
+  font-size: calc(var(--font-size-hero-title) * 0.85);
   font-weight: var(--font-weight-extra-bold);
   letter-spacing: -1px;
   line-height: 1.28;
@@ -115,7 +115,7 @@
 
 .cta {
   flex: none;
-  padding: var(--space-7) var(--space-8) var(--space-14);
+  padding: var(--space-7) var(--space-8) calc(var(--space-14) + var(--space-safe-area-bottom-extra));
 }
 
 .cta button {
