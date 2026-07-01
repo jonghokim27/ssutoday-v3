@@ -53,7 +53,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 6px var(--space-screen-x) 95px;
+  padding: 6px var(--space-screen-x) calc(95px + var(--space-sys-nav-bottom));
   scrollbar-width: none;
 }
 
@@ -240,7 +240,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: var(--space-6) var(--space-screen-x) calc(var(--space-13) + var(--space-safe-area-bottom-extra));
+  padding: var(--space-6) var(--space-screen-x) calc(var(--space-13) + var(--space-sys-nav-bottom));
   background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 32%);
 }
 

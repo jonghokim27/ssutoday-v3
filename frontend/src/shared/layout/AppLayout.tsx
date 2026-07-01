@@ -60,11 +60,13 @@ export function AppLayout() {
   const deviceStyle = {
     '--space-safe-area-top-extra': `${effectiveSafeAreaTop}px`,
     '--space-safe-area-bottom-extra': `${safeAreaBottomSpacing}px`,
+    '--space-sys-nav-bottom': isAndroid ? `${safeAreaBottomExtra}px` : '0px',
   } as CSSProperties;
 
   useEffect(() => {
     document.documentElement.style.setProperty('--space-safe-area-top-extra', `${effectiveSafeAreaTop}px`);
     document.documentElement.style.setProperty('--space-safe-area-bottom-extra', `${safeAreaBottomSpacing}px`);
+    document.documentElement.style.setProperty('--space-sys-nav-bottom', isAndroid ? `${safeAreaBottomExtra}px` : '0px');
   }, [effectiveSafeAreaTop, safeAreaBottomSpacing]);
 
   // Remove safe area params from URL after storing them.

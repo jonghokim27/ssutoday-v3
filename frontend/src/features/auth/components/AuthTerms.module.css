@@ -115,7 +115,7 @@
 
 .cta {
   flex: none;
-  padding: var(--space-7) var(--space-8) calc(var(--space-14) + var(--space-safe-area-bottom-extra));
+  padding: var(--space-7) var(--space-8) calc(var(--space-14) + var(--space-sys-nav-bottom));
 }
 
 .cta button {
