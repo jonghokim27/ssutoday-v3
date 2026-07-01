@@ -1,4 +1,13 @@
 services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports: ["80:80"]
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_started
+
   redis:
     image: redis:7-alpine
     ports: ["6379:6379"]
@@ -23,7 +32,7 @@ services:
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
-    ports: ["80:8080"]
+    expose: ["8080"]
     volumes:
       - ../firebase.json:/run/secrets/firebase.json:ro
     depends_on:
