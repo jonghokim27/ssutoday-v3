@@ -30,6 +30,7 @@ class MediaCrawler(
                 .connect("$API_URL/v1/board/?menuId=$MENU_ID&page=$page&size=$PAGE_SIZE")
                 .userAgent(USER_AGENT)
                 .ignoreContentType(true)
+                .maxBodySize(0)
                 .timeout(TIMEOUT_MILLIS)
                 .execute()
 
