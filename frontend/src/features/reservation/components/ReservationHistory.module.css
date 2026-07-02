@@ -329,7 +329,7 @@
 .topButton {
   position: fixed;
   right: 18px;
-  bottom: 36px;
+  bottom: calc(36px + var(--space-sys-nav-bottom, 0px));
   z-index: 90;
   width: 46px;
   height: 46px;
