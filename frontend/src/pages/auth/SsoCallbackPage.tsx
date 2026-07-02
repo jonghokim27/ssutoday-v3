@@ -42,7 +42,7 @@ export function SsoCallbackPage() {
           window.history.go(-2);
           return;
         }
-        navigate(safePath('/notices'), { replace: true });
+        navigate(safePath('/reservations'), { replace: true });
         return;
       }
 
