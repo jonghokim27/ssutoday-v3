@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 42px calc(6px + var(--space-safe-area-bottom-extra));
+  padding: 0 0 calc(6px + var(--space-safe-area-bottom-extra));
 }
 
 .item {
