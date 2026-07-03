@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as Application from 'expo-application';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Haptics from 'expo-haptics';
@@ -323,38 +323,40 @@ export default function WebViewScreen() {
   const backPressedOnce = useRef(false);
   const backPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') return;
 
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (versionStatus !== 'ok' || !isOnline) return false;
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (versionStatus !== 'ok' || !isOnline) return false;
 
-      if (webviewCanGoBack && !currentUrl.includes('/landing')) {
-        webviewRef.current?.goBack();
+        if (webviewCanGoBack && !currentUrl.includes('/landing')) {
+          webviewRef.current?.goBack();
+          return true;
+        }
+
+        if (backPressedOnce.current) {
+          BackHandler.exitApp();
+          return true;
+        }
+
+        backPressedOnce.current = true;
+        webviewRef.current?.postMessage(JSON.stringify({ v: 1, kind: 'event', event: 'app.backPressed' }));
+
+        backPressTimer.current = setTimeout(() => {
+          backPressedOnce.current = false;
+        }, 3000);
+
         return true;
-      }
+      });
 
-      if (backPressedOnce.current) {
-        BackHandler.exitApp();
-        return true;
-      }
-
-      backPressedOnce.current = true;
-      webviewRef.current?.postMessage(JSON.stringify({ v: 1, kind: 'event', event: 'app.backPressed' }));
-
-      backPressTimer.current = setTimeout(() => {
+      return () => {
+        subscription.remove();
+        if (backPressTimer.current) clearTimeout(backPressTimer.current);
         backPressedOnce.current = false;
-      }, 3000);
-
-      return true;
-    });
-
-    return () => {
-      subscription.remove();
-      if (backPressTimer.current) clearTimeout(backPressTimer.current);
-      backPressedOnce.current = false;
-    };
-  }, [versionStatus, isOnline, webviewCanGoBack, currentUrl]);
+      };
+    }, [versionStatus, isOnline, webviewCanGoBack, currentUrl])
+  );
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

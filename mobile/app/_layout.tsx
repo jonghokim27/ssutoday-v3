@@ -80,9 +80,13 @@ export default function RootLayout() {
     });
 
     // Cold start / quit state: FCM notification tap
+    // setTimeout(0) defers until after Expo Router commits the initial /index route,
+    // so router.push('/browser') adds on top instead of replacing the stack root.
     messaging().getInitialNotification().then((remoteMessage) => {
       if (remoteMessage) {
-        handleDeepLink(remoteMessage.data as Record<string, string>);
+        setTimeout(() => {
+          handleDeepLink(remoteMessage.data as Record<string, string>);
+        }, 0);
       }
     });
 
