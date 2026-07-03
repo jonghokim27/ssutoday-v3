@@ -432,7 +432,7 @@ npx eas build --profile production
 - 앱 이름: `슈투데이`
 - slug: `ssutoday`
 - scheme: `ssutoday`
-- version: `3.0.0`
+- version: `3.0.1`
 - iOS bundle identifier: `com.ssutoday`
 - Android package: `com.ssutoday`
 - orientation: portrait
