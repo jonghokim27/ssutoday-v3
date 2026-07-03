@@ -15,9 +15,8 @@
 }
 
 .item {
-  width: 52px;
-  height: 42px;
-  border-radius: var(--radius-icon);
+  flex: 1;
+  align-self: stretch;
   color: var(--color-text-disabled);
   font-size: var(--font-size-label);
   font-weight: var(--font-weight-bold);
@@ -47,6 +46,8 @@
 }
 
 .primary {
+  flex: none;
+  align-self: center;
   width: 50px;
   height: 50px;
   margin-top: -16px;
