@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
 import { Badge } from '../../../shared/ui/Badge';
 import { Icon } from '../../../shared/ui/Icon';
@@ -318,10 +319,11 @@ export function NoticePageContent() {
           <Icon className={styles.topIcon} name="arrowDown" />
         </button>
       ) : null}
-      {opening ? (
+      {opening ? createPortal(
         <div className={styles.loadingOverlay}>
           <LoadingState compact label="공지사항을 여는 중" />
-        </div>
+        </div>,
+        document.body
       ) : null}
       <Toast message={toast} />
     </div>
