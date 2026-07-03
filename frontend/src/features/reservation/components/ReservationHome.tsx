@@ -64,15 +64,6 @@ export function ReservationHome() {
     return () => window.clearTimeout(scrollPersistTimeoutRef.current);
   }, []);
 
-  // 스크롤 위치 저장: 상세 페이지로 이동할 때 unmount 시 저장
-  useEffect(() => {
-    return () => {
-      if (screenRef.current) {
-        sessionStorage.setItem('reservation_scroll', String(screenRef.current.scrollTop));
-      }
-    };
-  }, []);
-
   // 스크롤 위치 복원: 데이터 로드 완료 후 복원
   useEffect(() => {
     if (!loading) {
@@ -132,7 +123,11 @@ export function ReservationHome() {
   }
 
   return (
-    <div className={styles.screen} ref={screenRef}>
+    <div
+      className={styles.screen}
+      ref={screenRef}
+      onScroll={(e) => sessionStorage.setItem('reservation_scroll', String((e.currentTarget as HTMLDivElement).scrollTop))}
+    >
       <BrandHeader
         action={
           <Link to={safePath('/reservations/history')}>
