@@ -1,4 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+const DISABLE_CONTEXT_MENU_JS = `
+(function(){
+  document.addEventListener('contextmenu',function(e){e.preventDefault();},true);
+  function addStyle(){
+    var s=document.createElement('style');
+    s.textContent='*{-webkit-touch-callout:none!important;}';
+    document.head.appendChild(s);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',addStyle);}
+  else{addStyle();}
+})();
+true;
+`;
 import { Animated, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -92,6 +106,8 @@ export default function InAppBrowserScreen() {
         onLoadProgress={handleLoadProgress}
         onLoadEnd={handleLoadEnd}
         onNavigationStateChange={handleNavigationStateChange}
+        allowsLinkPreview={false}
+        injectedJavaScriptBeforeContentLoaded={DISABLE_CONTEXT_MENU_JS}
       />
     </View>
   );

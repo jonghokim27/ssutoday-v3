@@ -21,6 +21,20 @@ import UpdateRequiredScreen from './UpdateRequiredScreen';
 import TurnstileModal from './TurnstileModal';
 
 const TARGET_URL = 'https://v3.ssu.today';
+
+const DISABLE_CONTEXT_MENU_JS = `
+(function(){
+  document.addEventListener('contextmenu',function(e){e.preventDefault();},true);
+  function addStyle(){
+    var s=document.createElement('style');
+    s.textContent='*{-webkit-touch-callout:none!important;}';
+    document.head.appendChild(s);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',addStyle);}
+  else{addStyle();}
+})();
+true;
+`;
 const VERSION_CHECK_URL = 'https://api.ssu.today/device/checkVersion';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
@@ -396,6 +410,8 @@ export default function WebViewScreen() {
         userAgent={USER_AGENT}
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
+        allowsLinkPreview={false}
+        injectedJavaScriptBeforeContentLoaded={DISABLE_CONTEXT_MENU_JS}
         overScrollMode="never"
       />
       {smartId && (
