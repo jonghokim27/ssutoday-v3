@@ -25,6 +25,7 @@ export function ReservationHome() {
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
+  const screenRef = useRef<HTMLDivElement>(null);
   const scrollersRef = useRef<Set<HTMLDivElement>>(new Set());
   // Tracks each scroller's last-known position so syncing never has to read
   // `el.scrollLeft` back from the DOM: reading right after writing forces a
@@ -62,6 +63,28 @@ export function ReservationHome() {
   useEffect(() => {
     return () => window.clearTimeout(scrollPersistTimeoutRef.current);
   }, []);
+
+  // 스크롤 위치 저장: 상세 페이지로 이동할 때 unmount 시 저장
+  useEffect(() => {
+    return () => {
+      if (screenRef.current) {
+        sessionStorage.setItem('reservation_scroll', String(screenRef.current.scrollTop));
+      }
+    };
+  }, []);
+
+  // 스크롤 위치 복원: 데이터 로드 완료 후 복원
+  useEffect(() => {
+    if (!loading) {
+      const saved = sessionStorage.getItem('reservation_scroll');
+      if (saved) {
+        requestAnimationFrame(() => {
+          screenRef.current?.scrollTo({ top: Number(saved) });
+          sessionStorage.removeItem('reservation_scroll');
+        });
+      }
+    }
+  }, [loading]);
 
   useEffect(() => {
     let mounted = true;
@@ -103,12 +126,13 @@ export function ReservationHome() {
 
   function pickDate(date: string) {
     sessionStorage.setItem('reservation_selected_date', date);
+    sessionStorage.removeItem('reservation_scroll');
     setSelectedDate(date);
     setTimebarScrollLeft(undefined);
   }
 
   return (
-    <div className={styles.screen}>
+    <div className={styles.screen} ref={screenRef}>
       <BrandHeader
         action={
           <Link to={safePath('/reservations/history')}>
