@@ -413,6 +413,7 @@ export default function WebViewScreen() {
         allowsLinkPreview={false}
         injectedJavaScriptBeforeContentLoaded={DISABLE_CONTEXT_MENU_JS}
         overScrollMode="never"
+        sharedCookiesEnabled
       />
       {smartId && (
         <View
