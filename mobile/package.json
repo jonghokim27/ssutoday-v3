@@ -35,7 +35,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "upload-ios": "eas build --platform ios --auto-submit",
+    "upload-android": "eas build --platform android --auto-submit"
   },
   "private": true
 }
