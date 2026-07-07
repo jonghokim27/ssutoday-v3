@@ -263,7 +263,9 @@ export default function WebViewScreen() {
     });
   }, []);
 
-  const targetUri = `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}&safeAreaBottom=${Math.round(insets.bottom)}`;
+  const [targetUri] = useState(
+    () => `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}&safeAreaBottom=${Math.round(insets.bottom)}`
+  );
 
   const sendHandshake = useCallback(() => {
     const handshake = { v: 1 as const, kind: 'handshake' as const, id: generateId(), ...getHandshakeInfo() };
