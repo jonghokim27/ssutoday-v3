@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuthSession } from '../../../app/authSessionContext';
 import { BrandHeader } from '../../../shared/layout/BrandHeader';
@@ -226,10 +227,11 @@ export function MyPageContent() {
           tone="danger"
         />
       ) : null}
-      {actionLoading ? (
+      {actionLoading ? createPortal(
         <div className={styles.loadingOverlay}>
           <LoadingState compact label="요청을 처리하는 중" />
-        </div>
+        </div>,
+        document.body
       ) : null}
       <Toast message={toast} />
     </div>
