@@ -64,15 +64,18 @@ export function ReservationHome() {
     return () => window.clearTimeout(scrollPersistTimeoutRef.current);
   }, []);
 
-  // 스크롤 위치 복원: 데이터 로드 완료 후 복원
   useEffect(() => {
     if (!loading) {
       const saved = sessionStorage.getItem('reservation_scroll');
-      if (saved) {
+      const valid = sessionStorage.getItem('reservation_scroll_valid');
+      sessionStorage.removeItem('reservation_scroll_valid');
+      if (saved && valid) {
         requestAnimationFrame(() => {
           screenRef.current?.scrollTo({ top: Number(saved) });
           sessionStorage.removeItem('reservation_scroll');
         });
+      } else {
+        sessionStorage.removeItem('reservation_scroll');
       }
     }
   }, [loading]);
@@ -130,7 +133,7 @@ export function ReservationHome() {
     >
       <BrandHeader
         action={
-          <Link to={safePath('/reservations/history')}>
+          <Link onClick={() => sessionStorage.setItem('reservation_scroll_valid', '1')} to={safePath('/reservations/history')}>
             <IconButton aria-label="예약 내역"><Icon name="refresh" /></IconButton>
           </Link>
         }

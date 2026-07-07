@@ -37,6 +37,7 @@ export function StudyRoomCard({ room, timebarScrollLeft, onTimebarScroll, regist
           event.preventDefault();
         } else {
           triggerHaptic('medium');
+          sessionStorage.setItem('reservation_scroll_valid', '1');
         }
       }}
       onPointerDown={(event) => {
