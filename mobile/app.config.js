@@ -102,6 +102,7 @@ const config = {
   plugins: [
     'expo-router',
     'expo-notifications',
+    'expo-image-picker',
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     [

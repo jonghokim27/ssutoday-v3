@@ -219,9 +219,15 @@ export default function WebViewScreen() {
     });
 
     registerHandler('camera.captureVerifyPhoto', async () => {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+      const current = await ImagePicker.getCameraPermissionsAsync();
+      if (current.status !== 'granted') {
+        if (!current.canAskAgain) {
+          throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+        }
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+        }
       }
 
       const result = await ImagePicker.launchCameraAsync({
