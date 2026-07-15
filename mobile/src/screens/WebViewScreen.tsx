@@ -6,6 +6,7 @@ import * as Application from 'expo-application';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
 import NetInfo from '@react-native-community/netinfo';
@@ -233,8 +234,8 @@ export default function WebViewScreen() {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: 'images',
         allowsEditing: false,
-        quality: 0.8,
-        base64: true,
+        quality: 1,
+        base64: false,
         exif: false,
       });
 
@@ -243,13 +244,22 @@ export default function WebViewScreen() {
       }
 
       const asset = result.assets[0];
-      if (!asset.base64) {
+      const context = ImageManipulator.manipulate(asset.uri);
+      context.resize({ width: 1280 });
+      const imageRef = await context.renderAsync();
+      const manipulated = await imageRef.saveAsync({
+        compress: 0.8,
+        format: SaveFormat.JPEG,
+        base64: true,
+      });
+
+      if (!manipulated.base64) {
         throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다');
       }
       return {
         name: `verify-photo-${Date.now()}.jpg`,
         type: 'image/jpeg',
-        uri: `data:image/jpeg;base64,${asset.base64}`,
+        uri: `data:image/jpeg;base64,${manipulated.base64}`,
       };
     });
 
