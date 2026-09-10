@@ -40,9 +40,9 @@ class VerifyPhotoApplicationService(
     private val bucket: String,
     @Value("\${ssutoday.storage.public-base-url:}")
     private val publicBaseUrl: String,
-    @Value("\${ssutoday.gemini.enforce:false}")
+    @Value("\${ssutoday.gemini.enforce}")
     private val enforce: Boolean,
-    @Value("\${ssutoday.gemini.reject-threshold:0.9}")
+    @Value("\${ssutoday.gemini.reject-threshold}")
     private val rejectThreshold: Double,
 ) {
     private val log = KotlinLogging.logger {}

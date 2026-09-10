@@ -23,9 +23,9 @@ import java.util.Base64
 class GeminiVerifyPhotoInspectionAdapter(
     restClientBuilder: RestClient.Builder,
     private val objectMapper: ObjectMapper,
-    @Value("\${ssutoday.gemini.api-key:}")
+    @Value("\${ssutoday.gemini.api-key}")
     private val apiKey: String,
-    @Value("\${ssutoday.gemini.model:gemini-3.5-flash-lite}")
+    @Value("\${ssutoday.gemini.model}")
     private val model: String,
 ) : VerifyPhotoInspectionPort {
     private val log = KotlinLogging.logger {}
