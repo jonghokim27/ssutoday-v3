@@ -468,6 +468,6 @@ class ReservationCommandApplicationService(
 
         /** 이 횟수째 거부부터는 인증샷 삭제가 아니라 예약 취소로 처리한다. */
         const val CANCEL_AFTER_REJECTIONS = 2
-        const val INSPECTION_ADMIN_NAME = "AI 인증샷 검사"
+        const val INSPECTION_ADMIN_NAME = "시스템"
     }
 }
