@@ -86,6 +86,14 @@ class ReservationService(
         reservation.resetCreatedAt()
     }
 
+    /** 자동 검사 거부 횟수를 1 올리고 누적 횟수를 반환한다. 첫 거부면 1이다. */
+    fun increasePhotoRejectCount(reservationId: Long): Int {
+        val reservation =
+            repository.findByIdOrNull(reservationId)
+                ?: throw IllegalStateException("Reservation $reservationId disappeared")
+        return reservation.increasePhotoRejectCount()
+    }
+
     fun finish(
         reservationId: Long,
         endBlock: Int,

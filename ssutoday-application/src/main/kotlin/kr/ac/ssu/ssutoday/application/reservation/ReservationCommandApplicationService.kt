@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.application.reservation
 
 import kr.ac.ssu.ssutoday.application.reservation.dto.AdminReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
+import kr.ac.ssu.ssutoday.application.reservation.dto.RejectVerifyPhotoResult
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.dto.PushMessages
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
@@ -298,6 +299,35 @@ class ReservationCommandApplicationService(
         }
     }
 
+    /**
+     * 자동 검사가 인증샷을 거부했을 때의 처리다. 거부 횟수를 올리고, 첫 거부면 인증샷을 삭제해
+     * 재촬영을 유도하고 두 번째 거부부터는 예약을 취소한다.
+     *
+     * executeAdminActionByToken을 그대로 재사용하므로 삭제·createdAt 리셋·푸시·Discord 알림이
+     * 관리자가 직접 처리했을 때와 동일하게 동작한다.
+     */
+    @Transactional
+    fun rejectVerifyPhotoByInspection(
+        reservationId: Long,
+        inspectionReason: String,
+    ): RejectVerifyPhotoResult {
+        val reservation = reservationService.find(reservationId) ?: return RejectVerifyPhotoResult(0, null, 0)
+        if (!reservation.active) return RejectVerifyPhotoResult(0, null, 1)
+
+        val count = reservationService.increasePhotoRejectCount(reservationId)
+        val action = if (count >= CANCEL_AFTER_REJECTIONS) ADMIN_CANCEL else PHOTO_DELETE
+        // 같은 빈 안에서의 호출이라 프록시를 타지 않지만, 이미 이 메서드의 트랜잭션 안이라 동작은 같다.
+        val status =
+            executeAdminActionByToken(
+                adminToken = reservation.adminToken,
+                action = action,
+                reason = "AI 인증샷 검사 거부 ${count}회 (${inspectionReason})",
+                adminName = INSPECTION_ADMIN_NAME,
+            )
+
+        return RejectVerifyPhotoResult(count, action, status)
+    }
+
     @Transactional
     fun cancelMissingPhotos() {
         val now = LocalDateTime.now()
@@ -435,5 +465,9 @@ class ReservationCommandApplicationService(
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
+
+        /** 이 횟수째 거부부터는 인증샷 삭제가 아니라 예약 취소로 처리한다. */
+        const val CANCEL_AFTER_REJECTIONS = 2
+        const val INSPECTION_ADMIN_NAME = "AI 인증샷 검사"
     }
 }

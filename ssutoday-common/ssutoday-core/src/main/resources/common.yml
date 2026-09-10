@@ -55,6 +55,14 @@ ssutoday:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
       reservation-request: ${RESERVATION_REQUEST_TOPIC:requestReserve}
+      verify-photo-inspection: ${VERIFY_PHOTO_INSPECTION_TOPIC:verifyPhotoInspection}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+    # false면 판정 결과를 Discord에만 남기고 인증샷 삭제나 예약 취소는 하지 않는다.
+    enforce: ${GEMINI_ENFORCE:false}
+    # 이 값 미만의 confidence는 거부하지 않고 통과시킨다.
+    reject-threshold: ${GEMINI_REJECT_THRESHOLD:0.9}
   storage:
     verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
     public-base-url: ${S3_PUBLIC_BASE_URL:}
