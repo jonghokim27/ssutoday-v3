@@ -34,7 +34,6 @@ class Reservation(
     var deletedReason: String? = null,
     @Column(nullable = false, unique = true, length = 220)
     var adminToken: String = generateAdminToken(),
-    /** 자동 검사가 이 예약의 인증샷을 거부한 누적 횟수. 첫 거부는 삭제, 두 번째 거부는 예약 취소로 이어진다. */
     @Column(nullable = false)
     var photoRejectCount: Int = 0,
 ) {
