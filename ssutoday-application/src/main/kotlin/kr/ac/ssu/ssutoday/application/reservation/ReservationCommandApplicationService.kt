@@ -321,7 +321,7 @@ class ReservationCommandApplicationService(
             executeAdminActionByToken(
                 adminToken = reservation.adminToken,
                 action = action,
-                reason = "AI 인증샷 검사 거부 ${count}회 (${inspectionReason})",
+                reason = inspectionReason,
                 adminName = INSPECTION_ADMIN_NAME,
             )
 
