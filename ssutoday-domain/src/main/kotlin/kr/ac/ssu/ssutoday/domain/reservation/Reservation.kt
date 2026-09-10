@@ -34,6 +34,8 @@ class Reservation(
     var deletedReason: String? = null,
     @Column(nullable = false, unique = true, length = 220)
     var adminToken: String = generateAdminToken(),
+    @Column(nullable = false)
+    var photoRejectCount: Int = 0,
 ) {
     val active: Boolean get() = deletedAt == null
 
@@ -44,6 +46,11 @@ class Reservation(
 
     fun resetCreatedAt() {
         createdAt = Timestamp(System.currentTimeMillis())
+    }
+
+    fun increasePhotoRejectCount(): Int {
+        photoRejectCount += 1
+        return photoRejectCount
     }
 
     fun finishAt(endBlock: Int) {

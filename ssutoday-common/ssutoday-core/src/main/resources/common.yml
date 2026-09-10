@@ -55,6 +55,12 @@ ssutoday:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}
       reservation-request: ${RESERVATION_REQUEST_TOPIC:requestReserve}
+      verify-photo-inspection: ${VERIFY_PHOTO_INSPECTION_TOPIC:verifyPhotoInspection}
+  gemini:
+    api-key: ${GEMINI_API_KEY}
+    model: gemini-3.5-flash-lite
+    enforce: false
+    reject-threshold: 0.9
   storage:
     verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
     public-base-url: ${S3_PUBLIC_BASE_URL:}

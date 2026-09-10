@@ -209,6 +209,7 @@ Kafka consumer 실행 모듈이다.
 | `KAFKA_HOST` | Kafka bootstrap server |
 | `JWT_SECRET_KEY` | JWT 서명 secret |
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile server secret |
+| `GEMINI_API_KEY` | 인증샷 자동 검사용 Gemini API 키. 기본값이 없어 비면 기동에 실패한다 |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | S3 호환 스토리지 접근 키 |
 | `AWS_S3_ENDPOINT`, `AWS_S3_REGION` | Cloudflare R2 또는 S3 호환 endpoint/region |
 | `S3_PUBLIC_BASE_URL` | 인증샷 공개 URL base |
