@@ -30,8 +30,11 @@ class GeminiVerifyPhotoInspectionAdapter(
 ) : VerifyPhotoInspectionPort {
     private val log = KotlinLogging.logger {}
 
+    // RestClientConfig의 builder는 싱글톤 빈이고 설정 메서드가 자기 자신을 변형하므로,
+    // clone하지 않으면 Turnstile 등 같은 builder를 쓰는 어댑터에 설정이 새어 나간다.
     private val restClient =
         restClientBuilder
+            .clone()
             .requestFactory(
                 SimpleClientHttpRequestFactory().apply {
                     setConnectTimeout(Duration.ofSeconds(5))
