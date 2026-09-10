@@ -1,6 +1,5 @@
 package kr.ac.ssu.ssutoday.adapter.gemini
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.core.dto.PhotoInspection
 import kr.ac.ssu.ssutoday.core.port.VerifyPhotoInspectionPort
@@ -9,6 +8,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import java.util.Base64
 
@@ -121,7 +121,7 @@ class GeminiVerifyPhotoInspectionAdapter(
                 ?.path("parts")
                 ?.firstOrNull()
                 ?.path("text")
-                ?.asText()
+                ?.asString()
 
         if (text.isNullOrBlank()) {
             log.warn { "Gemini 응답에서 판정 결과를 찾지 못했습니다: ${response.take(300)}" }
@@ -132,7 +132,7 @@ class GeminiVerifyPhotoInspectionAdapter(
         return PhotoInspection(
             isStudyRoom = verdict.path("isStudyRoom").asBoolean(true),
             confidence = verdict.path("confidence").asDouble(0.0),
-            reason = verdict.path("reason").asText(""),
+            reason = verdict.path("reason").asString(""),
         )
     }
 
