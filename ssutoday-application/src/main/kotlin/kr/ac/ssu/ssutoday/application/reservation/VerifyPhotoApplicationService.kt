@@ -120,7 +120,7 @@ class VerifyPhotoApplicationService(
             )
         log.info {
             "인증샷 자동 거부: reservationId=$reservationId action=${result.action} " +
-                "count=${result.rejectionCount} status=${result.status}"
+                "count=${result.deleteCount} status=${result.status}"
         }
     }
 

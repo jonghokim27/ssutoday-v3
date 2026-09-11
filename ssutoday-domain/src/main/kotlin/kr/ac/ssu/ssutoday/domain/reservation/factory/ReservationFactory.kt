@@ -16,5 +16,5 @@ fun Reservation.toView() =
         deletedReason = deletedReason,
         active = active,
         adminToken = adminToken,
-        photoRejectCount = photoRejectCount,
+        photoDeleteCount = photoDeleteCount,
     )
