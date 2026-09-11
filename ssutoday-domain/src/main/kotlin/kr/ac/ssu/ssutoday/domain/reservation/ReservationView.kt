@@ -15,5 +15,5 @@ data class ReservationView(
     val deletedReason: String?,
     val active: Boolean,
     val adminToken: String,
-    val photoRejectCount: Int,
+    val photoDeleteCount: Int,
 )

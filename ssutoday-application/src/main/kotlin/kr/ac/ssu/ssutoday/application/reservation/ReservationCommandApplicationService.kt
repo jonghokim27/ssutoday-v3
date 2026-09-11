@@ -194,6 +194,7 @@ class ReservationCommandApplicationService(
                 val photoUrl = verifyPhotoService.find(command.reservationId)?.url
                 if (!verifyPhotoService.delete(command.reservationId)) return 4
                 reservationService.resetCreatedAt(command.reservationId)
+                reservationService.increasePhotoDeleteCount(command.reservationId)
                 val studentId = reservation.studentId
                 afterCommit {
                     sendReservationPush(
@@ -278,6 +279,7 @@ class ReservationCommandApplicationService(
                 val photoUrl = verifyPhotoService.find(reservation.id)?.url
                 if (!verifyPhotoService.delete(reservation.id)) return 4
                 reservationService.resetCreatedAt(reservation.id)
+                reservationService.increasePhotoDeleteCount(reservation.id)
                 val studentId = reservation.studentId
                 afterCommit {
                     sendReservationPush(
@@ -314,8 +316,9 @@ class ReservationCommandApplicationService(
         val reservation = reservationService.find(reservationId) ?: return RejectVerifyPhotoResult(0, null, 0)
         if (!reservation.active) return RejectVerifyPhotoResult(0, null, 1)
 
-        val count = reservationService.increasePhotoRejectCount(reservationId)
-        val action = if (count >= CANCEL_AFTER_REJECTIONS) ADMIN_CANCEL else PHOTO_DELETE
+        // 삭제 횟수 증가는 PHOTO_DELETE 분기가 담당한다. 여기서는 직전까지의 값으로 행동만 고른다.
+        val deleteCount = reservation.photoDeleteCount
+        val action = if (deleteCount >= MAX_PHOTO_DELETES) ADMIN_CANCEL else PHOTO_DELETE
         // 같은 빈 안에서의 호출이라 프록시를 타지 않지만, 이미 이 메서드의 트랜잭션 안이라 동작은 같다.
         val status =
             executeAdminActionByToken(
@@ -325,7 +328,7 @@ class ReservationCommandApplicationService(
                 adminName = INSPECTION_ADMIN_NAME,
             )
 
-        return RejectVerifyPhotoResult(count, action, status)
+        return RejectVerifyPhotoResult(deleteCount + 1, action, status)
     }
 
     @Transactional
@@ -336,7 +339,8 @@ class ReservationCommandApplicationService(
         candidates.forEach { reservation ->
             val startAt = reservation.date.atStartOfDay().plusMinutes(reservation.startBlock * 30L)
             val useStartAt = maxOf(startAt, reservation.createdAt.toLocalDateTime())
-            if (now.isAfter(useStartAt.plusMinutes(10))) {
+            val graceMinutes = if (reservation.photoDeleteCount > 0) RETRY_GRACE_MINUTES else FIRST_GRACE_MINUTES
+            if (now.isAfter(useStartAt.plusMinutes(graceMinutes))) {
                 reservationService.cancelByAdmin(reservation.id, "인증샷 미촬영 취소")
                 val studentId = reservation.studentId
                 val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
@@ -466,8 +470,10 @@ class ReservationCommandApplicationService(
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
 
-        /** 이 횟수째 거부부터는 인증샷 삭제가 아니라 예약 취소로 처리한다. */
-        const val CANCEL_AFTER_REJECTIONS = 2
+        /** 인증샷이 이 횟수만큼 삭제된 뒤 다시 거부되면 삭제가 아니라 예약을 취소한다. */
+        const val MAX_PHOTO_DELETES = 1
+        const val FIRST_GRACE_MINUTES = 10L
+        const val RETRY_GRACE_MINUTES = 5L
         const val INSPECTION_ADMIN_NAME = "시스템"
     }
 }

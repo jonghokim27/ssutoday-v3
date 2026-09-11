@@ -30,7 +30,7 @@ object PushMessages {
     fun adminCancelBody(reason: String) = "관리자가 예약을 취소했어요. (사유: $reason)"
 
     // ── 관리자 인증샷 삭제 (재촬영 요청) ──────────────────────────────────────
-    const val PHOTO_DELETE_TITLE = "❗ 10분 내로 인증샷을 다시 촬영해주세요"
+    const val PHOTO_DELETE_TITLE = "❗ 5분 내로 인증샷을 다시 촬영해주세요"
     const val PHOTO_DELETE_BODY =
         "촬영해주신 인증샷으로 스터디룸에 입실하였음을 확인할 수 없었어요. 이 알림을 터치하여 인증샷을 다시 촬영해주세요. 인증샷이 다시 촬영되지 않으면 예약이 취소돼요"
 

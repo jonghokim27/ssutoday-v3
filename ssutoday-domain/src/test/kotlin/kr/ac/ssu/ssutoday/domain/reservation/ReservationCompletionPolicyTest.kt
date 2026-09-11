@@ -51,6 +51,6 @@ class ReservationCompletionPolicyTest {
             deletedReason = null,
             active = true,
             adminToken = "admin-token",
-            photoRejectCount = 0,
+            photoDeleteCount = 0,
         )
 }
