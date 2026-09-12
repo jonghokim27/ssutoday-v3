@@ -4,6 +4,8 @@
 .idea/
 *.iml
 .env
+.secrets/
+play-integrity*.json
 firebase.json
 !mobile/firebase.json
 infra/mysql/data/

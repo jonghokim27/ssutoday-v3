@@ -215,9 +215,13 @@ Kafka consumer 실행 모듈이다.
 | `S3_PUBLIC_BASE_URL` | 인증샷 공개 URL base |
 | `VERIFY_PHOTO_BUCKET` | 인증샷 저장 bucket |
 | `FIREBASE_CREDENTIALS` | Firebase Admin credential JSON 경로 |
+| `PLAY_INTEGRITY_CREDENTIALS` | Android Play Integrity 서비스 계정 JSON 경로. API 컨테이너에서만 마운트 |
+| `ATTESTATION_ENFORCE` | 인증샷 앱 무결성 검증 강제 여부. 기본 `false`로 관찰하며 양 플랫폼 연동 완료 후 전환 |
 | `DISCORD_ERROR_WEBHOOK_URL` | WARN 이상 로그 Discord 알림 webhook |
 | `DISCORD_VERIFYPHOTO_WEBHOOK_URL` | 인증샷/예약 액션 Discord 알림 webhook |
 | `ADMIN_BASE_URL` | Discord 관리자 액션 링크 base URL |
+
+인증샷 무결성의 구현 범위, Android 판정 기준과 관찰/강제 모드 계약은 [docs/attestation.md](docs/attestation.md)를 참고한다.
 
 ### 서버 실행
 

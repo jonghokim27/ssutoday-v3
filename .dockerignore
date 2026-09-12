@@ -8,6 +8,8 @@
 **/build/
 *.iml
 .env
+.secrets
+play-integrity*.json
 .env.example
 firebase.json
 mobile

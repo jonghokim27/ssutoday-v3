@@ -1,6 +1,8 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kr.ac.ssu.ssutoday.application.attest.PhotoAttestationApplicationService
+import kr.ac.ssu.ssutoday.application.attest.dto.VerifyPhotoAttestationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.dto.PhotoInspection
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
@@ -36,6 +38,7 @@ class VerifyPhotoApplicationService(
     private val discordReservationActionNotificationPort: DiscordReservationActionNotificationPort,
     private val verifyPhotoInspectionPublisher: VerifyPhotoInspectionPublisher,
     private val verifyPhotoInspectionPort: VerifyPhotoInspectionPort,
+    private val photoAttestationApplicationService: PhotoAttestationApplicationService,
     @Value("\${ssutoday.storage.verify-photo-bucket}")
     private val bucket: String,
     @Value("\${ssutoday.storage.public-base-url:}")
@@ -53,10 +56,17 @@ class VerifyPhotoApplicationService(
             throw BusinessException(StatusCode.SSU4205)
         }
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
+        val photo = command.input.readBytes()
+        val attestation =
+            photoAttestationApplicationService.verify(
+                VerifyPhotoAttestationCommand(command.studentId, command.reservationId, photo, command.attestation),
+            )
         val key = "verifyPhoto/${tokenPort.randomToken(VERIFY_PHOTO_FILE_TOKEN_LENGTH)}.jpeg"
         val uploadedUrl =
             try {
-                fileStoragePort.upload(bucket, key, command.contentType, command.size, command.input)
+                photo.inputStream().use { input ->
+                    fileStoragePort.upload(bucket, key, command.contentType, photo.size.toLong(), input)
+                }
             } catch (exception: Exception) {
                 throw RuntimeException("파일 업로드에 실패했습니다", exception)
             }
@@ -73,7 +83,9 @@ class VerifyPhotoApplicationService(
             )
         afterCommit {
             discordVerifyPhotoNotificationPort.send(
-                content = "**[인증샷 촬영 알림]**",
+                content =
+                    "**[인증샷 촬영 알림]**\n앱 무결성: ${attestation.verdict} (${attestation.platform}, " +
+                        "${if (attestation.enforced) "강제 모드" else "관찰 모드"})",
                 reservationId = reservation.id,
                 adminToken = reservation.adminToken,
                 studentInfo = studentInfo,

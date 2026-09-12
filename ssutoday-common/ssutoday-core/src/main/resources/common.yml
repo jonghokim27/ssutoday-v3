@@ -47,6 +47,17 @@ cloud:
       auto: false
 
 ssutoday:
+  attestation:
+    enforce: ${ATTESTATION_ENFORCE:false}
+    play-integrity:
+      cloud-project-number: ${PLAY_CLOUD_PROJECT_NUMBER:997341830534}
+      credentials: ${PLAY_INTEGRITY_CREDENTIALS:}
+      package-name: com.ssutoday
+      certificate-sha256: ${PLAY_APP_SIGNING_CERTIFICATE_SHA256:30:B0:61:28:59:F6:64:57:59:11:18:AC:CD:A3:98:B4:D9:D9:C4:AE:CC:BE:C0:A5:11:40:99:B4:22:CE:2F:ED}
+    app-attest:
+      team-id: ${APPLE_TEAM_ID:F7TW6722Y9}
+      bundle-id: com.ssutoday
+      production: ${APP_ATTEST_PRODUCTION:true}
   admin:
     base-url: ${ADMIN_BASE_URL:}
   turnstile:

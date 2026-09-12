@@ -15,4 +15,5 @@ dependencies {
     implementation("com.google.firebase:firebase-admin:9.2.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 }

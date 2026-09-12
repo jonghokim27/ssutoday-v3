@@ -9,4 +9,8 @@ data class VerifyPhotoRequest(
     val turnstileToken: String,
     @field:NotNull val idx: Long,
     @field:NotNull val file: MultipartFile,
+    val platform: String? = null,
+    val challenge: String? = null,
+    val attestation: String? = null,
+    val keyId: String? = null,
 )

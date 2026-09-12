@@ -11,6 +11,7 @@ import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationStatusResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.VerifyPhotoRequest
+import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
 import kr.ac.ssu.ssutoday.application.reservation.ReservationCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.VerifyPhotoApplicationService
@@ -92,16 +93,19 @@ class ReservationController(
         @Valid @ModelAttribute request: VerifyPhotoRequest,
     ) {
         val file = request.file
-        verifyPhotoApplicationService.upload(
-            UploadPhotoCommand(
-                request.turnstileToken,
-                student.id,
-                request.idx,
-                file.contentType,
-                file.size,
-                file.inputStream,
-            ),
-        )
+        file.inputStream.use { input ->
+            verifyPhotoApplicationService.upload(
+                UploadPhotoCommand(
+                    request.turnstileToken,
+                    student.id,
+                    request.idx,
+                    file.contentType,
+                    file.size,
+                    input,
+                    PhotoAttestationEvidence(request.platform, request.challenge, request.attestation, request.keyId),
+                ),
+            )
+        }
     }
 
     @PostMapping("/adminTools")

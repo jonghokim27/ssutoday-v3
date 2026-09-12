@@ -32,9 +32,11 @@ services:
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
+      PLAY_INTEGRITY_CREDENTIALS: /run/secrets/attestation/play-integrity.json
     expose: ["8080"]
     volumes:
       - ../firebase.json:/run/secrets/firebase.json:ro
+      - ../.secrets/attestation:/run/secrets/attestation:ro
     depends_on:
       redis:
         condition: service_started

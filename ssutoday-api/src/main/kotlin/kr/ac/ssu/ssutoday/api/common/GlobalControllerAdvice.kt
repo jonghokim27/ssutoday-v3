@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.api.common
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.exception.InvalidInputException
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.context.MessageSource
 import org.springframework.core.MethodParameter
@@ -53,6 +54,7 @@ class GlobalControllerAdvice(
     }
 
     @ExceptionHandler(
+        InvalidInputException::class,
         MethodArgumentNotValidException::class,
         HttpMessageNotReadableException::class,
         MissingServletRequestParameterException::class,
