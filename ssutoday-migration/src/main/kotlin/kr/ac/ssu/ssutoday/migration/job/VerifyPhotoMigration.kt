@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.migration.config.DB
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.annotation.Order
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 
@@ -20,9 +20,10 @@ class VerifyPhotoMigration(
     private val log = KotlinLogging.logger {}
 
     override fun migrate() {
-        val rows = oldDb.queryForList(
-            "SELECT idx, ReserveIdx, url, createdAt FROM `VerifyPhoto`",
-        )
+        val rows =
+            oldDb.queryForList(
+                "SELECT idx, ReserveIdx, url, createdAt FROM `VerifyPhoto`",
+            )
         log.info { "[verify_photo] ${rows.size}건 마이그레이션 시작" }
 
         rows.chunked(batchSize).forEach { chunk ->

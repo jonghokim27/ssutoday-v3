@@ -7,6 +7,13 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnMissingBean(PushTopicManager::class)
 class MockPushTopicManager : PushTopicManager {
-    override fun subscribe(token: String, topics: List<String>) {}
-    override fun unsubscribe(token: String, topics: List<String>) {}
+    override fun subscribe(
+        token: String,
+        topics: List<String>,
+    ) {}
+
+    override fun unsubscribe(
+        token: String,
+        topics: List<String>,
+    ) {}
 }
