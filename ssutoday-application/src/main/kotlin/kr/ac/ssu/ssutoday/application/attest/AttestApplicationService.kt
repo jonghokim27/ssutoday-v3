@@ -25,9 +25,9 @@ class AttestApplicationService(
                 }
                 reservationService.getForPhotoUpload(command.studentId, reservationId)
             }
-            AttestationPurpose.APP_ATTEST_REGISTER -> {
+            AttestationPurpose.APP_ATTEST_REGISTER, AttestationPurpose.RESERVATION_CREATE -> {
                 if (command.reservationId != null) {
-                    throw InvalidInputException("A registration challenge must not contain reservationId")
+                    throw InvalidInputException("This challenge purpose must not contain reservationId")
                 }
             }
         }

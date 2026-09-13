@@ -1,6 +1,7 @@
 package kr.ac.ssu.ssutoday.core.attestation
 
 import java.security.MessageDigest
+import java.time.LocalDate
 import java.util.Base64
 
 /** 네이티브와 서버가 독립적으로 재구성하는 v1 요청 바이트. docs/attestation.md 참고. */
@@ -58,6 +59,33 @@ object AttestationClientData {
             "studentId=$studentId",
             "challenge=$challenge",
             "keyId=$keyId",
+        )
+    }
+
+    fun forReservation(
+        studentId: Int,
+        roomNo: String,
+        date: LocalDate,
+        startBlock: Int,
+        endBlock: Int,
+        challenge: String,
+    ): ByteArray {
+        require(studentId > 0 && roomNo.isNotBlank() && roomNo.length <= 100)
+        require(date.year in 2023..2029 && startBlock in 12..43 && endBlock in startBlock..43)
+        require(isValidChallenge(challenge))
+        // 시설명은 UTF-8의 소문자 hex로 인코딩해 줄바꿈과 Unicode가 필드 경계를 바꾸지 못하게 한다.
+        val encodedRoom =
+            java.util.HexFormat
+                .of()
+                .formatHex(roomNo.toByteArray(Charsets.UTF_8))
+        return encode(
+            "purpose=RESERVATION_CREATE",
+            "studentId=$studentId",
+            "roomNoUtf8Hex=$encodedRoom",
+            "date=$date",
+            "startBlock=$startBlock",
+            "endBlock=$endBlock",
+            "challenge=$challenge",
         )
     }
 

@@ -4,5 +4,5 @@ data class VerifyPhotoAttestationCommand(
     val studentId: Int,
     val reservationId: Long,
     val photo: ByteArray,
-    val evidence: PhotoAttestationEvidence,
+    val evidence: AttestationEvidence,
 )

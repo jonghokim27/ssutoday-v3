@@ -1,6 +1,6 @@
 package kr.ac.ssu.ssutoday.application.attest
 
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import kr.ac.ssu.ssutoday.application.attest.dto.VerifyPhotoAttestationCommand
 import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
@@ -25,7 +25,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class PhotoAttestationApplicationServiceTest {
+class AttestationVerificationApplicationServiceTest {
     private val scope = AttestationChallengeScope(20260000, AttestationPurpose.VERIFY_PHOTO_UPLOAD, 42)
     private val stored = ConcurrentHashMap<String, AttestationChallengeScope>()
     private val store =
@@ -43,7 +43,7 @@ class PhotoAttestationApplicationServiceTest {
         }
     private val challenges = AttestChallengeService(store)
     private val challenge = challenges.create(scope).challenge
-    private val evidence = PhotoAttestationEvidence("android", challenge, "opaque-token")
+    private val evidence = AttestationEvidence("android", challenge, "opaque-token")
     private val photo = "camera-photo".toByteArray()
     private val command = VerifyPhotoAttestationCommand(scope.studentId, 42, photo, evidence)
     private val calls = mutableListOf<Pair<String, String>>()
@@ -113,8 +113,8 @@ class PhotoAttestationApplicationServiceTest {
     fun `구버전과 부분 입력 미지원 플랫폼은 관찰 모드에서 분류하고 강제 모드에서 거부한다`() {
         val cases =
             listOf(
-                PhotoAttestationEvidence() to AttestationVerdict.MISSING,
-                PhotoAttestationEvidence(platform = "android") to AttestationVerdict.INVALID_INPUT,
+                AttestationEvidence() to AttestationVerdict.MISSING,
+                AttestationEvidence(platform = "android") to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(attestation = " ") to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(attestation = "a".repeat(32 * 1024 + 1)) to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(challenge = "malformed") to AttestationVerdict.INVALID_INPUT,
@@ -160,7 +160,7 @@ class PhotoAttestationApplicationServiceTest {
         doThrow(DataAccessResourceFailureException("redis unavailable")).`when`(unavailable).consume(challenge, scope)
         assertEquals(
             AttestationVerdict.CHALLENGE_STORE_UNAVAILABLE,
-            PhotoAttestationApplicationService(
+            AttestationVerificationApplicationService(
                 provider,
                 unavailable,
                 false,
@@ -172,7 +172,7 @@ class PhotoAttestationApplicationServiceTest {
         assertEquals(
             StatusCode.SSU4206,
             assertFailsWith<BusinessException> {
-                PhotoAttestationApplicationService(
+                AttestationVerificationApplicationService(
                     provider,
                     unavailable,
                     true,
@@ -185,7 +185,7 @@ class PhotoAttestationApplicationServiceTest {
     }
 
     private fun service(enforce: Boolean) =
-        PhotoAttestationApplicationService(
+        AttestationVerificationApplicationService(
             provider,
             challenges,
             enforce,

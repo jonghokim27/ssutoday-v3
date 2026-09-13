@@ -11,7 +11,7 @@ import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationStatusResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.VerifyPhotoRequest
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import kr.ac.ssu.ssutoday.application.reservation.ReservationCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.VerifyPhotoApplicationService
@@ -52,6 +52,7 @@ class ReservationController(
                     LocalDate.parse(request.date),
                     request.startBlock,
                     request.endBlock,
+                    AttestationEvidence(request.platform, request.challenge, request.attestation, request.keyId),
                 ),
             )
         return ReservationIdResponse(id)
@@ -102,7 +103,7 @@ class ReservationController(
                     file.contentType,
                     file.size,
                     input,
-                    PhotoAttestationEvidence(request.platform, request.challenge, request.attestation, request.keyId),
+                    AttestationEvidence(request.platform, request.challenge, request.attestation, request.keyId),
                 ),
             )
         }

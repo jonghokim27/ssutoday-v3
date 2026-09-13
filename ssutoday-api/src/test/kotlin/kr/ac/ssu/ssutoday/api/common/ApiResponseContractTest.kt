@@ -219,7 +219,7 @@ class ApiResponseContractTest {
         val failure = advice.business(BusinessException(StatusCode.SSU4206))
         assertEquals(HttpStatus.BAD_REQUEST, failure.statusCode)
         assertEquals("SSU4206", failure.body?.statusCode)
-        assertEquals("앱 무결성 인증에 실패했습니다. 다시 촬영해 주세요", failure.body?.message)
+        assertEquals("앱 무결성 인증에 실패했습니다. 다시 시도해 주세요", failure.body?.message)
         assertEquals("SSU4000", advice.badRequest(InvalidInputException("invalid scope")).body?.statusCode)
     }
 

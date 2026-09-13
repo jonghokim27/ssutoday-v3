@@ -1,8 +1,9 @@
 package kr.ac.ssu.ssutoday.application.attest
 
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import kr.ac.ssu.ssutoday.application.attest.dto.RegisterAppAttestCommand
 import kr.ac.ssu.ssutoday.application.attest.dto.VerifyPhotoAttestationCommand
+import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestAssertionVerification
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestRegistrationVerification
 import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
@@ -26,6 +27,7 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.time.Duration
+import java.time.LocalDate
 import java.util.Base64
 import java.util.HexFormat
 import kotlin.test.Test
@@ -144,11 +146,50 @@ class AppAttestApplicationServicesTest {
             AttestationClientData.hash(
                 AttestationClientData.forPhotoUpload(studentId, 42, challenge, HexFormat.of().formatHex(AttestationClientData.hash(photo))),
             )
-        return VerifyPhotoAttestationCommand(studentId, 42, photo, PhotoAttestationEvidence("ios", challenge, "YXNzZXJ0aW9u", keyId))
+        return VerifyPhotoAttestationCommand(studentId, 42, photo, AttestationEvidence("ios", challenge, "YXNzZXJ0aW9u", keyId))
     }
 
     private fun photoService(enforce: Boolean = false) =
-        PhotoAttestationApplicationService(mock(PlayIntegrityVerificationPort::class.java), challenges, enforce, verifier, keys, true)
+        AttestationVerificationApplicationService(
+            mock(PlayIntegrityVerificationPort::class.java),
+            challenges,
+            enforce,
+            verifier,
+            keys,
+            true,
+        )
+
+    @Test
+    fun `예약과 사진은 같은 iOS 키의 단조 카운터를 공유하고 예약 필드 변조를 거부한다`() {
+        registration.register(registerCommand())
+        val challenge = challenges.create(AttestationChallengeScope(studentId, AttestationPurpose.RESERVATION_CREATE)).challenge
+        val command =
+            CreateReservationCommand(
+                "turnstile",
+                studentId,
+                "cse",
+                false,
+                "1",
+                LocalDate.of(2026, 9, 14),
+                20,
+                23,
+                AttestationEvidence("ios", challenge, "YXNzZXJ0aW9u", keyId),
+            )
+        expectedAssertionHash =
+            AttestationClientData.hash(AttestationClientData.forReservation(studentId, "1", command.date, 20, 23, challenge))
+        assertEquals(AttestationVerdict.SIGNATURE_INVALID, photoService().verifyReservation(command.copy(endBlock = 24)).verdict)
+        assertEquals(
+            AttestationVerdict.KEY_OWNER_MISMATCH,
+            photoService().verifyReservation(command.copy(studentId = studentId + 1)).verdict,
+        )
+        assertEquals(AttestationVerdict.VERIFIED, photoService(true).verifyReservation(command).verdict)
+        assertEquals(1L, key!!.counter)
+        val photo = upload()
+        assertEquals(AttestationVerdict.COUNTER_REJECTED, photoService().verify(photo).verdict)
+        counter = 2
+        assertEquals(AttestationVerdict.VERIFIED, photoService(true).verify(photo).verdict)
+        assertEquals(2L, key!!.counter)
+    }
 
     @Test
     fun `키 등록은 서버 client data 검증과 challenge 소모 후에만 저장한다`() {

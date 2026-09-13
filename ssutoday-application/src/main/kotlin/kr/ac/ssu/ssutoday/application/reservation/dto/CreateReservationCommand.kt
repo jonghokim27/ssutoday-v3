@@ -1,5 +1,6 @@
 package kr.ac.ssu.ssutoday.application.reservation.dto
 
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import java.time.LocalDate
 
 data class CreateReservationCommand(
@@ -11,4 +12,5 @@ data class CreateReservationCommand(
     val date: LocalDate,
     val startBlock: Int,
     val endBlock: Int,
+    val attestation: AttestationEvidence = AttestationEvidence(),
 )

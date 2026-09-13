@@ -1,11 +1,13 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
+import kr.ac.ssu.ssutoday.application.attest.AttestationVerificationApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.dto.AdminReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.RejectVerifyPhotoResult
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.dto.PushMessages
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.DiscordAttestationNotificationPort
 import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
 import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
@@ -41,6 +43,8 @@ class ReservationCommandApplicationService(
     private val pushMessagePublisher: PushMessagePublisher,
     private val turnstileVerificationPort: TurnstileVerificationPort,
     private val discordReservationActionNotificationPort: DiscordReservationActionNotificationPort,
+    private val attestationVerificationApplicationService: AttestationVerificationApplicationService,
+    private val discordAttestationNotificationPort: DiscordAttestationNotificationPort,
 ) {
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
@@ -55,6 +59,7 @@ class ReservationCommandApplicationService(
         if (configService.isReservationRequestDisabled()) {
             throw BusinessException(StatusCode.SSU4091)
         }
+        val attestation = attestationVerificationApplicationService.verifyReservation(command)
         val requestId =
             reservationRequestService.create(
                 studentId = command.studentId,
@@ -65,6 +70,12 @@ class ReservationCommandApplicationService(
             )
         afterCommit {
             reservationRequestPublisher.publish(requestId)
+            discordAttestationNotificationPort.sendReservationResult(
+                command.studentId,
+                requestId,
+                attestation.verdict,
+                attestation.enforced,
+            )
         }
         return requestId
     }

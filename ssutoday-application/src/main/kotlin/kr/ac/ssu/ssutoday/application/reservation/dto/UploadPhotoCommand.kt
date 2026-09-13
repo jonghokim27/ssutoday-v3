@@ -1,6 +1,6 @@
 package kr.ac.ssu.ssutoday.application.reservation.dto
 
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import java.io.InputStream
 
 data class UploadPhotoCommand(
@@ -10,5 +10,5 @@ data class UploadPhotoCommand(
     val contentType: String?,
     val size: Long,
     val input: InputStream,
-    val attestation: PhotoAttestationEvidence = PhotoAttestationEvidence(),
+    val attestation: AttestationEvidence = AttestationEvidence(),
 )

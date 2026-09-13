@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
-import kr.ac.ssu.ssutoday.application.attest.PhotoAttestationApplicationService
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.AttestationVerificationApplicationService
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
@@ -59,7 +59,7 @@ class VerifyPhotoUploadAttestationTest {
     private val provider = mock(PlayIntegrityVerificationPort::class.java)
     private val bytes = "abc".toByteArray()
     private val scope = AttestationChallengeScope(20260000, AttestationPurpose.VERIFY_PHOTO_UPLOAD, 42)
-    private val evidence = PhotoAttestationEvidence("android", CHALLENGE, "opaque-token")
+    private val evidence = AttestationEvidence("android", CHALLENGE, "opaque-token")
     private val reservation =
         ReservationView(42, 20260000, "1", LocalDate.of(2026, 9, 13), 0, 1, Timestamp(0), null, null, true, "admin", 0)
 
@@ -93,7 +93,7 @@ class VerifyPhotoUploadAttestationTest {
         val service = service(true)
         assertEquals(
             StatusCode.SSU4206,
-            assertFailsWith<BusinessException> { service.upload(command(PhotoAttestationEvidence())) }.status,
+            assertFailsWith<BusinessException> { service.upload(command(AttestationEvidence())) }.status,
         )
         `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(AttestationVerdict.DEVICE_UNTRUSTED)
         assertEquals(StatusCode.SSU4206, assertFailsWith<BusinessException> { service.upload(command()) }.status)
@@ -120,7 +120,7 @@ class VerifyPhotoUploadAttestationTest {
             .send(anyString(), anyLong(), anyString(), anyString(), anyString(), anyString(), anyString())
         TransactionSynchronizationManager.initSynchronization()
         try {
-            service(false).upload(command(PhotoAttestationEvidence()))
+            service(false).upload(command(AttestationEvidence()))
             `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(AttestationVerdict.PROVIDER_UNAVAILABLE)
             service(false).upload(command())
             assertTrue(notices.isEmpty())
@@ -138,7 +138,7 @@ class VerifyPhotoUploadAttestationTest {
     fun `DB 롤백이면 관찰 알림과 후속 검사를 발행하지 않는다`() {
         TransactionSynchronizationManager.initSynchronization()
         try {
-            service(false).upload(command(PhotoAttestationEvidence()))
+            service(false).upload(command(AttestationEvidence()))
             TransactionSynchronizationManager.getSynchronizations().forEach {
                 it.afterCompletion(
                     TransactionSynchronization.STATUS_ROLLED_BACK,
@@ -150,7 +150,7 @@ class VerifyPhotoUploadAttestationTest {
         }
     }
 
-    private fun command(attestation: PhotoAttestationEvidence = evidence) =
+    private fun command(attestation: AttestationEvidence = evidence) =
         UploadPhotoCommand("turnstile", 20260000, 42, "image/jpeg", 999, bytes.inputStream(), attestation)
 
     private fun anyInput(): InputStream = any<InputStream>() ?: InputStream.nullInputStream()
@@ -169,7 +169,7 @@ class VerifyPhotoUploadAttestationTest {
             mock(DiscordReservationActionNotificationPort::class.java),
             inspections,
             mock(VerifyPhotoInspectionPort::class.java),
-            PhotoAttestationApplicationService(
+            AttestationVerificationApplicationService(
                 provider,
                 challenges,
                 enforce,

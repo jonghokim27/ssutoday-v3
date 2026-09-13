@@ -3,7 +3,7 @@ package kr.ac.ssu.ssutoday.api.reservation
 import kr.ac.ssu.ssutoday.api.common.GlobalControllerAdvice
 import kr.ac.ssu.ssutoday.api.config.JacksonConfig
 import kr.ac.ssu.ssutoday.api.config.LoginStudentArgumentResolver
-import kr.ac.ssu.ssutoday.application.attest.dto.PhotoAttestationEvidence
+import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
 import kr.ac.ssu.ssutoday.application.reservation.ReservationCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.VerifyPhotoApplicationService
@@ -59,7 +59,7 @@ class VerifyPhotoUploadControllerTest {
 
     @Test
     fun `구버전 multipart는 nullable 기본값으로 계속 업로드된다`() {
-        expectCommand(PhotoAttestationEvidence())
+        expectCommand(AttestationEvidence())
         mvc
             .perform(request.principal(UsernamePasswordAuthenticationToken(student, null)))
             .andExpect(status().isOk)
@@ -68,7 +68,7 @@ class VerifyPhotoUploadControllerTest {
 
     @Test
     fun `증명 필드를 전달하고 학생 ID와 사진 해시는 클라이언트 값으로 덮어쓰지 않는다`() {
-        expectCommand(PhotoAttestationEvidence("android", "challenge", "token"))
+        expectCommand(AttestationEvidence("android", "challenge", "token"))
         mvc
             .perform(
                 request
@@ -99,10 +99,10 @@ class VerifyPhotoUploadControllerTest {
             .perform(request.principal(UsernamePasswordAuthenticationToken(student, null)))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value("SSU4206"))
-            .andExpect(jsonPath("$.message").value("앱 무결성 인증에 실패했습니다. 다시 촬영해 주세요"))
+            .andExpect(jsonPath("$.message").value("앱 무결성 인증에 실패했습니다. 다시 시도해 주세요"))
     }
 
-    private fun expectCommand(evidence: PhotoAttestationEvidence) {
+    private fun expectCommand(evidence: AttestationEvidence) {
         doAnswer { invocation ->
             val command = invocation.getArgument<UploadPhotoCommand>(0)
             assertEquals(student.id, command.studentId)

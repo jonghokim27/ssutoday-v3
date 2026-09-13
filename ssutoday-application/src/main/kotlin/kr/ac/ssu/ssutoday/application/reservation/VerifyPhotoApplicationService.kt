@@ -1,7 +1,7 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kr.ac.ssu.ssutoday.application.attest.PhotoAttestationApplicationService
+import kr.ac.ssu.ssutoday.application.attest.AttestationVerificationApplicationService
 import kr.ac.ssu.ssutoday.application.attest.dto.VerifyPhotoAttestationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.dto.PhotoInspection
@@ -38,7 +38,7 @@ class VerifyPhotoApplicationService(
     private val discordReservationActionNotificationPort: DiscordReservationActionNotificationPort,
     private val verifyPhotoInspectionPublisher: VerifyPhotoInspectionPublisher,
     private val verifyPhotoInspectionPort: VerifyPhotoInspectionPort,
-    private val photoAttestationApplicationService: PhotoAttestationApplicationService,
+    private val attestationVerificationApplicationService: AttestationVerificationApplicationService,
     @Value("\${ssutoday.storage.verify-photo-bucket}")
     private val bucket: String,
     @Value("\${ssutoday.storage.public-base-url:}")
@@ -58,7 +58,7 @@ class VerifyPhotoApplicationService(
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
         val photo = command.input.readBytes()
         val attestation =
-            photoAttestationApplicationService.verify(
+            attestationVerificationApplicationService.verify(
                 VerifyPhotoAttestationCommand(command.studentId, command.reservationId, photo, command.attestation),
             )
         val key = "verifyPhoto/${tokenPort.randomToken(VERIFY_PHOTO_FILE_TOKEN_LENGTH)}.jpeg"

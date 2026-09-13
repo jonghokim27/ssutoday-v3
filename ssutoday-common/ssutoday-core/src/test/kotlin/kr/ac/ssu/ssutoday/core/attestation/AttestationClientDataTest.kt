@@ -7,6 +7,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 
 class AttestationClientDataTest {
+    @Test
+    fun `예약 요청은 학생 시설 날짜 시간과 challenge를 고정 바이트로 묶는다`() {
+        val data = AttestationClientData.forReservation(20260000, "1", java.time.LocalDate.of(2026, 9, 14), 20, 23, challenge)
+        assertEquals("Id4rRexJVUuXGMctfmccH9sWWo0t_d6yNwA5-N5_yrc", AttestationClientData.requestHash(data))
+        val escaped = AttestationClientData.forReservation(20260000, "방\n1", java.time.LocalDate.of(2026, 9, 14), 20, 23, challenge)
+        assertEquals(9, escaped.toString(Charsets.UTF_8).split("\n").size)
+        assertFalse(escaped.toString(Charsets.UTF_8).contains("방"))
+    }
+
     private val challenge = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
     private val photoHash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
 
