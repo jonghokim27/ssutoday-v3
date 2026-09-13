@@ -1,6 +1,6 @@
 # 인증샷 무결성 강화 계획
 
-> 구현 진행: 계정 설정과 기본 API 연결 확인, 설정·배포 연결, 요청 바이트 계약, challenge 발급·원자적 소모, Android 서버 검증기와 업로드 관찰/강제 모드 연결을 구현했다. 확정 계약과 현재 구현 범위는 [docs/attestation.md](docs/attestation.md)를 따른다. 아래 초기 계획의 `@RedisHash` 조회 후 삭제 방식은 Redis 원자적 scope 확인·삭제로, 업로드의 `clientData` 전달 방식은 서버 재구성으로 조정했다. Android 네이티브/프론트엔드와 iOS 구현, 실기기 검증은 후속 작업이며 현재 `ATTESTATION_ENFORCE=false`를 유지한다. Google Play의 앱 인식 판정만으로 모든 사이드로드를 구분할 수 있는 것은 아니며 현재 라이선스 판정은 강제하지 않는다.
+> 구현 진행: 계정 설정과 기본 API 연결 확인, 설정·배포 연결, 요청 바이트 계약, challenge 발급·원자적 소모, Android 서버 검증기와 업로드 관찰/강제 모드, 앱 내부 카메라와 Android 네이티브 증명·프론트엔드 연결을 구현했다. 확정 계약과 현재 구현 범위는 [docs/attestation.md](docs/attestation.md)를 따른다. 아래 초기 계획의 `@RedisHash` 조회 후 삭제 방식은 Redis 원자적 scope 확인·삭제로, 업로드의 `clientData` 전달 방식은 서버 재구성으로 조정했다. Android는 외부 카메라 앱 호출 대신 앱 내부 CameraView를 사용한다. iOS 구현, 운영 배포와 실기기 검증은 후속 작업이며 현재 `ATTESTATION_ENFORCE=false`를 유지한다. Google Play의 앱 인식 판정만으로 모든 사이드로드를 구분할 수 있는 것은 아니며 현재 라이선스 판정은 강제하지 않는다.
 
 ## 배경
 

@@ -1,16 +1,30 @@
-name: Bridge protocol sync check
+name: Bridge and attestation checks
 
 on:
   pull_request:
     paths:
-      - 'frontend/src/shared/native/bridgeProtocol.ts'
-      - 'mobile/src/bridge/protocol.ts'
+      - '.github/workflows/bridge-protocol-sync.yml'
+      - 'frontend/package*.json'
+      - 'frontend/src/shared/native/**'
+      - 'frontend/src/shared/storage/appStorage.ts'
+      - 'frontend/src/features/reservation/api/*Photo*'
+      - 'frontend/src/features/reservation/api/reservationRepository.ts'
+      - 'mobile/src/bridge/**'
+      - 'scripts/*attestation*'
+      - 'scripts/*bridge*'
   push:
     branches:
       - main
     paths:
-      - 'frontend/src/shared/native/bridgeProtocol.ts'
-      - 'mobile/src/bridge/protocol.ts'
+      - '.github/workflows/bridge-protocol-sync.yml'
+      - 'frontend/package*.json'
+      - 'frontend/src/shared/native/**'
+      - 'frontend/src/shared/storage/appStorage.ts'
+      - 'frontend/src/features/reservation/api/*Photo*'
+      - 'frontend/src/features/reservation/api/reservationRepository.ts'
+      - 'mobile/src/bridge/**'
+      - 'scripts/*attestation*'
+      - 'scripts/*bridge*'
 
 jobs:
   check-sync:
@@ -22,7 +36,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Check bridge protocol files are in sync
         run: node scripts/check-bridge-protocol-sync.js
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Test attestation flow and bridge boundaries
+        run: node --test scripts/attestation-flow.test.mjs scripts/bridge-security.test.mjs scripts/bridge-transport.test.mjs
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend

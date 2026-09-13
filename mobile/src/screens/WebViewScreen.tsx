@@ -6,6 +6,7 @@ import * as Application from 'expo-application';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { Camera } from 'expo-camera';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
@@ -14,12 +15,15 @@ import WebView, { type WebViewMessageEvent, type WebViewNavigation } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import messaging from '@react-native-firebase/messaging';
-import { BridgeHandlerError, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
+import { BridgeHandlerError, clearHandlers, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
+import { canDispatchBridge, isAttestParams, isCaptureScope, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
+import AttestationModule from '../../modules/ssutoday-attestation';
 import { deepLink } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
 import UpdateRequiredScreen from './UpdateRequiredScreen';
 import TurnstileModal from './TurnstileModal';
+import VerifyPhotoCameraModal from './VerifyPhotoCameraModal';
 
 const TARGET_URL = 'https://v3.ssu.today';
 
@@ -79,6 +83,26 @@ export default function WebViewScreen() {
   const webviewReady = useRef(false);
   const pendingReservationNav = useRef(false);
   const smartIdHeaderHeightRef = useRef(0);
+  const documentUrl = useRef(TARGET_URL);
+  const documentEpoch = useRef(0);
+  const captureGeneration = useRef(0);
+  const captureBusy = useRef(false);
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const cameraCallback = useRef<{ resolve: (uri: string | null) => void; reject: () => void } | null>(null);
+  const bridgeToken = useRef<string | null>(null);
+  if (Platform.OS === 'android' && AttestationModule && !bridgeToken.current) {
+    bridgeToken.current = AttestationModule.createBridgeToken();
+  }
+
+  const clearCaptures = useCallback(() => {
+    captureGeneration.current++;
+    AttestationModule?.clearCaptures();
+    cameraCallback.current?.resolve(null);
+    cameraCallback.current = null;
+    setCameraVisible(false);
+  }, []);
+
+  useFocusEffect(useCallback(() => () => clearCaptures(), [clearCaptures]));
 
   const checkVersion = useCallback(async () => {
     setVersionStatus('checking');
@@ -219,49 +243,103 @@ export default function WebViewScreen() {
       return status === 'granted';
     });
 
-    registerHandler('camera.captureVerifyPhoto', async () => {
-      const current = await ImagePicker.getCameraPermissionsAsync();
-      if (current.status !== 'granted') {
-        if (!current.canAskAgain) {
-          throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+    registerHandler('camera.captureVerifyPhoto', async (params) => {
+      if (captureBusy.current) throw new BridgeHandlerError('INVALID_PARAMS', '촬영이 이미 진행 중입니다');
+      if (params !== undefined && !isCaptureScope(params)) throw new BridgeHandlerError('INVALID_PARAMS', '촬영 요청이 올바르지 않습니다');
+      clearCaptures();
+      const generation = captureGeneration.current;
+      captureBusy.current = true;
+      try {
+        const permissionApi = Platform.OS === 'android' ? Camera : ImagePicker;
+        const current = await permissionApi.getCameraPermissionsAsync();
+        if (current.status !== 'granted') {
+          if (!current.canAskAgain) {
+            throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+          }
+          const { status } = await permissionApi.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+          }
         }
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') {
-          throw new BridgeHandlerError('PERMISSION_DENIED', '설정에서 카메라 권한을 허용해 주세요');
+
+        if (generation !== captureGeneration.current) return null;
+        let photoUri: string;
+        if (Platform.OS === 'android') {
+          const captured = await new Promise<string | null>((resolve, reject) => {
+            cameraCallback.current = { resolve, reject: () => reject(new BridgeHandlerError('NATIVE_ERROR', '촬영하지 못했습니다')) };
+            setCameraVisible(true);
+          });
+          if (!captured) return null;
+          photoUri = captured;
+        } else {
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: 'images',
+            allowsEditing: false,
+            quality: 1,
+            base64: false,
+            exif: false,
+          });
+
+          if (result.canceled) {
+            return null;
+          }
+
+          photoUri = result.assets[0].uri;
         }
+        if (generation !== captureGeneration.current) return null;
+        const context = ImageManipulator.manipulate(photoUri);
+        context.resize({ width: 1280 });
+        const imageRef = await context.renderAsync();
+        const manipulated = await imageRef.saveAsync({
+          compress: 0.8,
+          format: SaveFormat.JPEG,
+          base64: !(Platform.OS === 'android' && AttestationModule && isCaptureScope(params)),
+        });
+
+        if (generation !== captureGeneration.current) return null;
+        if (Platform.OS === 'android' && AttestationModule && isCaptureScope(params)) {
+          const registered = await AttestationModule.storeCapture(manipulated.uri, params.studentId, params.reservationId);
+          if (generation !== captureGeneration.current) {
+            AttestationModule.releaseCapture(registered.captureId);
+            return null;
+          }
+          return { ...registered, name: `verify-photo-${Date.now()}.jpg`, type: 'image/jpeg' };
+        }
+        if (!manipulated.base64) {
+          throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다');
+        }
+        return {
+          name: `verify-photo-${Date.now()}.jpg`,
+          type: 'image/jpeg',
+          uri: `data:image/jpeg;base64,${manipulated.base64}`,
+        };
+      } finally {
+        captureBusy.current = false;
       }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: 'images',
-        allowsEditing: false,
-        quality: 1,
-        base64: false,
-        exif: false,
-      });
-
-      if (result.canceled) {
-        return null;
-      }
-
-      const asset = result.assets[0];
-      const context = ImageManipulator.manipulate(asset.uri);
-      context.resize({ width: 1280 });
-      const imageRef = await context.renderAsync();
-      const manipulated = await imageRef.saveAsync({
-        compress: 0.8,
-        format: SaveFormat.JPEG,
-        base64: true,
-      });
-
-      if (!manipulated.base64) {
-        throw new BridgeHandlerError('NATIVE_ERROR', '이미지 데이터를 가져오지 못했습니다');
-      }
-      return {
-        name: `verify-photo-${Date.now()}.jpg`,
-        type: 'image/jpeg',
-        uri: `data:image/jpeg;base64,${manipulated.base64}`,
-      };
     });
+
+    if (Platform.OS === 'android' && AttestationModule) {
+      const module = AttestationModule;
+      registerHandler('security.prepareAttestation', async () => {
+        try { await module.prepare(); } catch { throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다'); }
+      });
+      registerHandler('security.attest', async (params) => {
+        if (!isAttestParams(params)) throw new BridgeHandlerError('INVALID_PARAMS', '증명 요청이 올바르지 않습니다');
+        try {
+          return await module.attest(params.captureId, params.studentId, params.reservationId, params.challenge);
+        } catch (error) {
+          const code = (error as { code?: string })?.code;
+          if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 생성하지 못했습니다');
+          throw new BridgeHandlerError('ATTESTATION_REJECTED', '사진을 다시 촬영해 주세요');
+        }
+      });
+      registerHandler('security.releaseCapture', async (params) => {
+        const id = (params as { captureId?: unknown })?.captureId;
+        if (typeof id !== 'string') throw new BridgeHandlerError('INVALID_PARAMS', '잘못된 촬영 정보입니다');
+        module.releaseCapture(id);
+      });
+      registerHandler('security.clearCaptures', async () => { clearCaptures(); });
+    }
 
     registerHandler('network.checkConnectivity', async () => {
       const state = await NetInfo.fetch();
@@ -277,7 +355,13 @@ export default function WebViewScreen() {
         setTurnstileRequest({ siteKey, action });
       });
     });
-  }, []);
+    return () => {
+      webviewReady.current = false;
+      documentEpoch.current++;
+      clearCaptures();
+      clearHandlers();
+    };
+  }, [clearCaptures]);
 
   const [targetUri] = useState(
     () => `${TARGET_URL}?safeAreaTop=${Math.round(insets.top)}&safeAreaBottom=${Math.round(insets.bottom)}`
@@ -285,7 +369,11 @@ export default function WebViewScreen() {
 
   const sendHandshake = useCallback(() => {
     const handshake = { v: 1 as const, kind: 'handshake' as const, id: generateId(), ...getHandshakeInfo() };
-    webviewRef.current?.postMessage(JSON.stringify(handshake));
+    webviewRef.current?.injectJavaScript(`${secureBridgeScript(bridgeToken.current)}
+      if (window.top === window && location.origin === ${JSON.stringify(TARGET_URL)}) {
+        window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(JSON.stringify(handshake))} }));
+      }
+      true;`);
     webviewReady.current = true;
     if (pendingReservationNav.current) {
       pendingReservationNav.current = false;
@@ -294,7 +382,8 @@ export default function WebViewScreen() {
   }, [injectReservationNavigation]);
 
   const handleLoad = useCallback((e: { nativeEvent: WebViewNavigation }) => {
-    sendHandshake();
+    documentUrl.current = e.nativeEvent.url;
+    if (isTrustedBridgeUrl(e.nativeEvent.url)) sendHandshake();
     if (isSmartIdUrl(e.nativeEvent.url) && smartIdHeaderHeightRef.current > 0) {
       webviewRef.current?.injectJavaScript(
         `document.body.style.marginTop='${smartIdHeaderHeightRef.current + 40}px';true;`
@@ -307,17 +396,21 @@ export default function WebViewScreen() {
     if (!envelope || envelope.kind !== 'request') {
       return;
     }
+    if (!canDispatchBridge(event.nativeEvent.url, documentUrl.current, webviewReady.current, envelope.bridgeToken, bridgeToken.current)) return;
 
     const { id, method, params } = envelope;
+    const epoch = documentEpoch.current;
 
     dispatch(method, params)
       .then((result) => {
+        if (epoch !== documentEpoch.current || !webviewReady.current || !isTrustedBridgeUrl(documentUrl.current)) return;
         const response: BridgeResponseEnvelope = { v: 1, kind: 'response', id, ok: true, result };
         webviewRef.current?.postMessage(JSON.stringify(response));
       })
       .catch((error: unknown) => {
+        if (epoch !== documentEpoch.current || !webviewReady.current || !isTrustedBridgeUrl(documentUrl.current)) return;
         const code = error instanceof BridgeHandlerError ? error.code : 'NATIVE_ERROR';
-        const message = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
+        const message = error instanceof BridgeHandlerError ? error.message : '요청을 처리하지 못했습니다';
         const response: BridgeResponseEnvelope = { v: 1, kind: 'response', id, ok: false, error: { code, message } };
         webviewRef.current?.postMessage(JSON.stringify(response));
       });
@@ -341,16 +434,19 @@ export default function WebViewScreen() {
       }
     }
     // SSO 등 외부 도메인에 있을 때는 HTTPS 네비게이션을 모두 허용 (SSO 리다이렉트 체인 통과)
-    if (!currentUrl.startsWith(TARGET_URL)) {
+    if (!isTrustedBridgeUrl(currentUrl)) {
       return request.url.startsWith('https://') || request.url.startsWith('about:');
     }
     return isAllowedNavigation(request.url);
   }, [currentUrl]);
 
   const handleNavigationStateChange = useCallback((state: WebViewNavigation) => {
+    if (documentUrl.current !== state.url) clearCaptures();
+    documentUrl.current = state.url;
+    if (!isTrustedBridgeUrl(state.url) || new URL(state.url).pathname.startsWith('/landing')) clearCaptures();
     setCurrentUrl(state.url);
     setWebviewCanGoBack(state.canGoBack);
-  }, []);
+  }, [clearCaptures]);
 
   const backPressedOnce = useRef(false);
   const backPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -414,6 +510,15 @@ export default function WebViewScreen() {
   }
 
   const smartId = isSmartIdUrl(currentUrl);
+  const activeCamera = cameraCallback.current;
+
+  function finishCamera(uri: string | null, failed = false) {
+    if (!activeCamera || cameraCallback.current !== activeCamera) return;
+    cameraCallback.current = null;
+    setCameraVisible(false);
+    if (failed) activeCamera.reject();
+    else activeCamera.resolve(uri);
+  }
 
   return (
     <View style={styles.container}>
@@ -422,6 +527,12 @@ export default function WebViewScreen() {
         style={styles.webview}
         source={{ uri: targetUri }}
         onLoad={handleLoad}
+        onLoadStart={(event) => {
+          webviewReady.current = false;
+          documentEpoch.current++;
+          documentUrl.current = event.nativeEvent.url;
+          clearCaptures();
+        }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
         onNavigationStateChange={handleNavigationStateChange}
@@ -429,10 +540,16 @@ export default function WebViewScreen() {
         originWhitelist={['https://*', 'about:*']}
         allowsBackForwardNavigationGestures={!currentUrl.includes('/landing')}
         allowsLinkPreview={false}
-        injectedJavaScriptBeforeContentLoaded={DISABLE_CONTEXT_MENU_JS}
+        injectedJavaScriptBeforeContentLoaded={`${secureBridgeScript(bridgeToken.current)}\n${DISABLE_CONTEXT_MENU_JS}`}
+        injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         overScrollMode="never"
         sharedCookiesEnabled
       />
+      {cameraVisible && <VerifyPhotoCameraModal
+        onCapture={(uri) => finishCamera(uri)}
+        onCancel={() => finishCamera(null)}
+        onError={() => finishCamera(null, true)}
+      />}
       {smartId && (
         <View
           style={[styles.smartIdHeader, { paddingTop: (insets.top > 0 ? insets.top : 18) + (Platform.OS === 'android' ? 8 : 0) }]}

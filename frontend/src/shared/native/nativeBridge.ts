@@ -15,7 +15,13 @@ export type CapturedPhoto = {
   type: 'image/jpeg';
   uri: string;
   blob?: Blob;
+  captureId?: string;
+  photoSha256?: string;
 };
+
+export type CapturePhotoScope = { studentId: number; reservationId: number };
+export type AttestPhotoRequest = CapturePhotoScope & { captureId: string; challenge: string };
+export type AttestPhotoResult = { platform: 'android'; attestation: string };
 
 export type NativeBridge = {
   getDeviceInfo(): Promise<NativeDeviceInfo>;
@@ -24,7 +30,11 @@ export type NativeBridge = {
   openExternalUrl(url: string, mode?: 'external' | 'internal'): Promise<void>;
   openAppSettings(): Promise<void>;
   requestCameraPermission(): Promise<boolean>;
-  captureVerifyPhoto(): Promise<CapturedPhoto | null>;
+  captureVerifyPhoto(scope?: CapturePhotoScope): Promise<CapturedPhoto | null>;
+  prepareAttestation(): Promise<void>;
+  attestPhoto(params: AttestPhotoRequest): Promise<AttestPhotoResult>;
+  releaseCapture(captureId: string): Promise<void>;
+  clearCaptures(): Promise<void>;
   signWithBiometrics(payload: string): Promise<{ signature: string } | null>;
   checkConnectivity(): Promise<{ online: boolean }>;
   getTurnstileToken(siteKey: string, action: string): Promise<string>;
@@ -38,6 +48,10 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   openAppSettings: 'system.openAppSettings',
   requestCameraPermission: 'camera.requestPermission',
   captureVerifyPhoto: 'camera.captureVerifyPhoto',
+  prepareAttestation: 'security.prepareAttestation',
+  attestPhoto: 'security.attest',
+  releaseCapture: 'security.releaseCapture',
+  clearCaptures: 'security.clearCaptures',
   signWithBiometrics: 'auth.signWithBiometrics',
   checkConnectivity: 'network.checkConnectivity',
   getTurnstileToken: 'security.getTurnstileToken',
@@ -72,9 +86,14 @@ class WebViewNativeBridge implements NativeBridge {
     return request<boolean>(METHOD_FOR.requestCameraPermission);
   }
 
-  captureVerifyPhoto() {
-    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto, undefined, 0);
+  captureVerifyPhoto(scope?: CapturePhotoScope) {
+    return request<CapturedPhoto | null>(METHOD_FOR.captureVerifyPhoto, scope, 0);
   }
+
+  prepareAttestation() { return request<void>(METHOD_FOR.prepareAttestation, undefined, 30_000); }
+  attestPhoto(params: AttestPhotoRequest) { return request<AttestPhotoResult>(METHOD_FOR.attestPhoto, params, 30_000); }
+  releaseCapture(captureId: string) { return request<void>(METHOD_FOR.releaseCapture, { captureId }); }
+  clearCaptures() { return request<void>(METHOD_FOR.clearCaptures); }
 
   signWithBiometrics(payload: string) {
     return request<{ signature: string } | null>(METHOD_FOR.signWithBiometrics, { payload });
@@ -90,6 +109,10 @@ class WebViewNativeBridge implements NativeBridge {
 }
 
 class MockNativeBridge implements NativeBridge {
+  async prepareAttestation() {}
+  async attestPhoto(): Promise<AttestPhotoResult> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
+  async releaseCapture() {}
+  async clearCaptures() {}
   async getDeviceInfo() {
     return {
       osType: 'android' as const,
@@ -385,6 +408,12 @@ function createGatedNativeBridge(real: NativeBridge, mock: NativeBridge): Native
 }
 
 export const nativeBridge: NativeBridge = createGatedNativeBridge(new WebViewNativeBridge(), new MockNativeBridge());
+
+export async function clearNativeCaptures(): Promise<void> {
+  if (isNativeApp() && hasCapability('clearCaptures')) {
+    await request<void>('security.clearCaptures').catch(() => {});
+  }
+}
 
 export function notifyNetworkFailure() {
   if (!isNativeApp()) return;

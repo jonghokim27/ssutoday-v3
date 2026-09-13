@@ -7,7 +7,7 @@ export const BRIDGE_PROTOCOL_VERSION = 1 as const;
 
 export const BRIDGE_REQUEST_TIMEOUT_MS = 10_000;
 
-export type BridgeErrorCode = 'UNSUPPORTED_METHOD' | 'PERMISSION_DENIED' | 'INVALID_PARAMS' | 'TIMEOUT' | 'NATIVE_ERROR';
+export type BridgeErrorCode = 'UNSUPPORTED_METHOD' | 'PERMISSION_DENIED' | 'INVALID_PARAMS' | 'TIMEOUT' | 'NATIVE_ERROR' | 'ATTESTATION_UNAVAILABLE' | 'ATTESTATION_REJECTED';
 
 export type BridgeMethod =
   | 'device.getInfo'
@@ -20,6 +20,10 @@ export type BridgeMethod =
   | 'auth.signWithBiometrics'
   | 'network.checkConnectivity'
   | 'security.getTurnstileToken'
+  | 'security.prepareAttestation'
+  | 'security.attest'
+  | 'security.releaseCapture'
+  | 'security.clearCaptures'
   | 'haptic.impact';
 
 export type BridgeEvent = 'push.opened' | 'deeplink.navigate' | 'app.foregroundChanged' | 'network.changed' | 'app.backPressed';
@@ -48,6 +52,7 @@ export type BridgeRequestEnvelope = {
   id: string;
   method: BridgeMethod;
   params?: unknown;
+  bridgeToken?: string;
 };
 
 export type BridgeResponseEnvelope =

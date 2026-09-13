@@ -51,6 +51,7 @@ function postToNative(envelope: unknown) {
 }
 
 function handleMessageEvent(event: MessageEvent) {
+  if (event.source && event.source !== window) return;
   if (typeof event.data !== 'string') {
     return;
   }
@@ -113,8 +114,16 @@ export function waitForHandshake(): Promise<HandshakeInfo> {
     return Promise.resolve(handshakeInfo);
   }
 
-  return new Promise((resolve) => {
-    handshakeResolvers.push(resolve);
+  return new Promise((resolve, reject) => {
+    const complete = (info: HandshakeInfo) => {
+      clearTimeout(timeoutId);
+      resolve(info);
+    };
+    const timeoutId = setTimeout(() => {
+      handshakeResolvers = handshakeResolvers.filter(resolver => resolver !== complete);
+      reject(new BridgeError('TIMEOUT', '앱 연결 준비 시간이 초과되었습니다. 화면을 다시 열어 주세요.'));
+    }, BRIDGE_REQUEST_TIMEOUT_MS);
+    handshakeResolvers.push(complete);
   });
 }
 
@@ -123,6 +132,9 @@ export function hasCapability(method: BridgeMethod): boolean {
 }
 
 export function request<T = unknown>(method: BridgeMethod, params?: unknown, timeoutMs?: number): Promise<T> {
+  if (!handshakeInfo) {
+    return waitForHandshake().then(() => request<T>(method, params, timeoutMs));
+  }
   if (handshakeInfo && !hasCapability(method)) {
     return Promise.reject(new BridgeError('UNSUPPORTED_METHOD', `앱이 ${method}을 지원하지 않습니다`));
   }

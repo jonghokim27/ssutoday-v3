@@ -1,3 +1,5 @@
+import { clearNativeCaptures } from '../native/nativeBridge';
+
 export type StoredProfile = {
   studentId: number | string;
   name: string;
@@ -46,6 +48,7 @@ class LocalAppStorage implements AppStorage {
   }
 
   async clearAuth() {
+    await clearNativeCaptures();
     await Promise.all([this.removeItem('profile'), this.removeItem('notificationEnabled')]);
   }
 
@@ -64,6 +67,8 @@ class LocalAppStorage implements AppStorage {
   }
 
   async setProfile(profile: StoredProfile) {
+    const previous = await this.getProfile();
+    if (String(previous?.studentId) !== String(profile.studentId)) await clearNativeCaptures();
     await this.setItem('profile', JSON.stringify(profile));
   }
 

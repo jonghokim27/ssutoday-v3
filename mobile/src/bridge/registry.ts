@@ -20,6 +20,10 @@ export function registerHandler(method: BridgeMethod, handler: BridgeHandler) {
   handlers.set(method, handler);
 }
 
+export function clearHandlers() {
+  handlers.clear();
+}
+
 export function getCapabilities(): BridgeMethod[] {
   return Array.from(handlers.keys());
 }

@@ -64,7 +64,7 @@ const config = {
   name: '슈투데이',
   slug: 'ssutoday',
   scheme: 'ssutoday',
-  version: '3.0.1',
+  version: '3.0.2',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
@@ -104,6 +104,7 @@ const config = {
     'expo-router',
     'expo-notifications',
     'expo-image-picker',
+    ['expo-camera', { cameraPermission: '인증샷을 촬영하기 위해 카메라 권한을 허용해 주세요', recordAudioAndroid: false }],
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     [
