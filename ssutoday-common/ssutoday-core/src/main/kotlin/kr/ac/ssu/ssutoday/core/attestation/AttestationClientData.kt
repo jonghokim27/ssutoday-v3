@@ -8,6 +8,16 @@ object AttestationClientData {
     private val challengePattern = Regex("[A-Za-z0-9_-]{43}")
     private val photoHashPattern = Regex("[0-9a-f]{64}")
 
+    fun isValidKeyId(keyId: String): Boolean =
+        try {
+            keyId.length == 44 &&
+                Base64.getDecoder().decode(keyId).let {
+                    it.size == 32 && Base64.getEncoder().encodeToString(it) == keyId
+                }
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+
     fun isValidChallenge(challenge: String): Boolean {
         if (!challengePattern.matches(challenge)) return false
         val decoded = Base64.getUrlDecoder().decode(challenge)
