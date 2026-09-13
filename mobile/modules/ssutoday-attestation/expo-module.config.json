@@ -1,5 +1,8 @@
 {
-  "platforms": ["android"],
+  "platforms": ["android", "apple"],
+  "apple": {
+    "modules": ["SsutodayAttestationModule"]
+  },
   "android": {
     "modules": ["com.ssutoday.attestation.SsutodayAttestationModule"]
   }

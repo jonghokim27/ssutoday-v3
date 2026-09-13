@@ -1,0 +1,74 @@
+name: iOS App Attest build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/ios-attestation.yml'
+      - 'mobile/**'
+      - 'scripts/create-ios-build-fixture.py'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ios-attestation.yml'
+      - 'mobile/**'
+      - 'scripts/create-ios-build-fixture.py'
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Check mobile types
+        run: npx tsc --noEmit
+      - name: Test Swift capture and key lifecycle
+        run: swift test --package-path modules/ssutoday-attestation
+      - name: Create compile-only Firebase fixture
+        run: python3 ../scripts/create-ios-build-fixture.py "$RUNNER_TEMP/ssutoday-compile-check.plist"
+      - name: Generate iOS project
+        env:
+          CI: '1'
+          APP_ATTEST_ENVIRONMENT: production
+          GOOGLE_SERVICE_INFO_PLIST: ${{ runner.temp }}/ssutoday-compile-check.plist
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install CocoaPods
+        working-directory: mobile/ios
+        run: pod install
+      - name: Compile iOS app without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          workspace=$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)
+          test -n "$workspace"
+          scheme=$(basename "$workspace" .xcworkspace)
+          xcodebuild -workspace "$workspace" -scheme "$scheme" \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ssutoday-ios-build" \
+            CODE_SIGNING_ALLOWED=NO build > "$RUNNER_TEMP/ssutoday-ios-build.log" 2>&1 || {
+              tail -n 150 "$RUNNER_TEMP/ssutoday-ios-build.log"
+              exit 1
+            }
+          tail -n 10 "$RUNNER_TEMP/ssutoday-ios-build.log"
+      - name: Preserve compile log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-compile-log
+          path: ${{ runner.temp }}/ssutoday-ios-build.log
+          if-no-files-found: ignore
+          retention-days: 7
