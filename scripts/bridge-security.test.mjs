@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import vm from 'node:vm';
-import { canDispatchBridge, isAttestParams, isAppAttestKey, isTrustedBridgeUrl, secureBridgeScript } from '../mobile/src/bridge/bridgeSecurity.ts';
+import { canDispatchBridge, isAttestParams, isReservationAttestParams, isAppAttestKey, isTrustedBridgeUrl, secureBridgeScript } from '../mobile/src/bridge/bridgeSecurity.ts';
 
 const ORIGIN = 'https://v3.ssu.today';
+
+test('reservation signing accepts structured fields and rejects forged or unbounded input', () => {
+  const valid = { studentId: 20260000, roomNo: '1', date: '2026-09-14', startBlock: 20, endBlock: 23, challenge: 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8' };
+  assert.equal(isReservationAttestParams(valid), true);
+  for (const value of [null, [], {}, { ...valid, studentId: 0 }, { ...valid, studentId: 2147483648 }, { ...valid, roomNo: '' }, { ...valid, roomNo: 'r'.repeat(101) }, { ...valid, date: '2026-9-14' }, { ...valid, startBlock: 11 }, { ...valid, endBlock: 44 }, { ...valid, endBlock: 19 }, { ...valid, challenge: 'client-hash' }]) {
+    assert.equal(isReservationAttestParams(value), false);
+  }
+});
 
 test('App Attest key operations require an authenticated student scope and canonical key encoding', () => {
   const valid = { studentId: 20260000, keyId: Buffer.alloc(32, 1).toString('base64') };

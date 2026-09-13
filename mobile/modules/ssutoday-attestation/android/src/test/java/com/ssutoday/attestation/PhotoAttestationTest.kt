@@ -9,6 +9,16 @@ import java.util.concurrent.TimeUnit
 
 class PhotoAttestationTest {
   @Test
+  fun `reservation uses the server vector and cannot change fields or purpose`() {
+    val hash = PhotoClientData.reservationHashBytes(20260000, "1", "2026-09-14", 20, 23, CHALLENGE)
+    assertEquals("Id4rRexJVUuXGMctfmccH9sWWo0t_d6yNwA5-N5_yrc", Base64.getUrlEncoder().withoutPadding().encodeToString(hash))
+    assertFalse(hash.contentEquals(PhotoClientData.reservationHashBytes(20260000, "2", "2026-09-14", 20, 23, CHALLENGE)))
+    assertFalse(hash.contentEquals(PhotoClientData.reservationHashBytes(20260000, "1", "2026-09-15", 20, 23, CHALLENGE)))
+    assertFalse(hash.contentEquals(PhotoClientData.reservationHashBytes(20260000, "1", "2026-09-14", 21, 23, CHALLENGE)))
+    assertThrows(Exception::class.java) { PhotoClientData.reservationHashBytes(20260000, "1", "2026-02-30", 20, 23, CHALLENGE) }
+    assertThrows(IllegalArgumentException::class.java) { PhotoClientData.reservationHashBytes(20260000, "1", "2026-09-14", 24, 23, CHALLENGE) }
+  }
+  @Test
   fun `canonical bytes match the server vector`() {
     val hash = PhotoClientData.photoHash("abc".toByteArray())
     assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", hash)

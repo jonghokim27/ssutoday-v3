@@ -168,13 +168,21 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       return;
     }
 
-    const requested = await reservationRepository.requestReserve({
+    let requested;
+    try {
+      requested = await reservationRepository.requestReserve({
       turnstileToken,
       roomNo: roomId,
       date: selectedDate,
       startBlock: slotToBlock(selection.start),
       endBlock: slotToBlock(selection.end),
     });
+    } catch (error) {
+      intervalPaused.current = false;
+      setSubmitting(false);
+      if (!(error instanceof HandledError)) navigateToFailure('예약 요청을 보내지 못했어요. 다시 시도해 주세요', 'SSU5000');
+      return;
+    }
     if (!requested.ok) {
       intervalPaused.current = false;
       setSubmitting(false);

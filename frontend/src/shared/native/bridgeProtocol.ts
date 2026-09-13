@@ -4,7 +4,7 @@ export const BRIDGE_PROTOCOL_VERSION = 1 as const;
 
 export const BRIDGE_REQUEST_TIMEOUT_MS = 10_000;
 
-export type BridgeErrorCode = 'UNSUPPORTED_METHOD' | 'PERMISSION_DENIED' | 'INVALID_PARAMS' | 'TIMEOUT' | 'NATIVE_ERROR' | 'ATTESTATION_UNAVAILABLE' | 'ATTESTATION_REJECTED' | 'APP_ATTEST_KEY_INVALID';
+export type BridgeErrorCode = 'UNSUPPORTED_METHOD' | 'PERMISSION_DENIED' | 'INVALID_PARAMS' | 'TIMEOUT' | 'NATIVE_ERROR' | 'ATTESTATION_UNAVAILABLE' | 'ATTESTATION_REJECTED' | 'APP_ATTEST_KEY_INVALID' | 'ATTESTATION_UNSUPPORTED';
 
 export type BridgeMethod =
   | 'device.getInfo'
@@ -22,6 +22,7 @@ export type BridgeMethod =
   | 'security.confirmAppAttest'
   | 'security.resetAppAttest'
   | 'security.prepareAttestation'
+  | 'security.attestReservation'
   | 'security.attest'
   | 'security.releaseCapture'
   | 'security.clearCaptures'

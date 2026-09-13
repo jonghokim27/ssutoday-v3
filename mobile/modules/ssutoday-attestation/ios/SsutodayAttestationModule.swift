@@ -62,6 +62,12 @@ public class SsutodayAttestationModule: Module {
         return ["platform": "ios", "keyId": proof.keyId, "attestation": proof.assertion]
       } catch { throw self.bridgeError(error) }
     }
+    AsyncFunction("attestReservation") { (studentId: Int, roomNo: String, date: String, startBlock: Int, endBlock: Int, challenge: String) async throws -> [String: String] in
+      do {
+        let proof = try await self.coordinator.assertReservation(studentId: studentId, roomNo: roomNo, date: date, startBlock: startBlock, endBlock: endBlock, challenge: challenge)
+        return ["platform": "ios", "keyId": proof.keyId, "attestation": proof.assertion]
+      } catch { throw self.bridgeError(error) }
+    }
     OnDestroy { self.captures.clear() }
   }
 
@@ -69,6 +75,7 @@ public class SsutodayAttestationModule: Module {
     let failure = error as? AttestFailure
     let code: String
     switch failure {
+    case .unsupported: code = "ERR_ATTESTATION_UNSUPPORTED"
     case .unavailable, .none: code = "ERR_INTEGRITY_UNAVAILABLE"
     case .invalidKey: code = "ERR_APP_ATTEST_KEY_INVALID"
     default: code = "ERR_CAPTURE_REJECTED"

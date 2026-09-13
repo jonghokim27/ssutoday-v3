@@ -38,13 +38,19 @@ export async function uploadVerifyPhotoWithAttestation(reservationId: number, de
   const supported = platform !== null;
   const studentId = supported ? await deps.getStudentId() : null;
   if (supported && (!Number.isSafeInteger(studentId) || Number(studentId) <= 0)) return rejected();
-  if (platform === 'android') void deps.prepare().catch(() => {});
+  if (platform === 'android') {
+    try { await deps.prepare(); }
+    catch (error) {
+      if ((error as { code?: string })?.code === 'ATTESTATION_UNSUPPORTED') throw error;
+    }
+  }
   if (platform === 'ios') {
     try {
       const registered = await deps.registerIos(studentId!);
       if (!registered.ok) return registered;
     } catch (error) {
       const code = (error as { code?: string })?.code;
+      if (code === 'ATTESTATION_UNSUPPORTED') throw error;
       if (code !== 'ATTESTATION_UNAVAILABLE' && code !== 'TIMEOUT') return rejected();
     }
     if (await deps.getStudentId() !== studentId) return rejected();
@@ -88,6 +94,7 @@ export async function uploadVerifyPhotoWithAttestation(reservationId: number, de
         form.append('attestation', proof.attestation);
       } catch (error) {
         const code = (error as { code?: string })?.code;
+        if (code === 'ATTESTATION_UNSUPPORTED') throw error;
         if (code !== 'ATTESTATION_UNAVAILABLE' && code !== 'TIMEOUT') return rejected();
         // 부분 입력으로 서버에 전달한다. 관찰 모드의 허용/강제 모드의 거부는 서버가 결정한다.
       }

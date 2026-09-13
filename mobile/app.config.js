@@ -68,7 +68,7 @@ const config = {
   name: '슈투데이',
   slug: 'ssutoday',
   scheme: 'ssutoday',
-  version: '3.0.3',
+  version: '3.0.2',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',

@@ -10,6 +10,7 @@ on:
       - 'frontend/src/features/reservation/api/*Photo*'
       - 'frontend/src/features/reservation/api/reservationRepository.ts'
       - 'frontend/src/features/reservation/api/registerIosAppAttest.ts'
+      - 'frontend/src/features/reservation/api/requestReserveWithAttestation.ts'
       - 'mobile/src/bridge/**'
       - 'scripts/*attestation*'
       - 'scripts/ios-registration.test.mjs'
@@ -25,6 +26,7 @@ on:
       - 'frontend/src/features/reservation/api/*Photo*'
       - 'frontend/src/features/reservation/api/reservationRepository.ts'
       - 'frontend/src/features/reservation/api/registerIosAppAttest.ts'
+      - 'frontend/src/features/reservation/api/requestReserveWithAttestation.ts'
       - 'mobile/src/bridge/**'
       - 'scripts/*attestation*'
       - 'scripts/ios-registration.test.mjs'
@@ -52,7 +54,7 @@ jobs:
         working-directory: frontend
 
       - name: Test attestation flow and bridge boundaries
-        run: node --test scripts/attestation-flow.test.mjs scripts/ios-registration.test.mjs scripts/bridge-security.test.mjs scripts/bridge-transport.test.mjs
+        run: node --test scripts/attestation-flow.test.mjs scripts/reservation-attestation.test.mjs scripts/ios-registration.test.mjs scripts/bridge-security.test.mjs scripts/bridge-transport.test.mjs
 
       - name: Build frontend
         run: npm run build

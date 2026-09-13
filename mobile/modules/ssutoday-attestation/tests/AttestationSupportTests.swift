@@ -3,6 +3,29 @@ import XCTest
 @testable import AttestationSupport
 
 final class AttestationSupportTests: XCTestCase {
+  func testReservationUsesServerVectorAndRegisteredAccountKey() async throws {
+    let data = try AppAttestClientData.reservation(studentId: studentId, roomNo: "1", date: "2026-09-14", startBlock: 20, endBlock: 23, challenge: challenge)
+    XCTAssertEqual(base64url(AppAttestClientData.hash(data)), "Id4rRexJVUuXGMctfmccH9sWWo0t_d6yNwA5-N5_yrc")
+    XCTAssertThrowsError(try AppAttestClientData.reservation(studentId: studentId, roomNo: "1", date: "2026-02-30", startBlock: 20, endBlock: 23, challenge: challenge))
+    XCTAssertThrowsError(try AppAttestClientData.reservation(studentId: studentId, roomNo: "1", date: "2026-09-14", startBlock: 24, endBlock: 23, challenge: challenge))
+    let provider = FakeProvider()
+    let coordinator = AppAttestCoordinator(provider: provider, keys: MemoryKeys())
+    let record = try await coordinator.prepare(studentId: studentId)
+    _ = try await coordinator.register(studentId: studentId, keyId: record.keyId, challenge: challenge)
+    try await coordinator.confirm(studentId: studentId, keyId: record.keyId)
+    let proof = try await coordinator.assertReservation(studentId: studentId, roomNo: "1", date: "2026-09-14", startBlock: 20, endBlock: 23, challenge: challenge)
+    XCTAssertEqual(proof.keyId, record.keyId)
+    XCTAssertEqual(provider.assertionHash, AppAttestClientData.hash(data))
+  }
+
+  func testUnsupportedDevicesAreDistinctFromTemporaryProviderOutages() async throws {
+    let provider = FakeProvider()
+    provider.isSupported = false
+    let coordinator = AppAttestCoordinator(provider: provider, keys: MemoryKeys())
+    do { _ = try await coordinator.prepare(studentId: studentId); XCTFail() }
+    catch { XCTAssertEqual(error as? AttestFailure, .unsupported) }
+    XCTAssertEqual(provider.generated, 0)
+  }
   private let studentId = 20260000
   private let challenge = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
   private let keyId = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8="

@@ -21,6 +21,7 @@ export type CapturedPhoto = {
 
 export type CapturePhotoScope = { studentId: number; reservationId: number };
 export type AttestPhotoRequest = CapturePhotoScope & { captureId: string; challenge: string };
+export type AttestReservationRequest = { studentId: number; roomNo: string; date: string; startBlock: number; endBlock: number; challenge: string };
 export type AttestPhotoResult = { platform: 'android' | 'ios'; attestation: string; keyId?: string };
 export type AppAttestKeyState = { keyId: string; registered: boolean; pending?: { challenge: string; attestation: string } };
 export type AppAttestRegistration = { keyId: string; challenge: string; attestation: string };
@@ -39,6 +40,7 @@ export type NativeBridge = {
   confirmAppAttest(studentId: number, keyId: string): Promise<void>;
   resetAppAttest(studentId: number, keyId: string): Promise<void>;
   attestPhoto(params: AttestPhotoRequest): Promise<AttestPhotoResult>;
+  attestReservation(params: AttestReservationRequest): Promise<AttestPhotoResult>;
   releaseCapture(captureId: string): Promise<void>;
   clearCaptures(): Promise<void>;
   signWithBiometrics(payload: string): Promise<{ signature: string } | null>;
@@ -60,6 +62,7 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   confirmAppAttest: 'security.confirmAppAttest',
   resetAppAttest: 'security.resetAppAttest',
   attestPhoto: 'security.attest',
+  attestReservation: 'security.attestReservation',
   releaseCapture: 'security.releaseCapture',
   clearCaptures: 'security.clearCaptures',
   signWithBiometrics: 'auth.signWithBiometrics',
@@ -108,6 +111,7 @@ class WebViewNativeBridge implements NativeBridge {
   confirmAppAttest(studentId: number, keyId: string) { return request<void>(METHOD_FOR.confirmAppAttest, { studentId, keyId }); }
   resetAppAttest(studentId: number, keyId: string) { return request<void>(METHOD_FOR.resetAppAttest, { studentId, keyId }); }
   attestPhoto(params: AttestPhotoRequest) { return request<AttestPhotoResult>(METHOD_FOR.attestPhoto, params, 30_000); }
+  attestReservation(params: AttestReservationRequest) { return request<AttestPhotoResult>(METHOD_FOR.attestReservation, params, 30_000); }
   releaseCapture(captureId: string) { return request<void>(METHOD_FOR.releaseCapture, { captureId }); }
   clearCaptures() { return request<void>(METHOD_FOR.clearCaptures); }
 
@@ -125,6 +129,7 @@ class WebViewNativeBridge implements NativeBridge {
 }
 
 class MockNativeBridge implements NativeBridge {
+  async attestReservation(): Promise<AttestPhotoResult> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
   async prepareAppAttest(): Promise<AppAttestKeyState> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
   async attestRegister(): Promise<AppAttestRegistration> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
   async confirmAppAttest() {}
@@ -291,7 +296,7 @@ function ensureNativeOnlyStyles() {
   document.head.append(style);
 }
 
-function showNativeOnlyModal() {
+function showNativeOnlyModal(unsupportedDevice = false) {
   if (nativeOnlyOverlay) {
     return;
   }
@@ -311,7 +316,7 @@ function showNativeOnlyModal() {
 
   const message = document.createElement('p');
   message.className = 'ssu-native-message';
-  message.innerHTML = '해당 기능은 슈투데이 앱에서만<br>이용하실 수 있어요';
+  message.innerHTML = unsupportedDevice ? '해당 기기에서<br>지원하지 않는 기능이에요' : '해당 기능은 슈투데이 앱에서만<br>이용하실 수 있어요';
 
   const sub = document.createElement('p');
   sub.className = 'ssu-native-sub';
@@ -346,11 +351,22 @@ function showNativeOnlyModal() {
     }
   };
 
-  actions.append(downloadButton, closeButton);
-  dialog.append(icon, message, sub, actions);
+  if (!unsupportedDevice) actions.append(downloadButton);
+  actions.append(closeButton);
+  dialog.append(icon, message);
+  if (!unsupportedDevice) dialog.append(sub);
+  dialog.append(actions);
   overlay.append(dialog);
   document.body.append(overlay);
   nativeOnlyOverlay = overlay;
+}
+
+export function handleAttestationDeviceError(error: unknown): never {
+  if ((error as { code?: string })?.code === 'ATTESTATION_UNSUPPORTED') {
+    showNativeOnlyModal(true);
+    throw new HandledError();
+  }
+  throw error;
 }
 
 export function requireNativeApp() {

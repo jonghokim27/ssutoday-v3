@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import messaging from '@react-native-firebase/messaging';
 import { BridgeHandlerError, clearHandlers, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
-import { canDispatchBridge, isAppAttestKey, isAppAttestStudent, isAttestParams, isCaptureScope, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
+import { canDispatchBridge, isAppAttestKey, isAppAttestStudent, isAttestParams, isCaptureScope, isReservationAttestParams, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
 import AttestationModule from '../../modules/ssutoday-attestation';
 import { deepLink } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
@@ -308,16 +308,22 @@ export default function WebViewScreen() {
 
     if (AttestationModule) {
       const module = AttestationModule;
+      const callAttestation = async <T,>(operation: () => Promise<T>): Promise<T> => {
+        try { return await operation(); }
+        catch (error) {
+          const code = (error as { code?: string })?.code;
+          if (code === 'ERR_ATTESTATION_UNSUPPORTED') throw new BridgeHandlerError('ATTESTATION_UNSUPPORTED', '해당 기기에서 지원하지 않는 기능이에요');
+          if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다');
+          if (code === 'ERR_APP_ATTEST_KEY_INVALID') throw new BridgeHandlerError('APP_ATTEST_KEY_INVALID', '앱 인증 키를 다시 준비해 주세요');
+          throw new BridgeHandlerError('ATTESTATION_REJECTED', '증명 요청이 올바르지 않습니다');
+        }
+      };
+      registerHandler('security.attestReservation', async params => {
+        if (!isReservationAttestParams(params)) throw new BridgeHandlerError('INVALID_PARAMS', '예약 증명 요청이 올바르지 않습니다');
+        return callAttestation(() => module.attestReservation(params.studentId, params.roomNo, params.date, params.startBlock, params.endBlock, params.challenge));
+      });
       if (Platform.OS === 'ios') {
-        const callIos = async <T,>(operation: () => Promise<T>): Promise<T> => {
-          try { return await operation(); }
-          catch (error) {
-            const code = (error as { code?: string })?.code;
-            if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다');
-            if (code === 'ERR_APP_ATTEST_KEY_INVALID') throw new BridgeHandlerError('APP_ATTEST_KEY_INVALID', '앱 인증 키를 다시 준비해 주세요');
-            throw new BridgeHandlerError('ATTESTATION_REJECTED', '증명 요청이 올바르지 않습니다');
-          }
-        };
+        const callIos = callAttestation;
         registerHandler('security.prepareAppAttest', async params => {
           if (!isAppAttestStudent(params)) throw new BridgeHandlerError('INVALID_PARAMS', '학생 정보가 올바르지 않습니다');
           return callIos(() => module.prepareAppAttest(params.studentId));
@@ -340,7 +346,7 @@ export default function WebViewScreen() {
         });
       }
       if (Platform.OS === 'android') registerHandler('security.prepareAttestation', async () => {
-        try { await module.prepare(); } catch { throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다'); }
+        await callAttestation(() => module.prepare());
       });
       registerHandler('security.attest', async (params) => {
         if (!isAttestParams(params)) throw new BridgeHandlerError('INVALID_PARAMS', '증명 요청이 올바르지 않습니다');
@@ -348,6 +354,7 @@ export default function WebViewScreen() {
           return await module.attest(params.captureId, params.studentId, params.reservationId, params.challenge);
         } catch (error) {
           const code = (error as { code?: string })?.code;
+          if (code === 'ERR_ATTESTATION_UNSUPPORTED') throw new BridgeHandlerError('ATTESTATION_UNSUPPORTED', '해당 기기에서 지원하지 않는 기능이에요');
           if (code === 'ERR_APP_ATTEST_KEY_INVALID') throw new BridgeHandlerError('APP_ATTEST_KEY_INVALID', '기기 인증 키를 다시 등록해 주세요');
           if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 생성하지 못했습니다');
           throw new BridgeHandlerError('ATTESTATION_REJECTED', '사진을 다시 촬영해 주세요');

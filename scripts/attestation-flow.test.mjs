@@ -158,6 +158,18 @@ test('failed Turnstile, challenge and upload all release the capture', async t =
 });
 
 const IOS_KEY = Buffer.alloc(32, 1).toString('base64');
+
+test('unsupported devices preserve the modal error and never upload', async () => {
+  for (const platform of ['android', 'ios']) {
+    for (const phase of [platform === 'android' ? 'prepare' : 'registerIos', 'attest']) {
+      const error = Object.assign(new Error('unsupported'), { code: 'ATTESTATION_UNSUPPORTED' });
+      const s = scenario({ attestationPlatform: () => platform, [phase]: async () => { throw error; } });
+      await assert.rejects(s.run(), value => value === error);
+      assert.equal(s.state.form, null);
+      if (phase === 'attest') assert.deepEqual(s.calls.at(-1), ['release', CAPTURE]);
+    }
+  }
+});
 const IOS_PROOF = { platform: 'ios', keyId: IOS_KEY, attestation: Buffer.from('assertion fixture').toString('base64') };
 
 test('iOS registers before capture and uploads its key and assertion with the captured bytes', async () => {

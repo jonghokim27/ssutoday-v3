@@ -1,13 +1,32 @@
 import { apiClient } from '../../../shared/api/apiClient';
 import { type ApiResult } from '../../../shared/api/types';
-import { nativeBridge, isNativeApp, getNativePlatform, hasCapability, HandledError } from '../../../shared/native/nativeBridge';
+import { nativeBridge, isNativeApp, getNativePlatform, hasCapability, handleAttestationDeviceError, HandledError } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { waitForHandshake } from '../../../shared/native/bridgeTransport';
 import { uploadVerifyPhotoWithAttestation, type PhotoChallenge } from './uploadVerifyPhoto';
 import { registerIosAppAttest, type RegistrationChallenge } from './registerIosAppAttest';
+import { requestReserveWithAttestation, type ReservationChallenge, type ReservationSubmission } from './requestReserveWithAttestation';
 import type { AppAttestRegistration } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { blockToTime, timeToBlock } from './reservationBlocks';
+
+async function getAttestationStudentId(): Promise<number | null> {
+  const profile = await appStorage.getProfile();
+  return profile ? Number(profile.studentId) : null;
+}
+
+function registerIosForStudent(studentId: number) {
+  return registerIosAppAttest(studentId, {
+    getStudentId: getAttestationStudentId,
+    prepare: id => nativeBridge.prepareAppAttest(id),
+    challenge: () => apiClient.post<{ purpose: string }, RegistrationChallenge>('attest/challenge', { purpose: 'APP_ATTEST_REGISTER' }, { authenticated: true }),
+    attest: (id, keyId, challenge) => nativeBridge.attestRegister(id, keyId, challenge),
+    register: input => apiClient.post<AppAttestRegistration, { keyId: string }>('attest/register', input, { authenticated: true }),
+    confirm: (id, keyId) => nativeBridge.confirmAppAttest(id, keyId),
+    reset: (id, keyId) => nativeBridge.resetAppAttest(id, keyId),
+    now: () => performance.now(),
+  });
+}
 
 export type ReserveInRoom = {
   idx: number;
@@ -77,7 +96,17 @@ export class ApiReservationRepository implements ReservationRepository {
   }
 
   async requestReserve(params: { turnstileToken: string; roomNo: number | string; date: string; startBlock: number; endBlock: number }) {
-    return apiClient.post<typeof params, { idx: number }>('reserve/request', params, { authenticated: true });
+    if (isNativeApp()) await waitForHandshake();
+    return requestReserveWithAttestation(params, {
+      platform: () => hasCapability('attestReservation') ? getNativePlatform() : null,
+      getStudentId: getAttestationStudentId,
+      prepare: () => nativeBridge.prepareAttestation(),
+      registerIos: registerIosForStudent,
+      challenge: () => apiClient.post<{ purpose: string }, ReservationChallenge>('attest/challenge', { purpose: 'RESERVATION_CREATE' }, { authenticated: true }),
+      attest: input => nativeBridge.attestReservation(input),
+      submit: input => apiClient.post<ReservationSubmission, { idx: number }>('reserve/request', input, { authenticated: true }),
+      now: () => performance.now(),
+    }).catch(handleAttestationDeviceError);
   }
 
   async getReserveStatus(idx: number) {
@@ -109,19 +138,7 @@ export class ApiReservationRepository implements ReservationRepository {
         return profile ? Number(profile.studentId) : null;
       },
       prepare: () => nativeBridge.prepareAttestation(),
-      registerIos: studentId => registerIosAppAttest(studentId, {
-        getStudentId: async () => {
-          const profile = await appStorage.getProfile();
-          return profile ? Number(profile.studentId) : null;
-        },
-        prepare: id => nativeBridge.prepareAppAttest(id),
-        challenge: () => apiClient.post<{ purpose: string }, RegistrationChallenge>('attest/challenge', { purpose: 'APP_ATTEST_REGISTER' }, { authenticated: true }),
-        attest: (id, keyId, challenge) => nativeBridge.attestRegister(id, keyId, challenge),
-        register: input => apiClient.post<AppAttestRegistration, { keyId: string }>('attest/register', input, { authenticated: true }),
-        confirm: (id, keyId) => nativeBridge.confirmAppAttest(id, keyId),
-        reset: (id, keyId) => nativeBridge.resetAppAttest(id, keyId),
-        now: () => performance.now(),
-      }),
+      registerIos: registerIosForStudent,
       capture: scope => nativeBridge.captureVerifyPhoto(scope),
       turnstile: () => getTurnstileToken('verify_photo_upload'),
       challenge: reservationId => apiClient.post<{ purpose: string; reservationId: number }, PhotoChallenge>(
@@ -131,7 +148,7 @@ export class ApiReservationRepository implements ReservationRepository {
       release: captureId => nativeBridge.releaseCapture(captureId),
       upload: form => apiClient.postFormData<null>('reserve/verifyPhoto/upload', form, { authenticated: true }),
       now: () => performance.now(),
-    });
+    }).catch(handleAttestationDeviceError);
   }
 
   async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {

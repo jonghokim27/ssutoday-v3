@@ -43,6 +43,17 @@ export function secureBridgeScript(token: string | null): string {
 
 export type CaptureScope = { studentId: number; reservationId: number };
 export type AttestParams = CaptureScope & { captureId: string; challenge: string };
+export type ReservationAttestParams = { studentId: number; roomNo: string; date: string; startBlock: number; endBlock: number; challenge: string };
+
+export function isReservationAttestParams(value: unknown): value is ReservationAttestParams {
+  if (!isAppAttestStudent(value)) return false;
+  const input = value as Record<string, unknown>;
+  return typeof input.roomNo === 'string' && input.roomNo.trim().length > 0 && input.roomNo.length <= 100 &&
+    typeof input.date === 'string' && /^202[3-9]-[0-9]{2}-[0-9]{2}$/.test(input.date) &&
+    Number.isInteger(input.startBlock) && Number(input.startBlock) >= 12 && Number(input.startBlock) <= 43 &&
+    Number.isInteger(input.endBlock) && Number(input.endBlock) >= Number(input.startBlock) && Number(input.endBlock) <= 43 &&
+    typeof input.challenge === 'string' && /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(input.challenge);
+}
 
 export function isAppAttestStudent(value: unknown): value is { studentId: number } {
   if (!value || typeof value !== 'object') return false;

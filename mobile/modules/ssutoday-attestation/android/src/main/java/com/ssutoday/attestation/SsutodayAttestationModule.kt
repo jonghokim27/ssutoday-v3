@@ -36,8 +36,8 @@ class SsutodayAttestationModule : Module() {
     AsyncFunction("prepare") Coroutine { ->
       try {
         withTimeout(25_000L) { prepareProvider().awaitResult() }
-      } catch (_: Exception) {
-        throw integrityUnavailable()
+      } catch (error: Exception) {
+        throw integrityError(error)
       }
       Unit
     }
@@ -68,26 +68,42 @@ class SsutodayAttestationModule : Module() {
           Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING,
         )
       } catch (_: IllegalArgumentException) { throw captureRejected() }
-      val token = try {
-        withTimeout(25_000L) {
-          try {
-            requestToken(requestHash)
-          } catch (error: StandardIntegrityException) {
-            if (error.errorCode != StandardIntegrityErrorCode.INTEGRITY_TOKEN_PROVIDER_INVALID) throw error
-            synchronized(this@SsutodayAttestationModule) { preparation = null }
-            requestToken(requestHash)
-          }
-        }
-      } catch (_: TimeoutCancellationException) {
-        throw integrityUnavailable()
-      } catch (_: StandardIntegrityException) {
-        throw integrityUnavailable()
-      }
+      val token = integrityToken(requestHash)
       if (!captures.isCurrent(capture)) throw captureRejected()
       mapOf("platform" to "android", "attestation" to token)
     }
 
+    AsyncFunction("attestReservation") Coroutine { studentId: Int, roomNo: String, date: String, startBlock: Int, endBlock: Int, challenge: String ->
+      val hash = try {
+        Base64.encodeToString(PhotoClientData.reservationHashBytes(studentId, roomNo, date, startBlock, endBlock, challenge), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+      } catch (_: Exception) { throw captureRejected() }
+      mapOf("platform" to "android", "attestation" to integrityToken(hash))
+    }
+
     OnDestroy { captures.clear() }
+  }
+
+  private suspend fun integrityToken(hash: String): String = try {
+    withTimeout(25_000L) {
+      try { requestToken(hash) }
+      catch (error: StandardIntegrityException) {
+        if (error.errorCode != StandardIntegrityErrorCode.INTEGRITY_TOKEN_PROVIDER_INVALID) throw error
+        synchronized(this@SsutodayAttestationModule) { preparation = null }
+        requestToken(hash)
+      }
+    }
+  } catch (_: TimeoutCancellationException) { throw integrityUnavailable() }
+    catch (error: StandardIntegrityException) { throw integrityError(error) }
+
+  private fun integrityError(error: Exception): CodedException {
+    if (error is StandardIntegrityException && error.errorCode in setOf(
+        StandardIntegrityErrorCode.API_NOT_AVAILABLE,
+        StandardIntegrityErrorCode.PLAY_STORE_NOT_FOUND,
+        StandardIntegrityErrorCode.PLAY_SERVICES_NOT_FOUND,
+        StandardIntegrityErrorCode.PLAY_STORE_VERSION_OUTDATED,
+        StandardIntegrityErrorCode.PLAY_SERVICES_VERSION_OUTDATED,
+      )) return CodedException("ERR_ATTESTATION_UNSUPPORTED", "Attestation is not supported on this device", null)
+    return integrityUnavailable()
   }
 
   @Synchronized

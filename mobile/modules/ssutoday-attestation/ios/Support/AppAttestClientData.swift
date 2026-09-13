@@ -25,4 +25,19 @@ enum AppAttestClientData {
           validChallenge(challenge), photoHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else { throw AttestFailure.rejected }
     return Data("ssutoday.attestation.v1\npurpose=VERIFY_PHOTO_UPLOAD\nstudentId=\(studentId)\nreservationId=\(reservationId)\nchallenge=\(challenge)\nphotoSha256=\(photoHash)\n".utf8)
   }
+
+  static func reservation(studentId: Int, roomNo: String, date: String, startBlock: Int, endBlock: Int, challenge: String) throws -> Data {
+    guard validStudent(studentId), !roomNo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, roomNo.utf16.count <= 100,
+          (12...43).contains(startBlock), (startBlock...43).contains(endBlock), validChallenge(challenge),
+          date.range(of: "^202[3-9]-[0-9]{2}-[0-9]{2}$", options: .regularExpression) != nil else { throw AttestFailure.rejected }
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.isLenient = false
+    guard let parsed = formatter.date(from: date), formatter.string(from: parsed) == date else { throw AttestFailure.rejected }
+    let room = Data(roomNo.utf8).map { String(format: "%02x", $0) }.joined()
+    return Data("ssutoday.attestation.v1\npurpose=RESERVATION_CREATE\nstudentId=\(studentId)\nroomNoUtf8Hex=\(room)\ndate=\(date)\nstartBlock=\(startBlock)\nendBlock=\(endBlock)\nchallenge=\(challenge)\n".utf8)
+  }
 }

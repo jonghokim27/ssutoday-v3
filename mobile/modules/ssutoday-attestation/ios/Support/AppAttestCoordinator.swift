@@ -16,7 +16,7 @@ actor AppAttestCoordinator {
 
   func prepare(studentId: Int) async throws -> AppAttestKeyRecord {
     guard AppAttestClientData.validStudent(studentId) else { throw AttestFailure.rejected }
-    guard provider.isSupported else { throw AttestFailure.unavailable }
+    guard provider.isSupported else { throw AttestFailure.unsupported }
     if let existing = try keys.find(studentId: studentId) { return existing }
     guard busy.insert(studentId).inserted else { throw AttestFailure.busy }
     defer { busy.remove(studentId) }
@@ -28,7 +28,7 @@ actor AppAttestCoordinator {
   }
 
   func register(studentId: Int, keyId: String, challenge: String) async throws -> PendingAppAttestRegistration {
-    guard provider.isSupported else { throw AttestFailure.unavailable }
+    guard provider.isSupported else { throw AttestFailure.unsupported }
     guard var record = try keys.find(studentId: studentId), record.keyId == keyId, !record.registered else { throw AttestFailure.rejected }
     if let pending = record.pending {
       guard pending.challenge == challenge else { throw AttestFailure.rejected }
@@ -64,18 +64,27 @@ actor AppAttestCoordinator {
   }
 
   func assertPhoto(_ capture: PhotoCaptureStore.Capture, challenge: String) async throws -> (keyId: String, assertion: String) {
-    guard provider.isSupported else { throw AttestFailure.unavailable }
-    guard let record = try keys.find(studentId: capture.studentId), record.registered else { throw AttestFailure.unavailable }
-    let hash = AppAttestClientData.hash(try AppAttestClientData.photo(studentId: capture.studentId, reservationId: capture.reservationId, challenge: challenge, photoHash: capture.photoHash))
-    guard busy.insert(capture.studentId).inserted else { throw AttestFailure.busy }
-    defer { busy.remove(capture.studentId) }
+    let data = try AppAttestClientData.photo(studentId: capture.studentId, reservationId: capture.reservationId, challenge: challenge, photoHash: capture.photoHash)
+    return try await assertion(studentId: capture.studentId, data: data)
+  }
+
+  func assertReservation(studentId: Int, roomNo: String, date: String, startBlock: Int, endBlock: Int, challenge: String) async throws -> (keyId: String, assertion: String) {
+    let data = try AppAttestClientData.reservation(studentId: studentId, roomNo: roomNo, date: date, startBlock: startBlock, endBlock: endBlock, challenge: challenge)
+    return try await assertion(studentId: studentId, data: data)
+  }
+
+  private func assertion(studentId: Int, data: Data) async throws -> (keyId: String, assertion: String) {
+    guard provider.isSupported else { throw AttestFailure.unsupported }
+    guard let record = try keys.find(studentId: studentId), record.registered else { throw AttestFailure.unavailable }
+    guard busy.insert(studentId).inserted else { throw AttestFailure.busy }
+    defer { busy.remove(studentId) }
     let assertion: Data
-    do { assertion = try await provider.generateAssertion(record.keyId, hash: hash) }
+    do { assertion = try await provider.generateAssertion(record.keyId, hash: AppAttestClientData.hash(data)) }
     catch {
-      if error as? AttestFailure == .invalidKey { try discard(studentId: capture.studentId, keyId: record.keyId) }
+      if error as? AttestFailure == .invalidKey { try discard(studentId: studentId, keyId: record.keyId) }
       throw error
     }
-    guard try keys.find(studentId: capture.studentId)?.keyId == record.keyId else { throw AttestFailure.rejected }
+    guard try keys.find(studentId: studentId)?.keyId == record.keyId else { throw AttestFailure.rejected }
     guard !assertion.isEmpty, assertion.count <= 24576 else { throw AttestFailure.rejected }
     return (record.keyId, assertion.base64EncodedString())
   }

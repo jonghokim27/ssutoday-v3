@@ -11,6 +11,7 @@ type AttestationModule = {
   clearCaptures(): void;
   releaseCapture(captureId: string): void;
   prepare(): Promise<void>;
+  attestReservation(studentId: number, roomNo: string, date: string, startBlock: number, endBlock: number, challenge: string): Promise<{ platform: 'android' | 'ios'; attestation: string; keyId?: string }>;
   storeCapture(uri: string, studentId: number, reservationId: number): Promise<{ captureId: string; photoSha256: string; uri: string }>;
   attest(captureId: string, studentId: number, reservationId: number, challenge: string): Promise<{ platform: 'android' | 'ios'; attestation: string; keyId?: string }>;
   prepareAppAttest(studentId: number): Promise<AppAttestKeyState>;
