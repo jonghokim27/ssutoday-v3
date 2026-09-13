@@ -7,6 +7,7 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
 import kr.ac.ssu.ssutoday.core.port.DiscordVerifyPhotoNotificationPort
 import kr.ac.ssu.ssutoday.core.port.FileStoragePort
@@ -21,6 +22,7 @@ import kr.ac.ssu.ssutoday.domain.reservation.ReservationView
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
 import kr.ac.ssu.ssutoday.domain.room.RoomService
 import kr.ac.ssu.ssutoday.domain.student.AttestChallengeService
+import kr.ac.ssu.ssutoday.domain.student.DeviceAttestationService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import kr.ac.ssu.ssutoday.domain.student.StudentView
 import org.mockito.ArgumentMatchers.any
@@ -167,7 +169,14 @@ class VerifyPhotoUploadAttestationTest {
             mock(DiscordReservationActionNotificationPort::class.java),
             inspections,
             mock(VerifyPhotoInspectionPort::class.java),
-            PhotoAttestationApplicationService(provider, challenges, enforce),
+            PhotoAttestationApplicationService(
+                provider,
+                challenges,
+                enforce,
+                mock(AppAttestVerificationPort::class.java),
+                mock(DeviceAttestationService::class.java),
+                true,
+            ),
             "bucket",
             "",
             false,

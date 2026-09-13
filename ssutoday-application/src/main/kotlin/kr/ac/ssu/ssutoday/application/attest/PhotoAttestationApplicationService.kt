@@ -8,9 +8,11 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.PlayIntegrityVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.AttestChallengeService
+import kr.ac.ssu.ssutoday.domain.student.DeviceAttestationService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
@@ -23,6 +25,10 @@ class PhotoAttestationApplicationService(
     private val challengeService: AttestChallengeService,
     @Value("\${ssutoday.attestation.enforce:false}")
     private val enforce: Boolean,
+    private val appAttestVerificationPort: AppAttestVerificationPort,
+    private val deviceAttestationService: DeviceAttestationService,
+    @Value("\${ssutoday.attestation.app-attest.production:true}")
+    private val appAttestProduction: Boolean,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -52,8 +58,8 @@ class PhotoAttestationApplicationService(
         if (evidence.platform.isNullOrBlank() || evidence.challenge.isNullOrBlank() || evidence.attestation.isNullOrBlank()) {
             return AttestationVerdict.INVALID_INPUT
         }
-        if (evidence.platform != "android") return AttestationVerdict.UNSUPPORTED_PLATFORM
-        if (evidence.keyId != null || !AttestationClientData.isValidChallenge(evidence.challenge)) {
+        if (evidence.platform != "android" && evidence.platform != "ios") return AttestationVerdict.UNSUPPORTED_PLATFORM
+        if (!AttestationClientData.isValidChallenge(evidence.challenge)) {
             return AttestationVerdict.INVALID_INPUT
         }
         if (evidence.attestation.length > MAX_TOKEN_LENGTH || evidence.attestation.any(Char::isWhitespace)) {
@@ -63,10 +69,43 @@ class PhotoAttestationApplicationService(
         val photoHash = HexFormat.of().formatHex(AttestationClientData.hash(command.photo))
         val clientData =
             AttestationClientData.forPhotoUpload(command.studentId, command.reservationId, evidence.challenge, photoHash)
+        if (evidence.platform == "ios") return verifyIos(command, AttestationClientData.hash(clientData))
+        if (evidence.keyId != null) return AttestationVerdict.INVALID_INPUT
         val verdict = playIntegrityVerificationPort.verify(evidence.attestation, AttestationClientData.requestHash(clientData))
         if (verdict != AttestationVerdict.VERIFIED) return verdict
 
         return consumeChallenge(command)
+    }
+
+    private fun verifyIos(
+        command: VerifyPhotoAttestationCommand,
+        clientDataHash: ByteArray,
+    ): AttestationVerdict {
+        val keyId = command.evidence.keyId
+        if (keyId == null || !AttestationClientData.isValidKeyId(keyId)) return AttestationVerdict.INVALID_INPUT
+        return try {
+            val key = deviceAttestationService.find(keyId) ?: return AttestationVerdict.KEY_NOT_REGISTERED
+            if (key.studentId != command.studentId) return AttestationVerdict.KEY_OWNER_MISMATCH
+            if (key.production != appAttestProduction) return AttestationVerdict.ENVIRONMENT_MISMATCH
+            val verified =
+                appAttestVerificationPort.verifyAssertion(
+                    requireNotNull(command.evidence.attestation),
+                    key.publicKey,
+                    clientDataHash,
+                )
+            if (verified.verdict != AttestationVerdict.VERIFIED) return verified.verdict
+            val counter = requireNotNull(verified.counter)
+            if (counter <= key.counter) return AttestationVerdict.COUNTER_REJECTED
+            val challengeVerdict = consumeChallenge(command)
+            if (challengeVerdict != AttestationVerdict.VERIFIED) return challengeVerdict
+            if (deviceAttestationService.advanceCounter(keyId, command.studentId, appAttestProduction, counter)) {
+                AttestationVerdict.VERIFIED
+            } else {
+                AttestationVerdict.COUNTER_REJECTED
+            }
+        } catch (_: DataAccessException) {
+            AttestationVerdict.KEY_STORE_UNAVAILABLE
+        }
     }
 
     private fun consumeChallenge(command: VerifyPhotoAttestationCommand): AttestationVerdict =

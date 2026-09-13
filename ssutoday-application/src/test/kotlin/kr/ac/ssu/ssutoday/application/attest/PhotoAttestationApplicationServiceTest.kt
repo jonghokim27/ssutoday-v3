@@ -7,10 +7,12 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.AttestationChallengeStorePort
 import kr.ac.ssu.ssutoday.core.port.PlayIntegrityVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.student.AttestChallengeService
+import kr.ac.ssu.ssutoday.domain.student.DeviceAttestationService
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
 import org.springframework.dao.DataAccessResourceFailureException
@@ -117,7 +119,7 @@ class PhotoAttestationApplicationServiceTest {
                 evidence.copy(attestation = "a".repeat(32 * 1024 + 1)) to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(challenge = "malformed") to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(keyId = "unexpected-key") to AttestationVerdict.INVALID_INPUT,
-                evidence.copy(platform = "ios") to AttestationVerdict.UNSUPPORTED_PLATFORM,
+                evidence.copy(platform = "ios") to AttestationVerdict.INVALID_INPUT,
                 evidence.copy(platform = "web\ninjected-log") to AttestationVerdict.UNSUPPORTED_PLATFORM,
             )
         cases.forEach { (input, verdict) ->
@@ -158,13 +160,37 @@ class PhotoAttestationApplicationServiceTest {
         doThrow(DataAccessResourceFailureException("redis unavailable")).`when`(unavailable).consume(challenge, scope)
         assertEquals(
             AttestationVerdict.CHALLENGE_STORE_UNAVAILABLE,
-            PhotoAttestationApplicationService(provider, unavailable, false).verify(command).verdict,
+            PhotoAttestationApplicationService(
+                provider,
+                unavailable,
+                false,
+                mock(AppAttestVerificationPort::class.java),
+                mock(DeviceAttestationService::class.java),
+                true,
+            ).verify(command).verdict,
         )
         assertEquals(
             StatusCode.SSU4206,
-            assertFailsWith<BusinessException> { PhotoAttestationApplicationService(provider, unavailable, true).verify(command) }.status,
+            assertFailsWith<BusinessException> {
+                PhotoAttestationApplicationService(
+                    provider,
+                    unavailable,
+                    true,
+                    mock(AppAttestVerificationPort::class.java),
+                    mock(DeviceAttestationService::class.java),
+                    true,
+                ).verify(command)
+            }.status,
         )
     }
 
-    private fun service(enforce: Boolean) = PhotoAttestationApplicationService(provider, challenges, enforce)
+    private fun service(enforce: Boolean) =
+        PhotoAttestationApplicationService(
+            provider,
+            challenges,
+            enforce,
+            mock(AppAttestVerificationPort::class.java),
+            mock(DeviceAttestationService::class.java),
+            true,
+        )
 }

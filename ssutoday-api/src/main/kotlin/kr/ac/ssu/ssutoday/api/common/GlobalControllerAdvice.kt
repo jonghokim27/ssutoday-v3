@@ -62,7 +62,8 @@ class GlobalControllerAdvice(
         HttpMediaTypeNotSupportedException::class,
     )
     fun badRequest(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
-        logger.debug(exception) { "Invalid API request" }
+        // validation/JSON 예외에는 attestation, 인증 값 등 요청 원문이 포함될 수 있다.
+        logger.debug { "Invalid API request: ${exception.javaClass.simpleName}" }
         return errorResponse(StatusCode.SSU4000)
     }
 

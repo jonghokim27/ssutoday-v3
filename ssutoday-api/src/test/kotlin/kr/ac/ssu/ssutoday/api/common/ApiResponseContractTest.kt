@@ -169,6 +169,7 @@ class ApiResponseContractTest {
                 "/sso/generateToken",
                 "/sso/validateToken",
                 "/attest/challenge",
+                "/attest/register",
             ),
             paths,
         )
