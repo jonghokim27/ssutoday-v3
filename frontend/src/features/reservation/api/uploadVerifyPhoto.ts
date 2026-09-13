@@ -10,9 +10,10 @@ export type PhotoChallenge = {
 };
 
 export type PhotoUploadDependencies = {
-  supportsAttestation(): boolean;
+  attestationPlatform(): 'android' | 'ios' | null;
   getStudentId(): Promise<number | null>;
   prepare(): Promise<void>;
+  registerIos(studentId: number): Promise<ApiResult<null>>;
   capture(scope?: CapturePhotoScope): Promise<CapturedPhoto | null>;
   turnstile(): Promise<string>;
   challenge(reservationId: number): Promise<ApiResult<PhotoChallenge>>;
@@ -31,12 +32,23 @@ function photoBlob(photo: CapturedPhoto): Blob {
 
 const rejected = (): ApiResult<null> => ({ ok: false, statusCode: 'SSU4206', message: '사진을 다시 촬영해 주세요' });
 
-/** capture → Turnstile → challenge → 증명 → 업로드. 구버전/iOS 호환 여부는 capability로 결정한다. */
+/** 등록 준비 → capture → Turnstile → challenge → 증명 → 업로드. 구버전 호환 여부는 capability로 결정한다. */
 export async function uploadVerifyPhotoWithAttestation(reservationId: number, deps: PhotoUploadDependencies): Promise<ApiResult<null>> {
-  const supported = deps.supportsAttestation();
+  const platform = deps.attestationPlatform();
+  const supported = platform !== null;
   const studentId = supported ? await deps.getStudentId() : null;
   if (supported && (!Number.isSafeInteger(studentId) || Number(studentId) <= 0)) return rejected();
-  if (supported) void deps.prepare().catch(() => {});
+  if (platform === 'android') void deps.prepare().catch(() => {});
+  if (platform === 'ios') {
+    try {
+      const registered = await deps.registerIos(studentId!);
+      if (!registered.ok) return registered;
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code !== 'ATTESTATION_UNAVAILABLE' && code !== 'TIMEOUT') return rejected();
+    }
+    if (await deps.getStudentId() !== studentId) return rejected();
+  }
   const photo = await deps.capture(supported ? { studentId: studentId!, reservationId } : undefined);
   if (!photo) return { ok: false, statusCode: 'SSU0000', message: '인증샷 촬영이 취소되었습니다' };
 
@@ -60,14 +72,19 @@ export async function uploadVerifyPhotoWithAttestation(reservationId: number, de
       ) return rejected();
       const deadline = issuedAt + challenge.expiresInSeconds * 1000;
       if (deps.now() >= deadline) return rejected();
-      form.append('platform', 'android');
+      form.append('platform', platform!);
       form.append('challenge', challenge.challenge);
       try {
         const proof = await deps.attest({ captureId: photo.captureId!, studentId: studentId!, reservationId, challenge: challenge.challenge });
         if (
-          !proof || proof.platform !== 'android' || typeof proof.attestation !== 'string' ||
+          !proof || proof.platform !== platform || typeof proof.attestation !== 'string' ||
           !proof.attestation || proof.attestation.length > 32 * 1024 || /\s/.test(proof.attestation)
         ) return rejected();
+        if (platform === 'ios') {
+          if (typeof proof.keyId !== 'string' || !/^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/.test(proof.keyId)) return rejected();
+          if (!/^[A-Za-z0-9+/]+={0,2}$/.test(proof.attestation)) return rejected();
+          form.append('keyId', proof.keyId);
+        } else if (proof.keyId !== undefined) return rejected();
         form.append('attestation', proof.attestation);
       } catch (error) {
         const code = (error as { code?: string })?.code;

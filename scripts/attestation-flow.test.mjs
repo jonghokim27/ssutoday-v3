@@ -11,9 +11,10 @@ function scenario(overrides = {}) {
   const calls = [];
   const state = { studentId: 20260000, time: 0, form: null };
   const deps = {
-    supportsAttestation: () => true,
+    attestationPlatform: () => 'android',
     getStudentId: async () => state.studentId,
     prepare: async () => { calls.push('prepare'); },
+    registerIos: async () => { calls.push('register-ios'); return success; },
     capture: async scope => {
       calls.push(['capture', scope]);
       return { captureId: CAPTURE, uri: `data:image/jpeg;base64,${PHOTO.toString('base64')}`, name: 'capture.jpg', type: 'image/jpeg' };
@@ -48,8 +49,8 @@ test('camera bytes and native proof are uploaded with the authenticated challeng
   assert.equal(state.form.get('attestation'), 'integrity-token');
 });
 
-test('old apps and iOS keep the existing upload contract', async () => {
-  const { run, calls, state } = scenario({ supportsAttestation: () => false });
+test('old apps without the capability keep the existing upload contract', async () => {
+  const { run, calls, state } = scenario({ attestationPlatform: () => null });
   assert.equal(await run(), success);
   assert.deepEqual(calls, [['capture', undefined], 'turnstile', 'upload', ['release', CAPTURE]]);
   assert.deepEqual([...state.form.keys()], ['idx', 'file', 'turnstileToken']);
@@ -154,4 +155,49 @@ test('failed Turnstile, challenge and upload all release the capture', async t =
   assert.equal((await s.run()).statusCode, 'SSU4205');
   assert.equal(s.state.form, null);
   assert.deepEqual(s.calls.at(-1), ['release', CAPTURE]);
+});
+
+const IOS_KEY = Buffer.alloc(32, 1).toString('base64');
+const IOS_PROOF = { platform: 'ios', keyId: IOS_KEY, attestation: Buffer.from('assertion fixture').toString('base64') };
+
+test('iOS registers before capture and uploads its key and assertion with the captured bytes', async () => {
+  const s = scenario({ attestationPlatform: () => 'ios', attest: async () => IOS_PROOF });
+  assert.equal(await s.run(), success);
+  assert.deepEqual(s.calls.slice(0, 4), ['register-ios', ['capture', { studentId: 20260000, reservationId: 42 }], 'turnstile', 'challenge']);
+  assert.equal(s.state.form.get('platform'), 'ios');
+  assert.equal(s.state.form.get('keyId'), IOS_KEY);
+  assert.equal(s.state.form.get('attestation'), IOS_PROOF.attestation);
+  assert.deepEqual(Buffer.from(await s.state.form.get('file').arrayBuffer()), PHOTO);
+  assert.deepEqual(s.calls.at(-1), ['release', CAPTURE]);
+});
+
+test('iOS registration rejection or account switching stops before opening the camera', async () => {
+  const s = scenario({ attestationPlatform: () => 'ios', registerIos: async () => ({ ok: false, statusCode: 'SSU4206' }) });
+  assert.equal((await s.run()).statusCode, 'SSU4206');
+  assert.deepEqual(s.calls, []);
+  s.deps.registerIos = async () => { s.state.studentId++; return success; };
+  assert.equal((await s.run()).statusCode, 'SSU4206');
+  assert.deepEqual(s.calls, []);
+});
+
+test('iOS provider unavailability preserves the server observation policy', async () => {
+  const unavailable = async () => { throw Object.assign(new Error('unavailable'), { code: 'ATTESTATION_UNAVAILABLE' }); };
+  const s = scenario({ attestationPlatform: () => 'ios', registerIos: unavailable, attest: unavailable });
+  assert.equal(await s.run(), success);
+  assert.equal(s.state.form.get('platform'), 'ios');
+  assert.equal(s.state.form.get('challenge'), CHALLENGE);
+  assert.equal(s.state.form.has('attestation'), false);
+  assert.equal(s.state.form.has('keyId'), false);
+});
+
+test('iOS cannot upload assertions with missing, malformed or foreign-platform keys', async t => {
+  for (const proof of [{ ...IOS_PROOF, keyId: undefined }, { ...IOS_PROOF, keyId: 'invalid' },
+    { ...IOS_PROOF, platform: 'android' }, { ...IOS_PROOF, attestation: 'bad-proof' }]) {
+    await t.test(JSON.stringify(proof), async () => {
+      const s = scenario({ attestationPlatform: () => 'ios', attest: async () => proof });
+      assert.equal((await s.run()).statusCode, 'SSU4206');
+      assert.equal(s.state.form, null);
+      assert.deepEqual(s.calls.at(-1), ['release', CAPTURE]);
+    });
+  }
 });

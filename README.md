@@ -221,7 +221,7 @@ Kafka consumer 실행 모듈이다.
 | `DISCORD_VERIFYPHOTO_WEBHOOK_URL` | 인증샷/예약 액션 Discord 알림 webhook |
 | `ADMIN_BASE_URL` | Discord 관리자 액션 링크 base URL |
 
-인증샷 무결성의 구현 범위, Android 판정 기준과 관찰/강제 모드 계약은 [docs/attestation.md](docs/attestation.md)를 참고한다.
+인증샷 무결성의 구현 범위, Android/iOS 판정 기준과 관찰/강제 모드 계약은 [docs/attestation.md](docs/attestation.md)를 참고한다. iOS 키 저장 테이블은 배포 전에 [DDL](infra/sql/20260913-device-attestation.sql)을 적용해야 한다.
 
 ### 서버 실행
 
@@ -406,8 +406,9 @@ frontend/src
 - React Native Firebase App/Messaging
 - Expo Notifications
 - Expo Image Picker
-- Expo Camera (Android 앱 내부 인증샷 촬영)
+- Expo Camera (Android/iOS 앱 내부 인증샷 촬영)
 - 로컬 Expo 모듈 + Google Play Integrity (Android 인증샷 증명)
+- 로컬 Expo 모듈 + DeviceCheck App Attest (iOS 키 등록·사진 서명)
 - Expo Local Authentication
 - Expo NetInfo
 
@@ -439,13 +440,14 @@ npx eas build --profile production
 - 앱 이름: `슈투데이`
 - slug: `ssutoday`
 - scheme: `ssutoday`
-- version: `3.0.2`
+- version: `3.0.3`
 - iOS bundle identifier: `com.ssutoday`
 - Android package: `com.ssutoday`
 - orientation: portrait
 - new architecture enabled
 - splash image: `./assets/splash-icon.png`, width `150`
 - iOS camera/FaceID permission message 정의
+- iOS App Attest entitlement: `APP_ATTEST_ENVIRONMENT` (`production` 기본값, 개발 서버는 `development`와 `APP_ATTEST_PRODUCTION=false` 조합)
 - Android camera/notification policy permission 정의
 - Firebase config file은 환경 변수로 조건부 주입
   - `GOOGLE_SERVICE_INFO_PLIST`
@@ -460,7 +462,7 @@ mobile
     _layout.tsx       Expo Router root layout
     index.tsx         메인 WebView 화면 진입
     browser.tsx       인앱 브라우저 화면 진입
-  modules/ssutoday-attestation/  Android Play Integrity와 촬영 핸들 관리
+  modules/ssutoday-attestation/  Play Integrity, App Attest와 촬영 핸들 관리
   src/
     bridge/
       protocol.ts     프론트엔드와 공유해야 하는 브리지 타입
@@ -470,7 +472,7 @@ mobile
       InAppBrowserScreen.tsx  공지/인증샷 등 내부 브라우저
       OfflineScreen.tsx       오프라인 화면
       TurnstileModal.tsx      RN 전용 Turnstile WebView modal
-      VerifyPhotoCameraModal.tsx  Android 앱 내부 카메라
+      VerifyPhotoCameraModal.tsx  양 플랫폼 앱 내부 카메라
     utils/
       deepLink.ts     deep link 처리
 ```
@@ -487,7 +489,10 @@ mobile
 - `auth.signWithBiometrics`: 생체 인증
 - `network.checkConnectivity`: 네트워크 상태 확인
 - `security.getTurnstileToken`: RN WebView modal로 Turnstile token 발급
-- `security.prepareAttestation` / `security.attest`: Android 증명 준비·생성
+- `security.prepareAttestation`: Android 증명 준비
+- `security.prepareAppAttest` / `security.attestRegister`: iOS 계정별 키 준비·등록 증명
+- `security.confirmAppAttest` / `security.resetAppAttest`: iOS 서버 등록 승인·키 폐기
+- `security.attest`: 양 플랫폼 촬영 핸들에 대한 증명 생성
 - `security.releaseCapture` / `security.clearCaptures`: 촬영 핸들 폐기
 
 푸시 알림은 Firebase Messaging token을 서버에 등록하고, 포그라운드 메시지는 `expo-notifications` 로컬 알림으로 표시한다.
@@ -510,6 +515,8 @@ node scripts/check-bridge-protocol-sync.js
 ```
 
 GitHub Actions의 `bridge-protocol-sync.yml`은 main push와 PR에서 브리지·인증샷 흐름 변경 시 프로토콜 동기화, JS 보안 테스트, 프론트엔드 빌드를 검증한다. 테스트 실행 방법은 [인증샷 검증 문서](docs/attestation.md#검증)를 따른다.
+
+`ios-attestation.yml`은 macOS에서 Swift 핵심 테스트와 Expo 앱의 서명 없는 Simulator 빌드를 수행하도록 구성했다. Windows에서는 Swift 핵심 테스트만 공식 Swift Linux 컨테이너로 실행했으며, Xcode 빌드와 TestFlight 실기기 검증은 아직 남아 있다.
 
 ## 배포
 

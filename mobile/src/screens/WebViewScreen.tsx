@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { AppState, BackHandler, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 import { router, useFocusEffect } from 'expo-router';
 import * as Application from 'expo-application';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Haptics from 'expo-haptics';
-import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -16,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import messaging from '@react-native-firebase/messaging';
 import { BridgeHandlerError, clearHandlers, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
-import { canDispatchBridge, isAttestParams, isCaptureScope, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
+import { canDispatchBridge, isAppAttestKey, isAppAttestStudent, isAttestParams, isCaptureScope, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
 import AttestationModule from '../../modules/ssutoday-attestation';
 import { deepLink } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
@@ -90,7 +89,7 @@ export default function WebViewScreen() {
   const [cameraVisible, setCameraVisible] = useState(false);
   const cameraCallback = useRef<{ resolve: (uri: string | null) => void; reject: () => void } | null>(null);
   const bridgeToken = useRef<string | null>(null);
-  if (Platform.OS === 'android' && AttestationModule && !bridgeToken.current) {
+  if (AttestationModule && !bridgeToken.current) {
     bridgeToken.current = AttestationModule.createBridgeToken();
   }
 
@@ -103,6 +102,13 @@ export default function WebViewScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => () => clearCaptures(), [clearCaptures]));
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'background') clearCaptures();
+    });
+    return () => subscription.remove();
+  }, [clearCaptures]);
 
   const checkVersion = useCallback(async () => {
     setVersionStatus('checking');
@@ -239,7 +245,7 @@ export default function WebViewScreen() {
     });
 
     registerHandler('camera.requestPermission', async () => {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status } = await Camera.requestCameraPermissionsAsync();
       return status === 'granted';
     });
 
@@ -250,7 +256,7 @@ export default function WebViewScreen() {
       const generation = captureGeneration.current;
       captureBusy.current = true;
       try {
-        const permissionApi = Platform.OS === 'android' ? Camera : ImagePicker;
+        const permissionApi = Camera;
         const current = await permissionApi.getCameraPermissionsAsync();
         if (current.status !== 'granted') {
           if (!current.canAskAgain) {
@@ -263,29 +269,11 @@ export default function WebViewScreen() {
         }
 
         if (generation !== captureGeneration.current) return null;
-        let photoUri: string;
-        if (Platform.OS === 'android') {
-          const captured = await new Promise<string | null>((resolve, reject) => {
-            cameraCallback.current = { resolve, reject: () => reject(new BridgeHandlerError('NATIVE_ERROR', '촬영하지 못했습니다')) };
-            setCameraVisible(true);
-          });
-          if (!captured) return null;
-          photoUri = captured;
-        } else {
-          const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: 'images',
-            allowsEditing: false,
-            quality: 1,
-            base64: false,
-            exif: false,
-          });
-
-          if (result.canceled) {
-            return null;
-          }
-
-          photoUri = result.assets[0].uri;
-        }
+        const photoUri = await new Promise<string | null>((resolve, reject) => {
+          cameraCallback.current = { resolve, reject: () => reject(new BridgeHandlerError('NATIVE_ERROR', '촬영하지 못했습니다')) };
+          setCameraVisible(true);
+        });
+        if (!photoUri) return null;
         if (generation !== captureGeneration.current) return null;
         const context = ImageManipulator.manipulate(photoUri);
         context.resize({ width: 1280 });
@@ -293,11 +281,11 @@ export default function WebViewScreen() {
         const manipulated = await imageRef.saveAsync({
           compress: 0.8,
           format: SaveFormat.JPEG,
-          base64: !(Platform.OS === 'android' && AttestationModule && isCaptureScope(params)),
+          base64: !(AttestationModule && isCaptureScope(params)),
         });
 
         if (generation !== captureGeneration.current) return null;
-        if (Platform.OS === 'android' && AttestationModule && isCaptureScope(params)) {
+        if (AttestationModule && isCaptureScope(params)) {
           const registered = await AttestationModule.storeCapture(manipulated.uri, params.studentId, params.reservationId);
           if (generation !== captureGeneration.current) {
             AttestationModule.releaseCapture(registered.captureId);
@@ -318,9 +306,40 @@ export default function WebViewScreen() {
       }
     });
 
-    if (Platform.OS === 'android' && AttestationModule) {
+    if (AttestationModule) {
       const module = AttestationModule;
-      registerHandler('security.prepareAttestation', async () => {
+      if (Platform.OS === 'ios') {
+        const callIos = async <T,>(operation: () => Promise<T>): Promise<T> => {
+          try { return await operation(); }
+          catch (error) {
+            const code = (error as { code?: string })?.code;
+            if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다');
+            if (code === 'ERR_APP_ATTEST_KEY_INVALID') throw new BridgeHandlerError('APP_ATTEST_KEY_INVALID', '앱 인증 키를 다시 준비해 주세요');
+            throw new BridgeHandlerError('ATTESTATION_REJECTED', '증명 요청이 올바르지 않습니다');
+          }
+        };
+        registerHandler('security.prepareAppAttest', async params => {
+          if (!isAppAttestStudent(params)) throw new BridgeHandlerError('INVALID_PARAMS', '학생 정보가 올바르지 않습니다');
+          return callIos(() => module.prepareAppAttest(params.studentId));
+        });
+        registerHandler('security.attestRegister', async params => {
+          const input = params as { studentId: number; keyId: string; challenge?: unknown };
+          if (!isAppAttestKey(input) || typeof input.challenge !== 'string' || !/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(input.challenge)) {
+            throw new BridgeHandlerError('INVALID_PARAMS', '등록 요청이 올바르지 않습니다');
+          }
+          const challenge = input.challenge;
+          return callIos(() => module.attestRegister(input.studentId, input.keyId, challenge));
+        });
+        registerHandler('security.confirmAppAttest', async params => {
+          if (!isAppAttestKey(params)) throw new BridgeHandlerError('INVALID_PARAMS', '키 정보가 올바르지 않습니다');
+          return callIos(() => module.confirmAppAttest(params.studentId, params.keyId));
+        });
+        registerHandler('security.resetAppAttest', async params => {
+          if (!isAppAttestKey(params)) throw new BridgeHandlerError('INVALID_PARAMS', '키 정보가 올바르지 않습니다');
+          return callIos(() => module.resetAppAttest(params.studentId, params.keyId));
+        });
+      }
+      if (Platform.OS === 'android') registerHandler('security.prepareAttestation', async () => {
         try { await module.prepare(); } catch { throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 준비하지 못했습니다'); }
       });
       registerHandler('security.attest', async (params) => {
@@ -329,6 +348,7 @@ export default function WebViewScreen() {
           return await module.attest(params.captureId, params.studentId, params.reservationId, params.challenge);
         } catch (error) {
           const code = (error as { code?: string })?.code;
+          if (code === 'ERR_APP_ATTEST_KEY_INVALID') throw new BridgeHandlerError('APP_ATTEST_KEY_INVALID', '기기 인증 키를 다시 등록해 주세요');
           if (code === 'ERR_INTEGRITY_UNAVAILABLE') throw new BridgeHandlerError('ATTESTATION_UNAVAILABLE', '증명을 생성하지 못했습니다');
           throw new BridgeHandlerError('ATTESTATION_REJECTED', '사진을 다시 촬영해 주세요');
         }

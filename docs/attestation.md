@@ -2,9 +2,9 @@
 
 ## 구현 범위
 
-현재 구현은 설정·키 배포, 인증된 사용자의 `POST /attest/challenge`, challenge 저장·소모, 공통 요청 바이트 생성, Android Play Integrity 서버 검증, 앱 내부 촬영·네이티브 증명 생성과 프론트엔드 업로드 연결까지다. `ATTESTATION_ENFORCE=false`에서는 증명 누락·실패를 기록하고 업로드를 허용하며, `true`에서는 `SSU4206`으로 거부한다.
+현재 구현은 설정·키 배포, 인증된 사용자의 `POST /attest/challenge`, challenge 저장·소모, 공통 요청 바이트 생성, Android Play Integrity와 iOS App Attest 서버 검증, iOS 키 등록·저장, 양 플랫폼 앱 내부 촬영·네이티브 증명 생성과 프론트엔드 업로드 연결까지다. `ATTESTATION_ENFORCE=false`에서는 사진 증명 누락·실패를 기록하고 업로드를 허용하며, `true`에서는 `SSU4206`으로 거부한다. iOS 키 등록은 관찰 모드에서도 검증을 통과해야 저장한다.
 
-iOS 검증기·키 등록·네이티브 연결은 후속 작업이다. 새 Android 앱과 웹·서버는 아직 운영 배포하지 않았으며 내부 테스트 트랙의 실제 앱 토큰 검증도 수행하지 않았다. iOS도 아직 검증할 수 없기 때문에 양 플랫폼 연동과 실기기 검증을 완료하기 전에는 전역 강제 모드를 켜지 않는다.
+새 앱과 웹·서버는 아직 운영 배포하지 않았으며 내부 테스트 트랙과 TestFlight의 실제 앱 증명을 검증하지 않았다. Windows에서는 Swift 핵심 로직을 Linux 컨테이너로 검증했으며 DeviceCheck/Expo를 포함한 Xcode 빌드는 아직 실행하지 않았다. 양 플랫폼 실기기 검증을 완료하기 전에는 전역 강제 모드를 켜지 않는다.
 
 ## 계정과 배포 설정
 
@@ -126,13 +126,21 @@ Google decode 연결 제한은 3초, 응답 제한은 5초다. 같은 증명의 
 
 `MEETS_BASIC_INTEGRITY`만 있거나 `UNEVALUATED`인 판정은 실패다. `accountDetails.appLicensingVerdict`는 현재 필수 조건에 포함하지 않는다. `PLAY_RECOGNIZED`만으로 모든 사이드로드를 구분할 수 있다고 가정하지 않으며, Google Play에서 알려진 앱/서명과 기기 무결성을 확인하는 정책이다.
 
-## 업로드 API와 후속 네이티브 계약
+## 업로드 API와 네이티브 계약
 
-### iOS 키 등록 (아직 미구현)
+### iOS 키 등록 (구현됨)
 
 `POST /attest/register`는 인증된 사용자에게서 `keyId`, `challenge`, `attestation`을 받는다. `attestation`은 `attestationObject` 바이트의 표준 Base64다. 등록용 client data로 Apple 체인·nonce·공개키와 keyId 일치·App ID·counter·환경을 검증하고 등록용 challenge를 소모한다. 검증한 공개키는 인증 사용자에게 귀속한다. 다른 학생의 등록 키를 재등록으로 빼앗을 수 없도록 keyId 유일성과 소유권을 강제한다.
 
-최초 등록과 재설치 후 재등록은 업로드용 challenge 발급 전에 완료한다. 네이티브 키 생성만 성공한 상태를 서버 등록 완료로 취급하지 않는다. 서버 응답을 잃은 재시도 정책과 학생 계정 전환 시 키 소유권 처리는 iOS 구현 시 테스트에 포함한다.
+응답은 `{"statusCode":"SSU2000","data":{"keyId":"<등록한 키>"},"message":"성공"}`이다. 입력 형식 오류는 `SSU4000`, 증명·challenge·소유권·환경 검증 실패는 `SSU4206`이다.
+
+서버는 번들에 고정한 Apple App Attestation Root CA로 인증서 체인과 유효기간을 확인한다. leaf nonce 확장, App ID 해시, 등록 counter 0, 환경별 AAGUID, credential ID, P-256 공개키의 해시와 COSE 좌표를 검증한다. CBOR 크기·중첩·중복 키·잔여 바이트를 제한한다. 새 Apple validation category/bundle version 확장이 있으면 형식과 배포 환경도 검사하며, 확장이 없는 기존 형식은 허용한다.
+
+`device_attestation`에는 학생, keyId, 공개키, 운영/개발 환경, 등록 요청 fingerprint, counter를 저장한다. keyId는 대소문자를 구분하는 ASCII 44자 유일 키다. 한 학생의 여러 설치·기기를 허용한다. fingerprint는 `SHA256(clientDataHash || decodedAttestationObject)`이며 증명 원문은 저장하지 않는다. 동일 학생·환경·fingerprint의 재등록 요청은 기존 키를 반환하고 counter를 초기화하지 않는다. 서버 성공 응답을 잃어 challenge가 이미 소모됐더라도 정확히 같은 등록 요청으로 복구할 수 있다.
+
+최초 등록과 재설치 후 재등록은 촬영과 업로드용 challenge 발급 전에 완료한다. 네이티브 키 생성만 성공한 상태를 서버 등록 완료로 취급하지 않는다. 앱은 학생·환경별로 keyId, 서버 등록 여부와 미승인 등록 요청을 설치 영역에 저장하고 백업에서 제외한다. 개인키는 DeviceCheck가 관리한다. 서버 성공 응답의 keyId를 확인한 뒤에만 네이티브 등록 상태를 승인한다. 미승인 요청이 남으면 새 challenge나 Apple 등록 호출 없이 그대로 서버에 재전송한다. 서버가 등록을 명확히 거부하면 해당 학생의 키만 폐기하고 새 키로 한 번 재시도한다. 네트워크 오류와 Apple `serverUnavailable`은 기존 키/요청을 보존하고, `invalidKey`는 해당 계정 키를 다시 준비한다.
+
+DB는 `ddl-auto: validate`이므로 배포 전에 [실제 DDL](../infra/sql/20260913-device-attestation.sql)을 대상 MySQL에 적용해야 한다. 이 변경에서 운영 DB에 SQL을 실행하지 않았다. 초기 `plan.md`의 예시 DDL 대신 이 파일을 사용한다.
 
 ### 인증샷 업로드 (서버 구현됨)
 
@@ -152,31 +160,38 @@ Google decode 연결 제한은 3초, 응답 제한은 5초다. 같은 증명의 
 | 신규 필드 모두 생략 | `MISSING` |
 | 부분 입력, 빈 증명, 잘못된 challenge, Android의 keyId 포함 | `INVALID_INPUT` |
 | 공백이 포함되거나 32KiB를 초과하는 Android 토큰 | `INVALID_INPUT` |
-| iOS 또는 알 수 없는 플랫폼 | `UNSUPPORTED_PLATFORM` (iOS 구현 전까지) |
+| 알 수 없는 플랫폼 | `UNSUPPORTED_PLATFORM` |
 | Google 판정 거부 | `REQUEST_HASH_MISMATCH`, `APP_UNRECOGNIZED`, `DEVICE_UNTRUSTED` 등 |
+| iOS 미등록 키·다른 학생 키·다른 환경 | `KEY_NOT_REGISTERED`, `KEY_OWNER_MISMATCH`, `ENVIRONMENT_MISMATCH` |
+| iOS 서명·App ID·counter 실패 | `SIGNATURE_INVALID`, `APP_ID_MISMATCH`, `COUNTER_REJECTED` 등 |
+| iOS 키 조회·counter 저장 실패 | `KEY_STORE_UNAVAILABLE` |
 | challenge 만료·재사용·학생/예약/용도 불일치 | `CHALLENGE_REJECTED` |
 | Redis 소모 실패 | `CHALLENGE_STORE_UNAVAILABLE` |
-| Google 판정과 challenge 소모 모두 성공 | `VERIFIED` |
+| 플랫폼 검증·challenge 소모·iOS counter 갱신 성공 | `VERIFIED` |
 
 로그에는 학생·예약 ID, 정규화한 플랫폼, 판정, enforce 값만 남긴다. 업로드가 커밋되면 기존 Discord 촬영 알림에 판정과 관찰/강제 모드를 함께 표시한다. 토큰·challenge·키·사진 원문은 이 기록에 포함하지 않는다. 관찰 모드에서도 유효한 challenge를 소모하며 재사용을 성공으로 기록하지 않는다.
 
-iOS 구현 시 keyId의 소유자를 검사하고 counter를 DB에서 원자적으로 증가시켜야 한다.
+iOS는 등록된 키의 학생·환경을 확인한 뒤 `SHA256withECDSA`로 `authenticatorData || clientDataHash`의 서명을 검증한다. 이미 해싱한 nonce를 이 알고리즘에 넣어 이중 해싱하지 않는다. App ID와 uint32 counter를 확인하고, challenge 소모 후 학생·환경·`counter < 새 counter` 조건을 포함한 DB UPDATE가 정확히 한 행을 변경해야 성공한다. 동시 요청은 같은 counter로 두 번 성공할 수 없다. counter 갱신은 업로드 DB 트랜잭션과 함께 롤백되지만 Redis challenge는 복원되지 않는다.
 
-### Android 브리지와 촬영 흐름 (구현됨)
+### 양 플랫폼 브리지와 촬영 흐름 (구현됨)
 
-Android는 외부 카메라 Activity를 여는 Image Picker 대신 앱 내부 `expo-camera`의 `CameraView`에서 촬영한다. 촬영 결과를 기존 규격(JPEG, 너비 1280, 품질 0.8)으로 압축하고, 로컬 Expo 모듈 `mobile/modules/ssutoday-attestation`이 앱 cache의 최종 파일을 읽는다. 같은 바이트의 Base64 data URI와 SHA-256을 만들고 해시·학생·예약을 임시 UUID `captureId`에 연결한다. 웹이 받은 사진을 교체하면 서버가 재계산한 해시가 Google 토큰의 해시와 달라진다.
+Android와 iOS는 앱 내부 `expo-camera`의 `CameraView`에서 촬영한다. 촬영 결과를 기존 규격(JPEG, 너비 1280, 품질 0.8)으로 압축하고, 로컬 Expo 모듈 `mobile/modules/ssutoday-attestation`이 앱 cache의 최종 파일을 읽는다. 같은 바이트의 Base64 data URI와 SHA-256을 만들고 해시·학생·예약을 임시 UUID `captureId`에 연결한다. 웹이 받은 사진을 교체하면 서버가 재계산한 해시가 증명에 바인딩된 해시와 달라진다.
 
 `storeCapture(uri, studentId, reservationId)`는 RN 내부에서만 사용한다. 웹에 노출되는 `security.attest`는 `captureId`, `studentId`, `reservationId`, `challenge`만 받으며, 사진 URI·사진 해시·임의 client data를 받아 서명하지 않는다. 네이티브가 보관한 촬영 해시로 계약 바이트를 재구성한다. 핸들은 monotonic clock 기준 120초 동안 유효하며 증명 시도 시 원자적으로 한 번만 소모한다. 새 촬영, 로그아웃·계정 변경, 페이지 이동·리로드·화면 이탈 시 폐기하고, 이미 진행 중인 SDK 응답도 폐기된 핸들에는 반환하지 않는다. 취소·실패·업로드 완료 후 프론트엔드도 핸들을 해제한다.
 
-메인 WebView의 준비된 `https://v3.ssu.today` 문서에서만 브리지 요청을 처리한다. Android는 네이티브에서 만든 난수를 메인 프레임 JS 클로저에 주입하고 요청마다 붙인다. 하위 프레임에도 브리지가 노출되는 구형 Android WebView에서 외부 iframe이 메인 페이지 URL로 메시지를 보내는 경우에도 난수가 없으면 거부한다. 문서가 교체되면 이전 비동기 응답을 전달하지 않는다. 프론트엔드는 handshake를 최대 10초 기다린 후 capability를 확인하고 요청을 전송하며, 외부 프레임의 handshake/응답도 무시한다.
+메인 WebView의 준비된 `https://v3.ssu.today` 문서에서만 브리지 요청을 처리한다. 양 플랫폼에서 네이티브가 만든 난수를 메인 프레임 JS 클로저에 주입하고 요청마다 붙인다. 하위 프레임에도 브리지가 노출되는 구형 Android WebView에서 외부 iframe이 메인 페이지 URL로 메시지를 보내는 경우에도 난수가 없으면 거부한다. 문서가 교체되면 이전 비동기 응답을 전달하지 않는다. 프론트엔드는 handshake를 최대 10초 기다린 후 capability를 확인하고 요청을 전송하며, 외부 프레임의 handshake/응답도 무시한다. 앱이 백그라운드로 들어가면 촬영 핸들을 폐기한다.
 
 Google Standard Integrity provider 준비 작업은 공유·캐시하고, provider 무효 오류에만 한 번 재준비한다. 증명 생성은 총 25초 제한이며 브리지 제한은 30초다. 인증샷 흐름 시작 시 준비를 미리 요청하므로 보통 촬영 중에 끝난다. SDK 오류 원문·토큰은 브리지 오류나 로그에 넣지 않는다.
 
+iOS 등록 브리지는 `security.prepareAppAttest` → `security.attestRegister` → 서버 `/attest/register` → `security.confirmAppAttest` 순서다. 폐기는 `security.resetAppAttest`로 요청하며 학생·keyId가 일치할 때만 적용한다. 학생별 actor 작업 잠금으로 동시 키 생성을 막는다. DeviceCheck 키 생성/assertion은 25초, 최초 attestation은 45초로 제한한다. 지연 콜백은 continuation을 다시 완료할 수 없다. iOS Expo 모듈은 CocoaPods로 자동 연결되며 Swift 핵심 로직은 같은 소스를 Swift Package에서도 테스트한다.
+
 등록 준비 → 촬영·압축 → Turnstile 완료 → 업로드용 challenge 발급 → 증명 생성 → 같은 사진 바이트 업로드 순서로 처리한다. 촬영 중이나 최초 키 등록 중에 업로드용 60초 TTL이 소진되지 않도록 한다.
 
-프론트엔드는 challenge의 학생·예약·용도·TTL·인코딩을 확인하고, challenge API 요청 시작부터 경과 시간을 계산한다. 증명 생성 전후 만료와 계정 변경을 검사한다. SDK 통신 장애/시간 초과만 `platform`·`challenge`를 포함하고 증명은 생략해 서버의 관찰/강제 정책에 맡긴다. 핸들 거부·잘못된 요청 등은 업로드 전에 재촬영 오류로 종료한다. 구버전 앱과 iOS는 증명 capability가 없어 기존 multipart 흐름을 유지한다.
+프론트엔드는 challenge의 학생·예약·용도·TTL·인코딩을 확인하고, challenge API 요청 시작부터 경과 시간을 계산한다. 증명 생성 전후 만료와 계정 변경을 검사한다. SDK 통신 장애/시간 초과만 `platform`·`challenge`를 포함하고 증명은 생략해 서버의 관찰/강제 정책에 맡긴다. 핸들 거부·잘못된 요청 등은 업로드 전에 재촬영 오류로 종료한다. 증명 capability가 없는 구버전 앱은 기존 multipart 흐름을 유지한다.
 
-앱 버전은 `3.0.2`다. 네이티브 모듈과 카메라 의존성이 추가되어 새 바이너리 빌드가 필요하며, `runtimeVersion.policy=appVersion`으로 구버전 바이너리에 이 JS 번들이 OTA 적용되지 않도록 한다.
+앱 버전은 `3.0.3`이다. 새 바이너리 빌드가 필요하며, `runtimeVersion.policy=appVersion`으로 구버전 바이너리에 이 JS 번들이 OTA 적용되지 않도록 한다. iOS 빌드 변수 `APP_ATTEST_ENVIRONMENT`는 기본 `production`이며 entitlement와 설치 상태 저장 폴더에 함께 적용된다. 개발 환경은 `development`와 서버 `APP_ATTEST_PRODUCTION=false`를 함께 사용한다. TestFlight/App Store는 `production`과 서버 `true`를 사용한다.
+
+EAS Build는 App Attest entitlement의 capability 동기화를 지원한다. 배포 빌드에서 이 동기화와 프로비저닝 갱신 결과를 확인한다. [Expo iOS capabilities](https://docs.expo.dev/build-reference/ios-capabilities/)
 
 ## 검증
 
@@ -184,25 +199,31 @@ Google Standard Integrity provider 준비 작업은 공유·캐시하고, provid
 - Redis adapter 테스트는 Testcontainers의 독립 Redis 7 컨테이너로 TTL, 만료, scope 불일치, 중복 저장, 16개 동시 소모를 검사한다. Docker가 없으면 해당 통합 테스트는 skip되므로 Docker가 있는 환경에서 실행 결과를 확인한다.
 - Android 검증 테스트는 Google 형식의 합성 응답으로 필드 변조, 누락, 시간 경계, 인증서 교체, 오류/빈 응답을 검사한다. 테스트용 RSA 키와 로컬 OAuth 서버로 서명·scope·토큰 캐시를 확인하며 실제 서비스 계정 키를 사용하지 않는다.
 - 업로드 테스트는 사진/학생/예약/challenge 변경, 동일 challenge 재사용, 관찰/강제 모드, 동일 바이트 저장, 커밋 후 알림, 구버전 multipart와 인증 학생 주입을 검사한다.
-- JS 흐름·브리지 테스트: Node 24, `frontend`에서 `npm ci` 후 루트에서 `node --test scripts/attestation-flow.test.mjs scripts/bridge-security.test.mjs scripts/bridge-transport.test.mjs`. 촬영 바이트 전달, 계정 변경, 만료, 장애 처리, 외부 프레임 거부, handshake 대기를 검사한다.
+- iOS 서버 검증은 합성 P-256 인증서로 정상 등록과 필드 변조를 검사한다. Apple 공개 예제의 실제 인증서 체인도 검사하지만, 예제의 nonce 입력이 문서 계약과 달라 `NONCE_MISMATCH`를 기대한다. 예제에 맞춰 검증을 완화하지 않았다. 자세한 차이는 [fixture 설명](../ssutoday-common/ssutoday-adapter/src/test/resources/attestation/README.md)에 기록했다. 실제 TestFlight 증명의 정상 통과 확인은 아직 필요하다.
+- MySQL 8.4 Testcontainers 테스트는 실제 DDL과 JPA 매핑, keyId 대소문자 구분·유일성, 소유권·환경 조건, 8개 동시 counter 갱신 중 한 건만 성공함을 확인한다. Docker가 없는 환경에서는 skip되므로 실행 여부를 확인한다.
+- JS 흐름·브리지 테스트: Node 24, `frontend`에서 `npm ci` 후 루트에서 `node --test scripts/attestation-flow.test.mjs scripts/ios-registration.test.mjs scripts/bridge-security.test.mjs scripts/bridge-transport.test.mjs`. 촬영 바이트 전달, 계정 변경, 등록 응답 유실·재시도, 만료, 장애 처리, 외부 프레임 거부, handshake 대기를 검사한다.
 - 프로토콜 동기화: `node scripts/check-bridge-protocol-sync.js`. 프론트엔드 빌드: `frontend`에서 `npm run build`. 모바일 타입 검사: `mobile`에서 `npx tsc --noEmit`.
 - Android 네이티브 테스트: `mobile`에서 `npm ci`, 실제 Firebase 앱 설정 파일 경로를 `GOOGLE_SERVICES_JSON`에 지정하고 `npx expo prebuild --platform android --no-install` 후 `mobile/android`에서 `.\gradlew.bat :ssutoday-attestation:testDebugUnitTest` (JDK 21, Android SDK). 서버 고정 해시 벡터, 계정·예약 바인딩, TTL, 폐기, 8개 동시 소모를 검사한다.
 - 모바일 JS 번들: `mobile`에서 `npx expo export --platform android --platform ios --output-dir ../build/attestation-mobile-bundle`. 이는 iOS 네이티브 컴파일이나 실기기 검증을 대체하지 않는다.
-- 로컬에서 서버 전체 빌드(76개 테스트, skip 없음), Android 모듈 컴파일·테스트 5개, 모바일 타입 검사와 양 플랫폼 JS 번들, 프론트엔드 빌드를 통과했다. Android prebuild에는 커밋하지 않는 합성 Firebase 설정을 사용했으며 실제 Firebase·Play 앱 동작을 확인한 것은 아니다.
+- Swift 핵심 테스트: `mobile/modules/ssutoday-attestation`에서 `swift test`. Linux는 Swift Crypto를 사용하고 Apple 플랫폼은 CryptoKit을 사용한다. 고정 바이트 벡터, 촬영 TTL·한 번 소모·폐기, 등록 승인, 학생별 키와 응답 유실 복구를 확인한다. Windows에서는 공식 `swift:6.1` 컨테이너로 실행할 수 있다.
+- `.github/workflows/ios-attestation.yml`은 macOS에서 Swift 테스트, 타입 검사, Expo prebuild, CocoaPods 설치와 서명 없는 iOS Simulator 전체 앱 빌드를 수행하도록 구성했다. 합성 Firebase plist는 컴파일 전용이며 실행·배포용이 아니다. 이 CI의 Xcode 빌드는 아직 실행하지 않았다.
+- 로컬에서 서버 전체 빌드(94개 테스트, skip 없음), Swift 핵심 테스트 8개, JS 흐름·브리지 테스트 79개, 모바일 타입 검사, 프론트엔드 빌드와 양 플랫폼 JS 번들을 통과했다. Expo Apple autolinking에서 `SsutodayAttestationModule`과 pod 인식도 확인했다. 이전 Android 단계에서는 모듈 컴파일·테스트 5개를 검증했다. Windows의 Expo CLI는 iOS 프로젝트 생성을 지원하지 않아 전체 prebuild/Xcode 검사는 Mac CI에 남아 있다. 합성 Firebase 설정으로 하는 빌드 검사는 실제 Firebase·스토어 앱 동작 확인을 대체하지 않는다.
 - 서비스 계정 OAuth 발급과 잘못된 테스트 토큰의 `400 INVALID_ARGUMENT` 응답을 로컬에서 확인했다. 이는 계정 인증·기본 연결 확인이며 실제 앱 토큰의 검증이나 운영 서버 연결 확인을 대체하지 않는다.
 
 ## 다음 검증과 배포 순서
 
-1. 서버와 프론트엔드를 `ATTESTATION_ENFORCE=false` 상태로 반영한다. 운영 API에서 서비스 계정 파일과 Google 연결을 확인한다.
-2. 실제 Firebase 앱 설정을 사용하는 Android `3.0.2` AAB를 빌드한다. Play Console 내부 테스트 트랙에 올리고 테스트 계정으로 Play에서 설치한다. 로컬 debug APK의 서명·배포 판정으로 운영 성공을 판단하지 않는다.
-3. 정상 촬영 업로드의 서버 판정 `VERIFIED`를 확인한다. 카메라 취소·권한 거부, 재촬영, 로그아웃·계정 변경, 화면 이동, 네트워크 끊김 후 재시도도 실기기에서 확인한다.
-4. 통제된 테스트 환경에서 파일 교체, 다른 예약, 증명/challenge 재사용, 만료를 검사한다. 관찰 모드는 실패를 기록해도 업로드를 허용하므로 `VERIFIED` 여부와 강제 모드의 `SSU4206`을 구분한다.
-5. iOS App Attest를 구현·검증하고 구버전 앱 전환과 관찰 결과를 확인한 뒤 전역 강제 모드를 적용한다.
+1. 대상 MySQL에 실제 DDL을 먼저 적용한 뒤 서버와 프론트엔드를 `ATTESTATION_ENFORCE=false` 상태로 반영한다. 운영 API에서 서비스 계정 파일과 Google 연결을 확인한다.
+2. Mac 또는 추가한 CI에서 iOS 전체 앱 빌드를 확인한다. App ID의 App Attest capability를 포함한 배포 프로비저닝으로 실제 Firebase 앱 설정을 사용하는 `3.0.3` 바이너리를 빌드하고 TestFlight로 설치한다. 최초 등록과 서버 `VERIFIED` 판정을 확인한다. 재실행·재설치·계정 전환과 등록 서버 응답 유실 후 재시도를 확인한다.
+3. 실제 Firebase 앱 설정을 사용하는 Android `3.0.3` AAB를 빌드한다. Play Console 내부 테스트 트랙에 올리고 테스트 계정으로 Play에서 설치한다. 로컬 debug APK의 서명·배포 판정으로 운영 성공을 판단하지 않는다.
+4. 양 플랫폼에서 정상 촬영 업로드, 카메라 취소·권한 거부, 재촬영, 로그아웃·계정 변경, 화면 이동·백그라운드 진입, 네트워크 끊김 후 재시도를 확인한다.
+5. 통제된 테스트 환경에서 파일 교체, 다른 예약, 증명/challenge 재사용, 만료와 iOS counter 재사용을 검사한다. 관찰 모드는 실패를 기록해도 업로드를 허용하므로 `VERIFIED` 여부와 강제 모드의 `SSU4206`을 구분한다.
+6. 양 플랫폼 실기기 검증, 구버전 앱 전환과 관찰 결과를 확인한 뒤 전역 강제 모드를 적용한다.
 
 ## 근거 문서
 
 - [Google Play Integrity 요청 바인딩 및 서버 검증](https://developer.android.com/google/play/integrity/standard)
 - [Google Play Integrity 판정 필드와 라이선스 구분](https://developer.android.com/google/play/integrity/verdicts)
 - [Apple App Attest 서버 검증과 App ID](https://developer.apple.com/documentation/devicecheck/validating-apps-that-connect-to-your-server)
+- [Apple App Attest 키 수명과 재시도](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity)
 - [Apple App Attest 환경](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.devicecheck.appattest-environment)
 - [Spring Data Redis 원자적 스크립트 실행](https://docs.spring.io/spring-data/redis/reference/redis/scripting.html)

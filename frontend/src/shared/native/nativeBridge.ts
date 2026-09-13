@@ -21,7 +21,9 @@ export type CapturedPhoto = {
 
 export type CapturePhotoScope = { studentId: number; reservationId: number };
 export type AttestPhotoRequest = CapturePhotoScope & { captureId: string; challenge: string };
-export type AttestPhotoResult = { platform: 'android'; attestation: string };
+export type AttestPhotoResult = { platform: 'android' | 'ios'; attestation: string; keyId?: string };
+export type AppAttestKeyState = { keyId: string; registered: boolean; pending?: { challenge: string; attestation: string } };
+export type AppAttestRegistration = { keyId: string; challenge: string; attestation: string };
 
 export type NativeBridge = {
   getDeviceInfo(): Promise<NativeDeviceInfo>;
@@ -32,6 +34,10 @@ export type NativeBridge = {
   requestCameraPermission(): Promise<boolean>;
   captureVerifyPhoto(scope?: CapturePhotoScope): Promise<CapturedPhoto | null>;
   prepareAttestation(): Promise<void>;
+  prepareAppAttest(studentId: number): Promise<AppAttestKeyState>;
+  attestRegister(studentId: number, keyId: string, challenge: string): Promise<AppAttestRegistration>;
+  confirmAppAttest(studentId: number, keyId: string): Promise<void>;
+  resetAppAttest(studentId: number, keyId: string): Promise<void>;
   attestPhoto(params: AttestPhotoRequest): Promise<AttestPhotoResult>;
   releaseCapture(captureId: string): Promise<void>;
   clearCaptures(): Promise<void>;
@@ -49,6 +55,10 @@ const METHOD_FOR: Record<keyof NativeBridge, BridgeMethod> = {
   requestCameraPermission: 'camera.requestPermission',
   captureVerifyPhoto: 'camera.captureVerifyPhoto',
   prepareAttestation: 'security.prepareAttestation',
+  prepareAppAttest: 'security.prepareAppAttest',
+  attestRegister: 'security.attestRegister',
+  confirmAppAttest: 'security.confirmAppAttest',
+  resetAppAttest: 'security.resetAppAttest',
   attestPhoto: 'security.attest',
   releaseCapture: 'security.releaseCapture',
   clearCaptures: 'security.clearCaptures',
@@ -91,6 +101,12 @@ class WebViewNativeBridge implements NativeBridge {
   }
 
   prepareAttestation() { return request<void>(METHOD_FOR.prepareAttestation, undefined, 30_000); }
+  prepareAppAttest(studentId: number) { return request<AppAttestKeyState>(METHOD_FOR.prepareAppAttest, { studentId }, 30_000); }
+  attestRegister(studentId: number, keyId: string, challenge: string) {
+    return request<AppAttestRegistration>(METHOD_FOR.attestRegister, { studentId, keyId, challenge }, 55_000);
+  }
+  confirmAppAttest(studentId: number, keyId: string) { return request<void>(METHOD_FOR.confirmAppAttest, { studentId, keyId }); }
+  resetAppAttest(studentId: number, keyId: string) { return request<void>(METHOD_FOR.resetAppAttest, { studentId, keyId }); }
   attestPhoto(params: AttestPhotoRequest) { return request<AttestPhotoResult>(METHOD_FOR.attestPhoto, params, 30_000); }
   releaseCapture(captureId: string) { return request<void>(METHOD_FOR.releaseCapture, { captureId }); }
   clearCaptures() { return request<void>(METHOD_FOR.clearCaptures); }
@@ -109,6 +125,10 @@ class WebViewNativeBridge implements NativeBridge {
 }
 
 class MockNativeBridge implements NativeBridge {
+  async prepareAppAttest(): Promise<AppAttestKeyState> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
+  async attestRegister(): Promise<AppAttestRegistration> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
+  async confirmAppAttest() {}
+  async resetAppAttest() {}
   async prepareAttestation() {}
   async attestPhoto(): Promise<AttestPhotoResult> { throw new BridgeError('UNSUPPORTED_METHOD', '앱 무결성 증명이 지원되지 않습니다'); }
   async releaseCapture() {}

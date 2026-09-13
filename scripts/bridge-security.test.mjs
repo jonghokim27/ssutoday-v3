@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import vm from 'node:vm';
-import { canDispatchBridge, isAttestParams, isTrustedBridgeUrl, secureBridgeScript } from '../mobile/src/bridge/bridgeSecurity.ts';
+import { canDispatchBridge, isAttestParams, isAppAttestKey, isTrustedBridgeUrl, secureBridgeScript } from '../mobile/src/bridge/bridgeSecurity.ts';
 
 const ORIGIN = 'https://v3.ssu.today';
+
+test('App Attest key operations require an authenticated student scope and canonical key encoding', () => {
+  const valid = { studentId: 20260000, keyId: Buffer.alloc(32, 1).toString('base64') };
+  assert.equal(isAppAttestKey(valid), true);
+  for (const input of [null, undefined, [], {}, { ...valid, studentId: 0 }, { ...valid, studentId: 2147483648 },
+    { ...valid, keyId: valid.keyId.slice(0, -1) }, { ...valid, keyId: valid.keyId.slice(0, -2) + 'B=' }]) {
+    assert.equal(isAppAttestKey(input), false);
+  }
+});
 
 test('bridge requires the exact HTTPS origin, a ready document and the native token', () => {
   assert.equal(canDispatchBridge(`${ORIGIN}/reservations`, ORIGIN, true, 'secret', 'secret'), true);
