@@ -70,7 +70,7 @@ ssutoday:
   gemini:
     api-key: ${GEMINI_API_KEY}
     model: gemini-3.5-flash-lite
-    enforce: false
+    enforce: ${GEMINI_ENFORCE:true}
     reject-threshold: 0.9
   storage:
     verify-photo-bucket: ${VERIFY_PHOTO_BUCKET:ssutoday}
