@@ -514,9 +514,9 @@ mobile
 node scripts/check-bridge-protocol-sync.js
 ```
 
-GitHub Actions의 `bridge-protocol-sync.yml`은 main push와 PR에서 브리지·인증샷 흐름 변경 시 프로토콜 동기화, JS 보안 테스트, 프론트엔드 빌드를 검증한다. 테스트 실행 방법은 [인증샷 검증 문서](docs/attestation.md#검증)를 따른다.
+GitHub Actions의 `bridge-protocol-sync.yml`은 main push와 PR에서 두 파일 변경 시 동기화를 검증한다.
 
-`ios-attestation.yml`은 macOS에서 Swift 핵심 테스트와 Expo 앱의 서명 없는 Simulator 빌드를 수행하도록 구성했다. Windows에서는 Swift 핵심 테스트만 공식 Swift Linux 컨테이너로 실행했으며, Xcode 빌드와 TestFlight 실기기 검증은 아직 남아 있다.
+인증샷·예약 검증 테스트와 앱 빌드는 [검증 문서](docs/attestation.md#검증)의 명령으로 실행한다.
 
 ## 배포
 

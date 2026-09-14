@@ -235,7 +235,6 @@ EAS Build는 App Attest entitlement의 capability 동기화를 지원하지만, 
 - Android 네이티브 테스트: `mobile`에서 `npm ci`, 실제 Firebase 앱 설정 파일 경로를 `GOOGLE_SERVICES_JSON`에 지정하고 `npx expo prebuild --platform android --no-install` 후 `mobile/android`에서 `.\gradlew.bat :ssutoday-attestation:testDebugUnitTest` (JDK 21, Android SDK). 서버 고정 해시 벡터, 계정·예약 바인딩, TTL, 폐기, 8개 동시 소모를 검사한다.
 - 모바일 JS 번들: `mobile`에서 `npx expo export --platform android --platform ios --output-dir ../build/attestation-mobile-bundle`. 이는 iOS 네이티브 컴파일이나 실기기 검증을 대체하지 않는다.
 - Swift 핵심 테스트: `mobile/modules/ssutoday-attestation`에서 `swift test`. Linux는 Swift Crypto를 사용하고 Apple 플랫폼은 CryptoKit을 사용한다. 고정 바이트 벡터, 촬영 TTL·한 번 소모·폐기, 등록 승인, 학생별 키와 응답 유실 복구를 확인한다. Windows에서는 공식 `swift:6.1` 컨테이너로 실행할 수 있다.
-- `.github/workflows/ios-attestation.yml`은 macOS에서 Swift 테스트, 타입 검사, Expo prebuild, CocoaPods 설치와 서명 없는 iOS Simulator 전체 앱 빌드를 수행하도록 구성했다. 합성 Firebase plist는 컴파일 전용이며 실행·배포용이 아니다. 이 CI의 Xcode 빌드는 아직 실행하지 않았다.
 - 로컬 서버 전체 빌드(106개 테스트, skip 없음), Swift 핵심 테스트 10개, JS 흐름·브리지 테스트 91개, Android 모듈 컴파일·테스트 6개, 모바일 타입 검사와 프론트엔드 빌드가 통과했다. 예약 HTTP 구버전 계약, 서명 필드 변조, 사진/등록/예약 용도 교차 사용, iOS 예약·사진 counter 공유, 양 모드와 커밋 후 알림을 포함한다. EAS Android 3.0.2(17)는 실제 빌드 설정으로 완료됐고, AAB에서 생성한 APK의 버전과 기존 서명 지문 일치를 확인했다. 합성 설정으로 하는 로컬 검사는 실제 Firebase·스토어 앱 동작 확인을 대체하지 않는다.
 - 서비스 계정 OAuth 발급과 잘못된 테스트 토큰의 `400 INVALID_ARGUMENT` 응답을 로컬에서 확인했다. 이는 계정 인증·기본 연결 확인이며 실제 앱 토큰의 검증이나 운영 서버 연결 확인을 대체하지 않는다.
 
@@ -244,7 +243,7 @@ EAS Build는 App Attest entitlement의 capability 동기화를 지원하지만, 
 배포 아티팩트: [Android 3.0.2(17)](https://expo.dev/accounts/joey0307/projects/ssutoday/builds/ec26f306-cd4d-4eaf-b126-490eb57ce68d), [iOS 3.0.2(45)](https://expo.dev/accounts/joey0307/projects/ssutoday/builds/f2a398aa-2d35-4a3b-bd1a-cf9e96c3f313), [TestFlight 제출 성공](https://expo.dev/accounts/joey0307/projects/ssutoday/submissions/d42fc17d-8daa-4b53-a99f-8ec00f845c68). Android AAB에서 생성한 universal APK는 기존 서명 인증서로 검증했다. APK SHA-256: `2ff2aeed26e00b927af7ab65c76e810c6440e9902464f6dbf8d36c9690719787`.
 
 1. 대상 MySQL에 실제 DDL을 먼저 적용한 뒤 서버와 프론트엔드를 `ATTESTATION_ENFORCE=false` 상태로 반영한다. 운영 API에서 서비스 계정 파일과 Google 연결을 확인한다.
-2. Mac 또는 추가한 CI에서 iOS 전체 앱 빌드를 확인한다. App ID의 App Attest capability를 포함한 배포 프로비저닝으로 실제 Firebase 앱 설정을 사용하는 `3.0.2` 바이너리를 빌드하고 TestFlight로 설치한다. 최초 등록과 서버 `VERIFIED` 판정을 확인한다. 재실행·재설치·계정 전환과 등록 서버 응답 유실 후 재시도를 확인한다.
+2. EAS 또는 Mac에서 iOS 전체 앱 빌드를 확인한다. App ID의 App Attest capability를 포함한 배포 프로비저닝으로 실제 Firebase 앱 설정을 사용하는 `3.0.2` 바이너리를 빌드하고 TestFlight로 설치한다. 최초 등록과 서버 `VERIFIED` 판정을 확인한다. 재실행·재설치·계정 전환과 등록 서버 응답 유실 후 재시도를 확인한다.
 3. 실제 Firebase 앱 설정을 사용하는 Android `3.0.2` AAB를 빌드한다. Play Console 내부 테스트 트랙에 올리고 테스트 계정으로 Play에서 설치한다. 로컬 debug APK의 서명·배포 판정으로 운영 성공을 판단하지 않는다.
 4. 양 플랫폼에서 예약 접수·정상 촬영 업로드, 카메라 취소·권한 거부, 재촬영, 로그아웃·계정 변경, 화면 이동·백그라운드 진입, 네트워크 끊김 후 재시도와 미지원 기기의 닫기 전용 모달을 확인한다. 구버전 앱의 예약과 업로드가 `false`에서 정상 처리되는지도 확인한다.
 5. 통제된 테스트 환경에서 파일 교체, 다른 예약, 증명/challenge 재사용, 만료와 iOS counter 재사용을 검사한다. 관찰 모드는 실패를 기록해도 업로드를 허용하므로 `VERIFIED` 여부와 강제 모드의 `SSU4206`을 구분한다.
