@@ -1,6 +1,8 @@
 package kr.ac.ssu.ssutoday.api.common
 
 import kr.ac.ssu.ssutoday.api.article.ArticleController
+import kr.ac.ssu.ssutoday.api.attest.AttestController
+import kr.ac.ssu.ssutoday.api.attest.dto.AttestChallengeResponse
 import kr.ac.ssu.ssutoday.api.config.JacksonConfig
 import kr.ac.ssu.ssutoday.api.device.DeviceController
 import kr.ac.ssu.ssutoday.api.reservation.ReservationController
@@ -11,7 +13,9 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationDetail
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationRoom
 import kr.ac.ssu.ssutoday.application.reservation.dto.RoomReservation
 import kr.ac.ssu.ssutoday.application.student.dto.LoginResult
+import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.exception.InvalidInputException
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.article.ArticleView
 import org.springframework.context.support.ResourceBundleMessageSource
@@ -42,7 +46,7 @@ class ApiResponseContractTest {
     @Test
     fun `성공 응답은 기존 SSU 코드 메시지를 사용한다`() {
         assertEquals(
-            ApiResponse("SSU2010", "data", "Login success"),
+            ApiResponse("SSU2010", "data", "로그인에 성공했습니다"),
             ApiResponse.of(StatusCode.SSU2010, "data", messageSource),
         )
     }
@@ -125,6 +129,7 @@ class ApiResponseContractTest {
                 ReservationController::class.java,
                 RoomController::class.java,
                 SsoController::class.java,
+                AttestController::class.java,
             ).flatMap { controller ->
                 val basePath = controller.getAnnotation(RequestMapping::class.java).value.single()
                 controller.declaredMethods.mapNotNull {
@@ -163,6 +168,8 @@ class ApiResponseContractTest {
                 "/room/list",
                 "/sso/generateToken",
                 "/sso/validateToken",
+                "/attest/challenge",
+                "/attest/register",
             ),
             paths,
         )
@@ -171,7 +178,7 @@ class ApiResponseContractTest {
     @Test
     fun `예약 완료 상태 코드 메시지를 기존과 동일하게 반환한다`() {
         assertEquals(
-            ApiResponse<Nothing>("SSU2230", null, "Done reservation success"),
+            ApiResponse<Nothing>("SSU2230", null, "이용 완료 처리에 성공했습니다"),
             ApiResponse.of(StatusCode.SSU2230, null, messageSource),
         )
     }
@@ -186,14 +193,34 @@ class ApiResponseContractTest {
                 ReservationController::class.java,
                 RoomController::class.java,
                 SsoController::class.java,
+                AttestController::class.java,
             ).flatMap { controller ->
                 controller.declaredMethods
                     .filter { it.getAnnotation(PostMapping::class.java) != null }
-                    .filter { it.getAnnotation(ResponseStatus::class.java) == null }
+                    .filter { it.getAnnotation(ResponseStatus::class.java) == null && it.returnType != StatusCode::class.java }
                     .map { "${controller.simpleName}.${it.name}" }
             }
 
-        assertTrue(missing.isEmpty(), "SsuResponse가 없는 API: $missing")
+        assertTrue(missing.isEmpty(), "공통 응답 처리가 없는 API: $missing")
+    }
+
+    @Test
+    fun `challenge 응답과 무결성 실패는 공통 응답 계약을 따른다`() {
+        val data = AttestChallengeResponse("challenge", 60, 20260000, AttestationPurpose.VERIFY_PHOTO_UPLOAD, 42)
+        val json = objectMapper.readTree(objectMapper.writeValueAsString(ApiResponse.of(StatusCode.SSU2000, data, messageSource)))
+
+        assertEquals("SSU2000", json["statusCode"].asString())
+        assertEquals("challenge", json["data"]["challenge"].asString())
+        assertEquals(60L, json["data"]["expiresInSeconds"].asLong())
+        assertEquals("VERIFY_PHOTO_UPLOAD", json["data"]["purpose"].asString())
+        assertEquals(20260000, json["data"]["studentId"].asInt())
+        assertEquals(42L, json["data"]["reservationId"].asLong())
+
+        val failure = advice.business(BusinessException(StatusCode.SSU4206))
+        assertEquals(HttpStatus.BAD_REQUEST, failure.statusCode)
+        assertEquals("SSU4206", failure.body?.statusCode)
+        assertEquals("앱 무결성 인증에 실패했습니다. 다시 시도해 주세요", failure.body?.message)
+        assertEquals("SSU4000", advice.badRequest(InvalidInputException("invalid scope")).body?.statusCode)
     }
 
     @Test

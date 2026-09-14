@@ -82,11 +82,12 @@ class ArticleApplicationService(
         }
     }
 
-    private fun String.toProviderName() = when (this) {
-        "ssucatch" -> "SSU:Catch"
-        "stu" -> "총학생회"
-        "cse" -> "컴퓨터학부"
-        "media" -> "글로벌미디어학부"
-        else -> this
-    }
+    private fun String.toProviderName() =
+        when (this) {
+            "ssucatch" -> "SSU:Catch"
+            "stu" -> "총학생회"
+            "cse" -> "컴퓨터학부"
+            "media" -> "글로벌미디어학부"
+            else -> this
+        }
 }

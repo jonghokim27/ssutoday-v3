@@ -16,6 +16,36 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Prepare attestation credentials
+        env:
+          PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+
+          raw = os.environ.get("PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON", "")
+          encoded = ""
+          if raw.strip():
+              try:
+                  credentials = json.loads(raw)
+                  valid = (
+                      credentials.get("type") == "service_account"
+                      and credentials.get("project_id") == "ssutoday-d1873"
+                      and credentials.get("client_email") == "play-integrity-verifier@ssutoday-d1873.iam.gserviceaccount.com"
+                      and bool(credentials.get("private_key"))
+                  )
+              except (ValueError, AttributeError):
+                  valid = False
+              if not valid:
+                  raise SystemExit("Invalid Play Integrity service account secret")
+              encoded = base64.b64encode(raw.encode("utf-8")).decode("ascii")
+              print("::add-mask::" + encoded)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              output.write("PLAY_INTEGRITY_KEY_BASE64=" + encoded + "\n")
+          PY
+
       - name: Deploy to production server
         uses: appleboy/ssh-action@v0.1.2
         # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -24,6 +54,7 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           port: ${{secrets.SSH_PORT}}
           username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
+          envs: PLAY_INTEGRITY_KEY_BASE64
 
           script: |
             set -e
@@ -34,5 +65,16 @@ jobs:
             echo '${{secrets.ENV}}' >> .env
             rm -rf firebase.json
             echo '${{secrets.FIREBASE_ADMIN_KEY}}' >> firebase.json
+            # 선택적 키는 별도 디렉터리로 전달한다. 원문 JSON을 셸 코드에 삽입하지 않는다.
+            mkdir -p .secrets/attestation
+            if [ -n "$PLAY_INTEGRITY_KEY_BASE64" ]; then
+              (
+                umask 077
+                key_tmp=$(mktemp .secrets/attestation/.play-integrity.XXXXXX)
+                trap 'rm -f "$key_tmp"' EXIT
+                printf '%s' "$PLAY_INTEGRITY_KEY_BASE64" | base64 --decode > "$key_tmp"
+                mv -f "$key_tmp" .secrets/attestation/play-integrity.json
+              )
+            fi
             cd infra
             docker compose up -d --build

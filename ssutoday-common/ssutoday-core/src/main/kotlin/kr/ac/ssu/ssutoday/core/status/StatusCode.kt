@@ -53,6 +53,7 @@ enum class StatusCode(
     SSU4203("SSU4203"),
     SSU4204("SSU4204"),
     SSU4205("SSU4205"),
+    SSU4206("SSU4206"),
     SSU2210("SSU2210"),
     SSU2220("SSU2220"),
     SSU2230("SSU2230"),

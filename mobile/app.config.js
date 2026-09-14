@@ -1,6 +1,10 @@
 const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
+const appAttestEnvironment = process.env.APP_ATTEST_ENVIRONMENT ?? 'production';
+if (!['production', 'development'].includes(appAttestEnvironment)) {
+  throw new Error('APP_ATTEST_ENVIRONMENT must be production or development');
+}
 
 function withAndroidCookieFlush(config) {
   return withDangerousMod(config, [
@@ -64,7 +68,7 @@ const config = {
   name: '슈투데이',
   slug: 'ssutoday',
   scheme: 'ssutoday',
-  version: '3.0.1',
+  version: '3.0.2',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
@@ -76,7 +80,11 @@ const config = {
     icon: './assets/icon-ios.png',
     bundleIdentifier: 'com.ssutoday',
     supportsTablet: false,
+    entitlements: {
+      'com.apple.developer.devicecheck.appattest-environment': appAttestEnvironment,
+    },
     infoPlist: {
+      SSUTODAYAppAttestEnvironment: appAttestEnvironment,
       NSCameraUsageDescription: '슈투데이에서 인증샷을 촬영하기 위해 카메라 권한을 허용해주세요',
       NSFaceIDUsageDescription: '슈투데이에서 본인임을 확인하기 위해 FaceID 인증이 필요해요',
       ITSAppUsesNonExemptEncryption: false,
@@ -104,6 +112,7 @@ const config = {
     'expo-router',
     'expo-notifications',
     'expo-image-picker',
+    ['expo-camera', { cameraPermission: '인증샷을 촬영하기 위해 카메라 권한을 허용해 주세요', recordAudioAndroid: false }],
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     [

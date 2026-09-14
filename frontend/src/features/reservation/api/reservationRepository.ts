@@ -1,17 +1,31 @@
 import { apiClient } from '../../../shared/api/apiClient';
-import { apiFailure, apiSuccess, type ApiResult } from '../../../shared/api/types';
-import { nativeBridge, isNativeApp, HandledError } from '../../../shared/native/nativeBridge';
+import { type ApiResult } from '../../../shared/api/types';
+import { nativeBridge, isNativeApp, getNativePlatform, hasCapability, handleAttestationDeviceError, HandledError } from '../../../shared/native/nativeBridge';
+import { appStorage } from '../../../shared/storage/appStorage';
+import { waitForHandshake } from '../../../shared/native/bridgeTransport';
+import { uploadVerifyPhotoWithAttestation, type PhotoChallenge } from './uploadVerifyPhoto';
+import { registerIosAppAttest, type RegistrationChallenge } from './registerIosAppAttest';
+import { requestReserveWithAttestation, type ReservationChallenge, type ReservationSubmission } from './requestReserveWithAttestation';
+import type { AppAttestRegistration } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { blockToTime, timeToBlock } from './reservationBlocks';
 
-function dataUriToBlob(uri: string, fallbackType: string): Blob {
-  if (!uri.startsWith('data:')) {
-    return new Blob([], { type: fallbackType });
-  }
-  const [header, base64] = uri.split(',');
-  const mime = header.match(/:(.*?);/)?.[1] ?? fallbackType;
-  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  return new Blob([bytes], { type: mime });
+async function getAttestationStudentId(): Promise<number | null> {
+  const profile = await appStorage.getProfile();
+  return profile ? Number(profile.studentId) : null;
+}
+
+function registerIosForStudent(studentId: number) {
+  return registerIosAppAttest(studentId, {
+    getStudentId: getAttestationStudentId,
+    prepare: id => nativeBridge.prepareAppAttest(id),
+    challenge: () => apiClient.post<{ purpose: string }, RegistrationChallenge>('attest/challenge', { purpose: 'APP_ATTEST_REGISTER' }, { authenticated: true }),
+    attest: (id, keyId, challenge) => nativeBridge.attestRegister(id, keyId, challenge),
+    register: input => apiClient.post<AppAttestRegistration, { keyId: string }>('attest/register', input, { authenticated: true }),
+    confirm: (id, keyId) => nativeBridge.confirmAppAttest(id, keyId),
+    reset: (id, keyId) => nativeBridge.resetAppAttest(id, keyId),
+    now: () => performance.now(),
+  });
 }
 
 export type ReserveInRoom = {
@@ -82,7 +96,17 @@ export class ApiReservationRepository implements ReservationRepository {
   }
 
   async requestReserve(params: { turnstileToken: string; roomNo: number | string; date: string; startBlock: number; endBlock: number }) {
-    return apiClient.post<typeof params, { idx: number }>('reserve/request', params, { authenticated: true });
+    if (isNativeApp()) await waitForHandshake();
+    return requestReserveWithAttestation(params, {
+      platform: () => hasCapability('attestReservation') ? getNativePlatform() : null,
+      getStudentId: getAttestationStudentId,
+      prepare: () => nativeBridge.prepareAttestation(),
+      registerIos: registerIosForStudent,
+      challenge: () => apiClient.post<{ purpose: string }, ReservationChallenge>('attest/challenge', { purpose: 'RESERVATION_CREATE' }, { authenticated: true }),
+      attest: input => nativeBridge.attestReservation(input),
+      submit: input => apiClient.post<ReservationSubmission, { idx: number }>('reserve/request', input, { authenticated: true }),
+      now: () => performance.now(),
+    }).catch(handleAttestationDeviceError);
   }
 
   async getReserveStatus(idx: number) {
@@ -106,20 +130,25 @@ export class ApiReservationRepository implements ReservationRepository {
   }
 
   async uploadVerifyPhoto(idx: number) {
-    const photo = await nativeBridge.captureVerifyPhoto();
-    if (!photo) {
-      return apiFailure('SSU0000', '인증샷 촬영이 취소되었습니다');
-    }
-
-    const turnstileToken = await getTurnstileToken('verify_photo_upload');
-
-    const formData = new FormData();
-    formData.append('turnstileToken', turnstileToken);
-    formData.append('idx', String(idx));
-    const fileBlob = photo.blob ?? dataUriToBlob(photo.uri, photo.type);
-    formData.append('file', fileBlob, photo.name);
-
-    return apiClient.postFormData<null>('reserve/verifyPhoto/upload', formData, { authenticated: true });
+    if (isNativeApp()) await waitForHandshake();
+    return uploadVerifyPhotoWithAttestation(idx, {
+      attestationPlatform: () => hasCapability('attestPhoto') ? getNativePlatform() : null,
+      getStudentId: async () => {
+        const profile = await appStorage.getProfile();
+        return profile ? Number(profile.studentId) : null;
+      },
+      prepare: () => nativeBridge.prepareAttestation(),
+      registerIos: registerIosForStudent,
+      capture: scope => nativeBridge.captureVerifyPhoto(scope),
+      turnstile: () => getTurnstileToken('verify_photo_upload'),
+      challenge: reservationId => apiClient.post<{ purpose: string; reservationId: number }, PhotoChallenge>(
+        'attest/challenge', { purpose: 'VERIFY_PHOTO_UPLOAD', reservationId }, { authenticated: true },
+      ),
+      attest: params => nativeBridge.attestPhoto(params),
+      release: captureId => nativeBridge.releaseCapture(captureId),
+      upload: form => apiClient.postFormData<null>('reserve/verifyPhoto/upload', form, { authenticated: true }),
+      now: () => performance.now(),
+    }).catch(handleAttestationDeviceError);
   }
 
   async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {

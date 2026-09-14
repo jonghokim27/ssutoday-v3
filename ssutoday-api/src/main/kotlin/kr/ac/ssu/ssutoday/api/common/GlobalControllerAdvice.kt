@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.api.common
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.exception.InvalidInputException
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import org.springframework.context.MessageSource
 import org.springframework.core.MethodParameter
@@ -53,6 +54,7 @@ class GlobalControllerAdvice(
     }
 
     @ExceptionHandler(
+        InvalidInputException::class,
         MethodArgumentNotValidException::class,
         HttpMessageNotReadableException::class,
         MissingServletRequestParameterException::class,
@@ -60,7 +62,8 @@ class GlobalControllerAdvice(
         HttpMediaTypeNotSupportedException::class,
     )
     fun badRequest(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
-        logger.debug(exception) { "Invalid API request" }
+        // validation/JSON 예외에는 attestation, 인증 값 등 요청 원문이 포함될 수 있다.
+        logger.debug { "Invalid API request: ${exception.javaClass.simpleName}" }
         return errorResponse(StatusCode.SSU4000)
     }
 

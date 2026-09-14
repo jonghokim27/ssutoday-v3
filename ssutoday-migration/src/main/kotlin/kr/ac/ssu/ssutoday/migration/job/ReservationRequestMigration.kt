@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.migration.config.DB
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.annotation.Order
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 import java.sql.Types
@@ -21,9 +21,10 @@ class ReservationRequestMigration(
     private val log = KotlinLogging.logger {}
 
     override fun migrate() {
-        val rows = oldDb.queryForList(
-            "SELECT idx, StudentId, roomNo, date, startBlock, endBlock, status, createdAt, updatedAt FROM `ReserveRequest`",
-        )
+        val rows =
+            oldDb.queryForList(
+                "SELECT idx, StudentId, roomNo, date, startBlock, endBlock, status, createdAt, updatedAt FROM `ReserveRequest`",
+            )
         log.info { "[reservation_request] ${rows.size}건 마이그레이션 시작" }
 
         rows.chunked(batchSize).forEach { chunk ->

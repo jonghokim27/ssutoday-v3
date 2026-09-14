@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.migration.config.DB
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.annotation.Order
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 import java.sql.Types
@@ -23,20 +23,21 @@ class DeviceMigration(
     private val log = KotlinLogging.logger {}
 
     override fun migrate() {
-        val rows = oldDb.queryForList(
-            """
-            SELECT d.idx, d.StudentId, d.osType, d.uuid, d.pushToken, d.notice, d.reserve, d.lms, d.createdAt, d.updatedAt
-            FROM `Device` d
-            INNER JOIN (
-                SELECT StudentId, osType, uuid, MAX(idx) AS max_idx
-                FROM `Device`
-                GROUP BY StudentId, osType, uuid
-            ) dedup ON d.StudentId = dedup.StudentId
-                AND d.osType = dedup.osType
-                AND d.uuid = dedup.uuid
-                AND d.idx = dedup.max_idx
-            """.trimIndent(),
-        )
+        val rows =
+            oldDb.queryForList(
+                """
+                SELECT d.idx, d.StudentId, d.osType, d.uuid, d.pushToken, d.notice, d.reserve, d.lms, d.createdAt, d.updatedAt
+                FROM `Device` d
+                INNER JOIN (
+                    SELECT StudentId, osType, uuid, MAX(idx) AS max_idx
+                    FROM `Device`
+                    GROUP BY StudentId, osType, uuid
+                ) dedup ON d.StudentId = dedup.StudentId
+                    AND d.osType = dedup.osType
+                    AND d.uuid = dedup.uuid
+                    AND d.idx = dedup.max_idx
+                """.trimIndent(),
+            )
         log.info { "[device] ${rows.size}건 마이그레이션 시작" }
 
         rows.chunked(batchSize).forEach { chunk ->

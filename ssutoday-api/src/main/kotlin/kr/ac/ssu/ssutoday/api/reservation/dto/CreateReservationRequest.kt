@@ -13,4 +13,8 @@ data class CreateReservationRequest(
     val date: String,
     @field:Min(12) @field:Max(43) val startBlock: Int,
     @field:Min(12) @field:Max(43) val endBlock: Int,
+    val platform: String? = null,
+    val challenge: String? = null,
+    val attestation: String? = null,
+    val keyId: String? = null,
 )
