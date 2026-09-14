@@ -19,6 +19,7 @@ import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.Signature
 import java.security.cert.X509Certificate
 import java.security.interfaces.ECPublicKey
@@ -108,7 +109,7 @@ class AppAttestVerificationAdapterTest {
     }
 
     @Test
-    fun `assertion은 SHA256 ECDSA를 한 번 적용하고 unsigned counter를 반환한다`() {
+    fun `assertion은 nonce를 서명 대상으로 쓰고 unsigned counter를 반환한다`() {
         val data = header(0xffffffffL)
         val result = adapter.verifyAssertion(assertion(data), key.public.encoded, clientHash)
         assertEquals(AttestationVerdict.VERIFIED, result.verdict)
@@ -121,14 +122,16 @@ class AppAttestVerificationAdapterTest {
             AttestationVerdict.SIGNATURE_INVALID,
             adapter.verifyAssertion(assertion(data, signingKey = keyPair()), key.public.encoded, clientHash).verdict,
         )
-        val doubleHash =
+        // authData || clientDataHash를 그대로 서명한 값은 Apple이 만드는 형식이 아니다.
+        val withoutNonce =
             Signature
                 .getInstance("SHA256withECDSA")
                 .apply {
                     initSign(key.private)
-                    update(AttestationClientData.hash(data + clientHash))
+                    update(data)
+                    update(clientHash)
                 }.sign()
-        val encoded = encode(mapOf("authenticatorData" to data, "signature" to doubleHash))
+        val encoded = encode(mapOf("authenticatorData" to data, "signature" to withoutNonce))
         assertEquals(AttestationVerdict.SIGNATURE_INVALID, adapter.verifyAssertion(encoded, key.public.encoded, clientHash).verdict)
     }
 
@@ -261,8 +264,8 @@ class AppAttestVerificationAdapterTest {
                 .getInstance("SHA256withECDSA")
                 .apply {
                     initSign(signingKey.private)
-                    update(data)
-                    update(clientHash)
+                    // 실기기와 같은 방식으로 서명한다. nonce를 메시지로 넣어야 한다.
+                    update(MessageDigest.getInstance("SHA-256").digest(data + clientHash))
                 }.sign()
         return encode(mapOf("authenticatorData" to data, "signature" to signature))
     }

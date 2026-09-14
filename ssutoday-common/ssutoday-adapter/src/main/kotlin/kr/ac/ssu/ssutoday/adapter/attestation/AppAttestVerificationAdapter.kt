@@ -106,11 +106,12 @@ class AppAttestVerificationAdapter(
             val counter = verifyAssertionData(authData)
             val key = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(publicKey)) as ECPublicKey
             publicPoint(key) // P-256만 허용한다.
-            // SHA256withECDSA가 authData || clientDataHash를 한 번 해싱한다. nonce를 다시 해싱하지 않는다.
+            // Apple은 nonce = SHA256(authenticatorData || clientDataHash)를 만든 뒤 그 nonce를 메시지로 서명한다.
+            // SHA256withECDSA가 nonce를 한 번 더 해싱하므로 nonce 자체를 넣어야 한다.
+            val nonce = MessageDigest.getInstance("SHA-256").digest(authData + clientDataHash)
             val verifier = Signature.getInstance("SHA256withECDSA")
             verifier.initVerify(key)
-            verifier.update(authData)
-            verifier.update(clientDataHash)
+            verifier.update(nonce)
             if (!verifier.verify(signature)) {
                 // 진단용. 서명 입력 네 가지를 그대로 남겨 오프라인에서 어느 쪽이 어긋나는지 대조한다.
                 // 공개키는 공개 자료이고 assertion은 소모된 challenge에 묶여 있다. 원인 확인 후 제거한다.
