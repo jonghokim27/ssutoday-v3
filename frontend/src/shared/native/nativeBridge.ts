@@ -316,7 +316,7 @@ function showNativeOnlyModal(unsupportedDevice = false) {
 
   const message = document.createElement('p');
   message.className = 'ssu-native-message';
-  message.innerHTML = unsupportedDevice ? '해당 기기에서<br>지원하지 않는 기능이에요' : '해당 기능은 슈투데이 앱에서만<br>이용하실 수 있어요';
+  message.innerHTML = unsupportedDevice ? '해당 기기에서 지원하지 않는 기능이에요' : '해당 기능은 슈투데이 앱에서만<br>이용하실 수 있어요';
 
   const sub = document.createElement('p');
   sub.className = 'ssu-native-sub';
