@@ -320,10 +320,7 @@ class ReservationCommandApplicationService(
      * 관리자가 직접 처리했을 때와 동일하게 동작한다.
      */
     @Transactional
-    fun rejectVerifyPhotoByInspection(
-        reservationId: Long,
-        inspectionReason: String,
-    ): RejectVerifyPhotoResult {
+    fun rejectVerifyPhotoByInspection(reservationId: Long): RejectVerifyPhotoResult {
         val reservation = reservationService.find(reservationId) ?: return RejectVerifyPhotoResult(0, null, 0)
         if (!reservation.active) return RejectVerifyPhotoResult(0, null, 1)
 
@@ -335,7 +332,7 @@ class ReservationCommandApplicationService(
             executeAdminActionByToken(
                 adminToken = reservation.adminToken,
                 action = action,
-                reason = inspectionReason,
+                reason = INSPECTION_REJECT_REASON,
                 adminName = INSPECTION_ADMIN_NAME,
             )
 
@@ -486,5 +483,8 @@ class ReservationCommandApplicationService(
         const val FIRST_GRACE_MINUTES = 10L
         const val RETRY_GRACE_MINUTES = 5L
         const val INSPECTION_ADMIN_NAME = "시스템"
+
+        // 판정 근거를 그대로 노출하지 않고 취소 사유는 고정 문구로 통일한다.
+        const val INSPECTION_REJECT_REASON = "인증샷으로 입실하였음을 확인할 수 없음"
     }
 }

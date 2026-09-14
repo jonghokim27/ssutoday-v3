@@ -126,10 +126,7 @@ class VerifyPhotoApplicationService(
         if (inspection.confidence < rejectThreshold) return
 
         val result =
-            reservationCommandApplicationService.rejectVerifyPhotoByInspection(
-                reservationId = reservationId,
-                inspectionReason = inspection.reason,
-            )
+            reservationCommandApplicationService.rejectVerifyPhotoByInspection(reservationId)
         log.info {
             "인증샷 자동 거부: reservationId=$reservationId action=${result.action} " +
                 "count=${result.deleteCount} status=${result.status}"
