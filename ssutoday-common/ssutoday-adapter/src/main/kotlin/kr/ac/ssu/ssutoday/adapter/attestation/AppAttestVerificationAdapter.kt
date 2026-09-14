@@ -196,7 +196,9 @@ class AppAttestVerificationAdapter(
         checkInput(data.size in 37..4096)
         if (!MessageDigest.isEqual(data.copyOfRange(0, 32), appIdHash)) reject(AttestationVerdict.APP_ID_MISMATCH)
         val flags = data[32].toInt() and 0xff
-        checkInput((flags and 0x40 != 0) == registration && flags and 0x3e == 0)
+        // Apple은 App Attest authenticatorData의 UP/UV/BE/BS 비트를 보장하지 않으며 iPadOS 26은 실제로 일부를 세팅한다.
+        // 구조를 바꾸는 AT 비트만 확인한다. 나머지 비트는 서명이 보호하고 판정 근거로 쓰지 않는다.
+        checkInput((flags and 0x40 != 0) == registration)
         return ByteBuffer.wrap(data, 33, 4).int.toLong() and 0xffffffffL
     }
 

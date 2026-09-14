@@ -155,6 +155,14 @@ class AppAttestVerificationAdapterTest {
             AttestationVerdict.APP_UNRECOGNIZED,
             adapter.verifyAssertion(assertion(header(1, 0x80) + extensions(0)), key.public.encoded, clientHash).verdict,
         )
+        // 실기기가 세팅하는 UP/UV/BE/BS 비트는 판정에 쓰지 않는다. iPadOS 26에서 실제로 거부되던 조합이다.
+        listOf(0x01, 0x04, 0x08, 0x10, 0x1d).forEach { flags ->
+            assertEquals(
+                AttestationVerdict.VERIFIED,
+                adapter.verifyAssertion(assertion(header(1, flags)), key.public.encoded, clientHash).verdict,
+                "flags=$flags",
+            )
+        }
     }
 
     @Test
