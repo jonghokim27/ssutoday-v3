@@ -1,6 +1,5 @@
 package kr.ac.ssu.ssutoday.adapter.attestation
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestAssertionVerification
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestRegistrationVerification
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
@@ -34,7 +33,6 @@ import java.security.spec.X509EncodedKeySpec
 import java.time.Clock
 import java.util.Base64
 import java.util.Date
-import java.util.HexFormat
 
 /** Apple 고정 Root CA만 신뢰한다. 네트워크나 클라이언트가 지정한 신뢰 앵커를 사용하지 않는다. */
 class AppAttestVerificationAdapter(
@@ -44,8 +42,6 @@ class AppAttestVerificationAdapter(
     private val clock: Clock = Clock.systemUTC(),
 ) : AppAttestVerificationPort {
     private val appIdHash = AttestationClientData.hash(appId.toByteArray(Charsets.UTF_8))
-    private val log = KotlinLogging.logger {}
-
     private val mapper =
         CBORMapper
             .builder(
@@ -112,26 +108,11 @@ class AppAttestVerificationAdapter(
             val verifier = Signature.getInstance("SHA256withECDSA")
             verifier.initVerify(key)
             verifier.update(nonce)
-            if (!verifier.verify(signature)) {
-                // 진단용. 서명 입력 네 가지를 그대로 남겨 오프라인에서 어느 쪽이 어긋나는지 대조한다.
-                // 공개키는 공개 자료이고 assertion은 소모된 challenge에 묶여 있다. 원인 확인 후 제거한다.
-                val hex = HexFormat.of()
-                log.warn {
-                    "assertion signature mismatch:" +
-                        " authData=" + hex.formatHex(authData) +
-                        " clientDataHash=" + hex.formatHex(clientDataHash) +
-                        " signature=" + Base64.getEncoder().encodeToString(signature) +
-                        " publicKey=" + hex.formatHex(publicKey)
-                }
-                reject(AttestationVerdict.SIGNATURE_INVALID)
-            }
+            if (!verifier.verify(signature)) reject(AttestationVerdict.SIGNATURE_INVALID)
             AppAttestAssertionVerification(AttestationVerdict.VERIFIED, counter)
         } catch (failure: VerificationFailure) {
-            // 진단용. checkInput은 어느 줄에서 걸렸는지가 유일한 단서라 스택트레이스를 남긴다.
-            log.warn(failure) { "App Attest assertion rejected: ${failure.verdict}" }
             AppAttestAssertionVerification(failure.verdict)
-        } catch (error: Exception) {
-            log.warn(error) { "App Attest assertion failed to decode" }
+        } catch (_: Exception) {
             AppAttestAssertionVerification(AttestationVerdict.INVALID_INPUT)
         }
 
@@ -193,8 +174,6 @@ class AppAttestVerificationAdapter(
     }
 
     private fun verifyAssertionData(data: ByteArray): Long {
-        // 진단용. 실기기가 실제로 보내는 flags를 확인한 뒤 제거한다.
-        log.warn { "assertion authData: size=${data.size} flags=0x${"%02x".format(data[32].toInt() and 0xff)}" }
         val counter = verifyHeader(data, false)
         if (counter == 0L) reject(AttestationVerdict.COUNTER_REJECTED)
         if (data.size > 37) {

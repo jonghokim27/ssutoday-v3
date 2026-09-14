@@ -222,6 +222,18 @@ iOS 등록 브리지는 `security.prepareAppAttest` → `security.attestRegister
 
 EAS Build는 App Attest entitlement의 capability 동기화를 지원하지만, 이번 비대화형 빌드에서는 기존 프로파일을 재사용해 권한 누락으로 실패했다. Apple API도 `APP_ATTEST` 추가 요청을 지원하지 않아 개발자 콘솔에서 직접 활성화한 뒤, 기존 배포 인증서로 새 프로파일을 발급해 EAS에 적용했다. 새 프로파일의 `F7TW6722Y9.com.ssutoday`, App Attest 허용 환경과 기존 production 푸시 권한을 확인했다. 추후에도 capability 변경 후 실제 프로파일을 확인한다. [Expo iOS capabilities](https://docs.expo.dev/build-reference/ios-capabilities/)
 
+## 실기기 검증에서 고친 것
+
+합성 fixture로는 통과하던 iOS assertion 검증이 실기기(iPadOS 26.0.1, iPad)에서 전부 거부됐다. 원인은 두 가지이며 모두 서버 검증기 문제였다. 앱과 프로토콜은 바꾸지 않았다.
+
+`authenticatorData`의 flags를 고정값으로 강제하고 있었다. 기존 검사는 assertion에서 AT 비트가 꺼져 있고 bit 1~5가 모두 0이어야 통과시켰는데, 실기기는 assertion에도 AT 비트를 세팅한다(`size=37 flags=0x40`). Apple은 App Attest의 flags를 문서로 보장하지 않는다. AT 비트는 attested credential data를 파싱하는 등록에서만 의미가 있으므로 등록에서만 강제한다. assertion 뒤에 붙는 바이트는 기존 크기 기준 검사가 그대로 처리한다.
+
+assertion 서명의 해시 단계가 하나 부족했다. Apple은 `nonce = SHA256(authenticatorData || clientDataHash)`를 만든 뒤 **그 nonce를 메시지로** ECDSA-SHA256 서명하므로 최종 서명 대상은 `SHA256(nonce)`다. 기존 구현은 `authenticatorData`와 `clientDataHash`를 그대로 `SHA256withECDSA`에 넣어 nonce 자체를 다이제스트로 삼았다. 실기기 assertion을 오프라인에서 대조해 여섯 가지 조합 중 `ECDSA(SHA256(SHA256(authData || clientDataHash)))`만 유효함을 확인했다.
+
+테스트가 이를 잡지 못한 이유는 테스트 헬퍼가 구현과 같은 방식으로 서명했기 때문이다. 양쪽이 같은 오해를 공유하면 통과한다. 헬퍼를 실기기와 같은 방식으로 바꾸고, 기존 방식이 거부되는지를 검사하는 항목을 남겼다. 실기기가 보내는 flags 조합도 테스트에 포함했다.
+
+관찰 모드가 두 건을 모두 잡아냈다. `ATTESTATION_ENFORCE=true`였다면 iOS 사용자의 예약과 인증샷이 전부 차단됐을 것이다. 합성 입력으로 하는 검증은 실기기 확인을 대체하지 못한다.
+
 ## 검증
 
 - 전체: `./gradlew build` (Windows: `.\gradlew.bat build`, JDK 21).

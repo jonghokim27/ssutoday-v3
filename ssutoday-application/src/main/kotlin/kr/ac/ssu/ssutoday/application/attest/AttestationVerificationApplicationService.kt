@@ -71,10 +71,7 @@ class AttestationVerificationApplicationService(
                 else -> "unknown"
             }
         log.info {
-            "Attestation: purpose=${scope.purpose} studentId=${scope.studentId} reservationId=${scope.reservationId} " +
-                "platform=$platform verdict=$verdict enforce=$enforce " +
-                // 진단용. 증명 원문은 남기지 않고 도달 여부와 길이만 본다. keyId는 DB에 평문으로 있는 공개 식별자다.
-                "challengeLen=${evidence.challenge?.length} attestationLen=${evidence.attestation?.length} keyId=${evidence.keyId}"
+            "Attestation: purpose=${scope.purpose} studentId=${scope.studentId} reservationId=${scope.reservationId} platform=$platform verdict=$verdict enforce=$enforce"
         }
         if (enforce && verdict != AttestationVerdict.VERIFIED) throw BusinessException(StatusCode.SSU4206)
         return AttestationResult(verdict, platform, enforce)
@@ -111,8 +108,6 @@ class AttestationVerificationApplicationService(
             } catch (_: IllegalArgumentException) {
                 return AttestationVerdict.INVALID_INPUT
             }
-        // 진단용. 서명 대상 바이트를 앱이 만든 것과 대조한다. 비밀값은 없다. 원인 확인 후 제거한다.
-        log.warn { "clientData=" + data.decodeToString().replace('\n', '|') }
         if (evidence.platform == "ios") return verifyIos(scope, evidence, AttestationClientData.hash(data))
         if (evidence.keyId != null) return AttestationVerdict.INVALID_INPUT
         val verdict = playIntegrityVerificationPort.verify(evidence.attestation, AttestationClientData.requestHash(data))
