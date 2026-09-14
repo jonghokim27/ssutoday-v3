@@ -71,7 +71,10 @@ class AttestationVerificationApplicationService(
                 else -> "unknown"
             }
         log.info {
-            "Attestation: purpose=${scope.purpose} studentId=${scope.studentId} reservationId=${scope.reservationId} platform=$platform verdict=$verdict enforce=$enforce"
+            "Attestation: purpose=${scope.purpose} studentId=${scope.studentId} reservationId=${scope.reservationId} " +
+                "platform=$platform verdict=$verdict enforce=$enforce " +
+                // 진단용. 증명 원문은 남기지 않고 도달 여부와 길이만 본다. keyId는 DB에 평문으로 있는 공개 식별자다.
+                "challengeLen=${evidence.challenge?.length} attestationLen=${evidence.attestation?.length} keyId=${evidence.keyId}"
         }
         if (enforce && verdict != AttestationVerdict.VERIFIED) throw BusinessException(StatusCode.SSU4206)
         return AttestationResult(verdict, platform, enforce)
