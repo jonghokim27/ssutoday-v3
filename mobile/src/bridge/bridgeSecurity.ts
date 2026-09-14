@@ -16,15 +16,21 @@ export function canDispatchBridge(sourceUrl: string, pageUrl: string, ready: boo
 
 // 구형 Android WebView의 addJavascriptInterface는 하위 프레임에도 노출된다.
 // 네이티브에서 만든 토큰을 메인 프레임의 클로저에만 두고 모든 요청에 붙인다.
+// Android의 injectedJavaScriptBeforeContentLoaded는 문서 시작 시점 실행이 보장되지 않는다.
+// 설치 여부만 보고 건너뛰면 한 번 실패한 문서를 영영 복구하지 못하므로, 주입될 때마다
+// 원본 bridge에서 다시 설치한다. 원본은 토큰을 아는 호출자에게만 돌려준다.
 export function secureBridgeScript(token: string | null): string {
   if (!token) return '';
   return `
     (function() {
       if (window.top !== window || location.origin !== ${JSON.stringify(TRUSTED_ORIGIN)}) return;
-      var bridge = window.ReactNativeWebView;
-      if (!bridge || bridge.__ssutodaySecured) return;
-      var original = bridge.postMessage.bind(bridge);
       var token = ${JSON.stringify(token)};
+      var current = window.ReactNativeWebView;
+      var bridge = current && current.__ssutodaySecured
+        ? (typeof current.__ssutodayRaw === 'function' ? current.__ssutodayRaw(token) : null)
+        : current;
+      if (!bridge) return;
+      var original = bridge.postMessage.bind(bridge);
       // Java에서 노출한 host object는 메서드를 재정의할 수 없을 수 있으므로 JS 객체로 감싼다.
       var secured = { postMessage: function(raw) {
         try {
@@ -36,6 +42,7 @@ export function secureBridgeScript(token: string | null): string {
       }};
       if (typeof bridge.injectedObjectJson === 'function') secured.injectedObjectJson = bridge.injectedObjectJson.bind(bridge);
       Object.defineProperty(secured, '__ssutodaySecured', { value: true });
+      Object.defineProperty(secured, '__ssutodayRaw', { value: function (t) { return t === token ? bridge : null; } });
       window.ReactNativeWebView = secured;
     })();
   `;

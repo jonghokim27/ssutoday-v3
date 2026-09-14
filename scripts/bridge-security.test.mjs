@@ -84,3 +84,26 @@ test('attestation accepts only scoped capture handles and canonical challenges',
     assert.equal(isAttestParams({ ...input, ...replacement }), false);
   }
 });
+
+test('re-injection rebuilds the wrapper from the original bridge instead of skipping', () => {
+  const f = frame(ORIGIN, true);
+  const original = f.window.ReactNativeWebView;
+  const script = secureBridgeScript('native-secret');
+  vm.runInContext(script, f.context);
+  const first = f.window.ReactNativeWebView;
+  vm.runInContext(script, f.context);
+  assert.notEqual(f.window.ReactNativeWebView, first);
+  assert.equal(f.window.ReactNativeWebView.__ssutodayRaw('native-secret'), original);
+  f.window.ReactNativeWebView.postMessage('{"kind":"request","id":"1"}');
+  assert.deepEqual(f.sent, [{ kind: 'request', id: '1', bridgeToken: 'native-secret' }]);
+});
+
+test('the original bridge is only handed back to a caller that knows the token', () => {
+  const f = frame(ORIGIN, true);
+  vm.runInContext(secureBridgeScript('native-secret'), f.context);
+  assert.equal(f.window.ReactNativeWebView.__ssutodayRaw('forged'), null);
+  // 토큰을 모르는 재주입은 원본을 못 얻으므로 기존 wrapper를 그대로 둔다.
+  const installed = f.window.ReactNativeWebView;
+  vm.runInContext(secureBridgeScript('other-secret'), f.context);
+  assert.equal(f.window.ReactNativeWebView, installed);
+});
