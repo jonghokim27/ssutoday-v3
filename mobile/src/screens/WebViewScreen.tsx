@@ -410,6 +410,7 @@ export default function WebViewScreen() {
 
   const handleLoad = useCallback((e: { nativeEvent: WebViewNavigation }) => {
     documentUrl.current = e.nativeEvent.url;
+    documentEpoch.current++;
     if (isTrustedBridgeUrl(e.nativeEvent.url)) sendHandshake();
     if (isSmartIdUrl(e.nativeEvent.url) && smartIdHeaderHeightRef.current > 0) {
       webviewRef.current?.injectJavaScript(
@@ -555,9 +556,14 @@ export default function WebViewScreen() {
         source={{ uri: targetUri }}
         onLoad={handleLoad}
         onLoadStart={(event) => {
-          webviewReady.current = false;
-          documentEpoch.current++;
+          // Android는 SPA의 pushState마다 doUpdateVisitedHistory에서 onLoadStart를 보내고
+          // 짝이 되는 onLoad는 보내지 않는다. 같은 신뢰 origin이면 문서가 교체된 것이 아니므로
+          // 여기서 ready를 내리면 첫 화면 이동 이후 브리지가 영구히 막힌다.
           documentUrl.current = event.nativeEvent.url;
+          if (!isTrustedBridgeUrl(event.nativeEvent.url)) {
+            webviewReady.current = false;
+            documentEpoch.current++;
+          }
           clearCaptures();
         }}
         onMessage={handleMessage}
