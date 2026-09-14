@@ -111,6 +111,8 @@ class AttestationVerificationApplicationService(
             } catch (_: IllegalArgumentException) {
                 return AttestationVerdict.INVALID_INPUT
             }
+        // 진단용. 서명 대상 바이트를 앱이 만든 것과 대조한다. 비밀값은 없다. 원인 확인 후 제거한다.
+        log.warn { "clientData=" + data.decodeToString().replace('\n', '|') }
         if (evidence.platform == "ios") return verifyIos(scope, evidence, AttestationClientData.hash(data))
         if (evidence.keyId != null) return AttestationVerdict.INVALID_INPUT
         val verdict = playIntegrityVerificationPort.verify(evidence.attestation, AttestationClientData.requestHash(data))
