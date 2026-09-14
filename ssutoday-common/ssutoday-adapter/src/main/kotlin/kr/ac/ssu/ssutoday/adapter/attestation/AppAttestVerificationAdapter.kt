@@ -179,6 +179,8 @@ class AppAttestVerificationAdapter(
     }
 
     private fun verifyAssertionData(data: ByteArray): Long {
+        // 진단용. 실기기가 실제로 보내는 flags를 확인한 뒤 제거한다.
+        log.warn { "assertion authData: size=${data.size} flags=0x${"%02x".format(data[32].toInt() and 0xff)}" }
         val counter = verifyHeader(data, false)
         if (counter == 0L) reject(AttestationVerdict.COUNTER_REJECTED)
         if (data.size > 37) {
@@ -196,9 +198,10 @@ class AppAttestVerificationAdapter(
         checkInput(data.size in 37..4096)
         if (!MessageDigest.isEqual(data.copyOfRange(0, 32), appIdHash)) reject(AttestationVerdict.APP_ID_MISMATCH)
         val flags = data[32].toInt() and 0xff
-        // Apple은 App Attest authenticatorData의 UP/UV/BE/BS 비트를 보장하지 않으며 iPadOS 26은 실제로 일부를 세팅한다.
-        // 구조를 바꾸는 AT 비트만 확인한다. 나머지 비트는 서명이 보호하고 판정 근거로 쓰지 않는다.
-        checkInput((flags and 0x40 != 0) == registration)
+        // Apple은 App Attest authenticatorData의 flags를 문서로 보장하지 않는다. iPadOS 26은 assertion에도
+        // AT 비트를 세팅한다. AT는 attested credential data를 파싱하는 registration에서만 의미가 있으므로
+        // 거기서만 강제한다. assertion의 뒤따르는 바이트는 아래 크기 기준으로 검사한다.
+        if (registration) checkInput(flags and 0x40 != 0)
         return ByteBuffer.wrap(data, 33, 4).int.toLong() and 0xffffffffL
     }
 
