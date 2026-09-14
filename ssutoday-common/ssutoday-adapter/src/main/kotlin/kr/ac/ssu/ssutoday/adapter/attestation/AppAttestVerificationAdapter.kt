@@ -34,6 +34,7 @@ import java.security.spec.X509EncodedKeySpec
 import java.time.Clock
 import java.util.Base64
 import java.util.Date
+import java.util.HexFormat
 
 /** Apple 고정 Root CA만 신뢰한다. 네트워크나 클라이언트가 지정한 신뢰 앵커를 사용하지 않는다. */
 class AppAttestVerificationAdapter(
@@ -110,7 +111,19 @@ class AppAttestVerificationAdapter(
             verifier.initVerify(key)
             verifier.update(authData)
             verifier.update(clientDataHash)
-            if (!verifier.verify(signature)) reject(AttestationVerdict.SIGNATURE_INVALID)
+            if (!verifier.verify(signature)) {
+                // 진단용. 서명 입력 네 가지를 그대로 남겨 오프라인에서 어느 쪽이 어긋나는지 대조한다.
+                // 공개키는 공개 자료이고 assertion은 소모된 challenge에 묶여 있다. 원인 확인 후 제거한다.
+                val hex = HexFormat.of()
+                log.warn {
+                    "assertion signature mismatch:" +
+                        " authData=" + hex.formatHex(authData) +
+                        " clientDataHash=" + hex.formatHex(clientDataHash) +
+                        " signature=" + Base64.getEncoder().encodeToString(signature) +
+                        " publicKey=" + hex.formatHex(publicKey)
+                }
+                reject(AttestationVerdict.SIGNATURE_INVALID)
+            }
             AppAttestAssertionVerification(AttestationVerdict.VERIFIED, counter)
         } catch (failure: VerificationFailure) {
             // 진단용. checkInput은 어느 줄에서 걸렸는지가 유일한 단서라 스택트레이스를 남긴다.
