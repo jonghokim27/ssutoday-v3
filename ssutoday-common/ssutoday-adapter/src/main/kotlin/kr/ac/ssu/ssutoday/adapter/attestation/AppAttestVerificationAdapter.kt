@@ -1,5 +1,6 @@
 package kr.ac.ssu.ssutoday.adapter.attestation
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestAssertionVerification
 import kr.ac.ssu.ssutoday.core.attestation.AppAttestRegistrationVerification
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
@@ -42,6 +43,8 @@ class AppAttestVerificationAdapter(
     private val clock: Clock = Clock.systemUTC(),
 ) : AppAttestVerificationPort {
     private val appIdHash = AttestationClientData.hash(appId.toByteArray(Charsets.UTF_8))
+    private val log = KotlinLogging.logger {}
+
     private val mapper =
         CBORMapper
             .builder(
@@ -110,8 +113,11 @@ class AppAttestVerificationAdapter(
             if (!verifier.verify(signature)) reject(AttestationVerdict.SIGNATURE_INVALID)
             AppAttestAssertionVerification(AttestationVerdict.VERIFIED, counter)
         } catch (failure: VerificationFailure) {
+            // 진단용. checkInput은 어느 줄에서 걸렸는지가 유일한 단서라 스택트레이스를 남긴다.
+            log.warn(failure) { "App Attest assertion rejected: ${failure.verdict}" }
             AppAttestAssertionVerification(failure.verdict)
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            log.warn(error) { "App Attest assertion failed to decode" }
             AppAttestAssertionVerification(AttestationVerdict.INVALID_INPUT)
         }
 
