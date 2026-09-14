@@ -1,6 +1,6 @@
 # 인증샷 무결성 강화 계획
 
-> 구현 진행: 계정 설정과 기본 API 연결 확인, 설정·배포 연결, 요청 바이트 계약, challenge 발급·원자적 소모, Android/iOS 서버 검증기와 업로드 관찰/강제 모드, iOS 등록 저장소·원자적 counter 갱신, 양 플랫폼 앱 내부 카메라와 네이티브 증명·프론트엔드 연결을 구현했다. 서버 94개, Swift 핵심 8개, JS 흐름·브리지 79개 테스트를 통과했다. 확정 계약과 현재 구현 범위는 [docs/attestation.md](docs/attestation.md)를 따른다. 아래 내용은 초기 계획이다. Redis는 원자적 scope 확인·삭제를 사용하고, 업로드 client data는 서버가 재구성하며, 촬영은 양 플랫폼에서 앱 내부 CameraView를 사용한다. 실제 테이블은 [DDL](infra/sql/20260913-device-attestation.sql)을 배포 전에 적용해야 한다. iOS Xcode 빌드, 운영 배포와 양 플랫폼 실기기 검증은 후속 작업이며 현재 `ATTESTATION_ENFORCE=false`를 유지한다. Google Play의 앱 인식 판정만으로 모든 사이드로드를 구분할 수 있는 것은 아니며 현재 라이선스 판정은 강제하지 않는다.
+> 구현 진행: 일반 예약 요청과 인증샷에 Android/iOS attestation을 연결하고, 미지원 기기 안내 모달과 구버전 호환 관찰 모드를 적용했다. 서버 106개, Swift 10개, Android 6개, JS 91개 테스트가 통과했다. Android 3.0.2(17) EAS 빌드와 서명 APK 변환을 완료했고, iOS는 App Attest 권한이 포함된 새 프로파일로 빌드한다. 확정 계약은 [docs/attestation.md](docs/attestation.md), 비밀키 검사와 검증 재검토는 [보안 점검](docs/attestation-security-review.md)을 따른다. 아래 내용은 초기 계획이다. 실제 [DDL](infra/sql/20260913-device-attestation.sql)을 배포 전에 적용해야 하며 운영 배포·양 플랫폼 실기기 검증 전에는 `ATTESTATION_ENFORCE=false`를 유지한다. Google Play 라이선스 판정은 현재 강제하지 않는다.
 
 ## 배경
 
