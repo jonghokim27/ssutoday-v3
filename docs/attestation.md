@@ -4,7 +4,7 @@
 
 일반 예약 요청과 인증샷 업로드에 Android Play Integrity / iOS App Attest 검증을 적용한다. `ATTESTATION_ENFORCE=false`가 기본값이며, 구버전 payload와 증명 누락·실패를 허용하고 판정을 Discord에 기록한다. `true`에서는 `VERIFIED`만 허용하고 나머지는 `SSU4206`으로 저장 전에 거부한다. 기존 로그인·Turnstile·예약 정책은 두 모드 모두 유지한다. iOS 키 등록은 관찰 모드에서도 검증을 통과해야 저장한다.
 
-웹·서버는 아직 운영 배포하지 않았으며 내부 테스트 트랙과 TestFlight의 실제 앱 증명 검증은 배포 후 확인한다. Windows에서는 Swift 핵심 로직을 Linux 컨테이너로 검증했다. Android 3.0.2 EAS 배포 빌드가 완료됐으며 iOS는 App Attest 프로비저닝을 갱신해 빌드한다. 양 플랫폼 실기기 검증을 완료하기 전에는 전역 강제 모드를 켜지 않는다.
+웹·서버는 아직 운영 배포하지 않았으며 내부 테스트 트랙과 TestFlight의 실제 앱 증명 검증은 배포 후 확인한다. Android 3.0.2(17)와 iOS 3.0.2(45) EAS 배포 빌드가 완료됐으며 iOS의 TestFlight 제출도 성공했다. IPA의 서명된 실행 파일에서 production App Attest 권한과 앱 ID를 확인했다. 양 플랫폼 실기기 검증을 완료하기 전에는 전역 강제 모드를 켜지 않는다.
 
 ## 계정과 배포 설정
 
@@ -240,6 +240,8 @@ EAS Build는 App Attest entitlement의 capability 동기화를 지원하지만, 
 - 서비스 계정 OAuth 발급과 잘못된 테스트 토큰의 `400 INVALID_ARGUMENT` 응답을 로컬에서 확인했다. 이는 계정 인증·기본 연결 확인이며 실제 앱 토큰의 검증이나 운영 서버 연결 확인을 대체하지 않는다.
 
 ## 다음 검증과 배포 순서
+
+배포 아티팩트: [Android 3.0.2(17)](https://expo.dev/accounts/joey0307/projects/ssutoday/builds/ec26f306-cd4d-4eaf-b126-490eb57ce68d), [iOS 3.0.2(45)](https://expo.dev/accounts/joey0307/projects/ssutoday/builds/f2a398aa-2d35-4a3b-bd1a-cf9e96c3f313), [TestFlight 제출 성공](https://expo.dev/accounts/joey0307/projects/ssutoday/submissions/d42fc17d-8daa-4b53-a99f-8ec00f845c68). Android AAB에서 생성한 universal APK는 기존 서명 인증서로 검증했다. APK SHA-256: `2ff2aeed26e00b927af7ab65c76e810c6440e9902464f6dbf8d36c9690719787`.
 
 1. 대상 MySQL에 실제 DDL을 먼저 적용한 뒤 서버와 프론트엔드를 `ATTESTATION_ENFORCE=false` 상태로 반영한다. 운영 API에서 서비스 계정 파일과 Google 연결을 확인한다.
 2. Mac 또는 추가한 CI에서 iOS 전체 앱 빌드를 확인한다. App ID의 App Attest capability를 포함한 배포 프로비저닝으로 실제 Firebase 앱 설정을 사용하는 `3.0.2` 바이너리를 빌드하고 TestFlight로 설치한다. 최초 등록과 서버 `VERIFIED` 판정을 확인한다. 재실행·재설치·계정 전환과 등록 서버 응답 유실 후 재시도를 확인한다.
