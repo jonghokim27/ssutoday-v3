@@ -111,7 +111,6 @@ const config = {
   plugins: [
     'expo-router',
     'expo-notifications',
-    'expo-image-picker',
     ['expo-camera', { cameraPermission: '인증샷을 촬영하기 위해 카메라 권한을 허용해 주세요', microphonePermission: false, recordAudioAndroid: false }],
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
