@@ -48,7 +48,7 @@ cloud:
 
 ssutoday:
   attestation:
-    enforce: ${ATTESTATION_ENFORCE:false}
+    enforce: ${ATTESTATION_ENFORCE:true}
     play-integrity:
       cloud-project-number: ${PLAY_CLOUD_PROJECT_NUMBER:997341830534}
       credentials: ${PLAY_INTEGRITY_CREDENTIALS:}

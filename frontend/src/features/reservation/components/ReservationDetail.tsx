@@ -9,7 +9,7 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
-import { openLink, triggerHaptic, HandledError } from '../../../shared/native/nativeBridge';
+import { openLink, requireNativeApp, triggerHaptic, HandledError } from '../../../shared/native/nativeBridge';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
@@ -306,7 +306,12 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
       <div className={styles.cta}>
         <Button
           disabled={!selection || submitting}
-          onClick={() => (selection ? setConfirmOpen(true) : flash('시간을 선택하세요'))}
+          onClick={() => {
+            if (!selection) return flash('시간을 선택하세요');
+            // 강제 모드에서는 앱이 아니면 서버가 거부한다. 요청을 보내고 실패시키는 대신 여기서 안내한다.
+            if (!requireNativeApp()) return;
+            setConfirmOpen(true);
+          }}
           type="button"
         >
           {submitting ? '예약 처리 중' : selection ? '이 시간으로 예약하기' : '시간을 선택하세요'}
@@ -430,6 +435,7 @@ function reserveStatusMessage(status: ReserveStatus) {
 function requestFailureMessage(statusCode: string, fallback: string) {
   if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요';
   if (statusCode === 'SSU4092') return 'Turnstile 검증에 실패했어요. 잠시 후 다시 시도해 주세요';
+  if (statusCode === 'SSU4206') return '슈투데이 앱 최신 버전에서 예약해 주세요';
   return fallback;
 }
 
