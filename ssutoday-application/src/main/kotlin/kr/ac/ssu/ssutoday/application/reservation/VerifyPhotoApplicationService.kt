@@ -15,14 +15,18 @@ import kr.ac.ssu.ssutoday.core.port.VerifyPhotoInspectionPort
 import kr.ac.ssu.ssutoday.core.port.VerifyPhotoInspectionPublisher
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
+import kr.ac.ssu.ssutoday.core.turnstile.TurnstileAction
+import kr.ac.ssu.ssutoday.domain.reservation.ReservationRiskPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationView
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
+import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoSignalService
 import kr.ac.ssu.ssutoday.domain.room.RoomService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 @Service
 class VerifyPhotoApplicationService(
@@ -39,6 +43,8 @@ class VerifyPhotoApplicationService(
     private val verifyPhotoInspectionPublisher: VerifyPhotoInspectionPublisher,
     private val verifyPhotoInspectionPort: VerifyPhotoInspectionPort,
     private val attestationVerificationApplicationService: AttestationVerificationApplicationService,
+    private val reservationRiskPolicy: ReservationRiskPolicy,
+    private val verifyPhotoSignalService: VerifyPhotoSignalService,
     @Value("\${ssutoday.storage.verify-photo-bucket}")
     private val bucket: String,
     @Value("\${ssutoday.storage.public-base-url:}")
@@ -52,9 +58,10 @@ class VerifyPhotoApplicationService(
 
     @Transactional
     fun upload(command: UploadPhotoCommand): String {
-        if (!turnstileVerificationPort.verify(command.turnstileToken)) {
-            throw BusinessException(StatusCode.SSU4205)
-        }
+        val receivedAt = Instant.now()
+        val turnstile =
+            turnstileVerificationPort.verify(command.turnstileToken, TurnstileAction.VERIFY_PHOTO_UPLOAD)
+                ?: throw BusinessException(StatusCode.SSU4205)
         val reservation = reservationService.getForPhotoUpload(command.studentId, command.reservationId)
         val photo = command.input.readBytes()
         val attestation =
@@ -72,6 +79,18 @@ class VerifyPhotoApplicationService(
             }
         val publicUrl = buildPublicUrl(key, uploadedUrl)
         verifyPhotoService.create(command.reservationId, publicUrl)
+        val flags = reservationRiskPolicy.flags(null, attestation.signals)
+        verifyPhotoSignalService.create(
+            reservationId = command.reservationId,
+            studentId = command.studentId,
+            receivedAt = receivedAt,
+            turnstileSolvedAt = turnstile.challengeTs,
+            platform = attestation.platform,
+            verdict = attestation.verdict.name,
+            photoUrl = publicUrl,
+            signals = attestation.signals,
+            flags = flags,
+        )
         val student = studentService.get(reservation.studentId)
         val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
         val studentInfo = buildStudentInfo(student.name, student.id, student.major)
@@ -81,11 +100,12 @@ class VerifyPhotoApplicationService(
                 reservation.startBlock,
                 reservation.endBlock,
             )
+        val flagLine = if (flags.isEmpty()) "" else "\n검토 신호: ${flags.joinToString(", ")}"
         afterCommit {
             discordVerifyPhotoNotificationPort.send(
                 content =
                     "**[인증샷 촬영 알림]**\n앱 무결성: ${attestation.verdict} (${attestation.platform}, " +
-                        "${if (attestation.enforced) "강제 모드" else "관찰 모드"})",
+                        "${if (attestation.enforced) "강제 모드" else "관찰 모드"})" + flagLine,
                 reservationId = reservation.id,
                 adminToken = reservation.adminToken,
                 studentInfo = studentInfo,

@@ -6,6 +6,8 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegrityVerification
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.AttestationChallengeStorePort
@@ -23,6 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AttestationVerificationApplicationServiceTest {
@@ -57,17 +60,27 @@ class AttestationVerificationApplicationServiceTest {
                 HexFormat.of().formatHex(AttestationClientData.hash(photo)),
             ),
         )
+    private val signals = PlayIntegritySignals(appsDetected = listOf("UNKNOWN_CONTROLLING"), appLicensingVerdict = "LICENSED")
     private val provider =
         object : PlayIntegrityVerificationPort {
             override fun verify(
                 token: String,
                 requestHash: String,
-            ): AttestationVerdict {
+            ): PlayIntegrityVerification {
                 calls += token to requestHash
-                if (requestHash != expectedHash) return AttestationVerdict.REQUEST_HASH_MISMATCH
-                return providerVerdict
+                if (requestHash != expectedHash) return PlayIntegrityVerification(AttestationVerdict.REQUEST_HASH_MISMATCH, signals)
+                return PlayIntegrityVerification(providerVerdict, signals)
             }
         }
+
+    @Test
+    fun `Google 선택 응답은 판정에 영향을 주지 않고 결과에 함께 담는다`() {
+        val verified = service(true).verify(command)
+        assertEquals(AttestationVerdict.VERIFIED, verified.verdict)
+        assertEquals(signals, verified.signals)
+        assertEquals(signals, service(false).verify(command.copy(photo = "replaced".toByteArray())).signals)
+        assertNull(service(false).verify(command.copy(evidence = AttestationEvidence())).signals)
+    }
 
     @Test
     fun `사진 교체 학생 예약과 challenge 변경은 요청 해시 불일치로 거부한다`() {

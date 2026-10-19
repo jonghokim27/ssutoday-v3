@@ -435,6 +435,7 @@ function reserveStatusMessage(status: ReserveStatus) {
 function requestFailureMessage(statusCode: string, fallback: string) {
   if (statusCode === 'SSU4091') return '현재 일시적으로 예약이 불가능해요. 잠시 후 다시 시도해 주세요';
   if (statusCode === 'SSU4092') return 'Turnstile 검증에 실패했어요. 잠시 후 다시 시도해 주세요';
+  if (statusCode === 'SSU4093') return '전날 20:00 부터 예약이 가능해요';
   if (statusCode === 'SSU4206') return '슈투데이 앱 최신 버전에서 예약해 주세요';
   return fallback;
 }

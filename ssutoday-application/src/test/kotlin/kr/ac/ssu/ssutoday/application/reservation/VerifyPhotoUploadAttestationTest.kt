@@ -6,6 +6,8 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.UploadPhotoCommand
 import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegrityVerification
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
@@ -17,14 +19,21 @@ import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.port.VerifyPhotoInspectionPort
 import kr.ac.ssu.ssutoday.core.port.VerifyPhotoInspectionPublisher
 import kr.ac.ssu.ssutoday.core.status.StatusCode
+import kr.ac.ssu.ssutoday.core.turnstile.TurnstileAction
+import kr.ac.ssu.ssutoday.core.turnstile.TurnstileVerification
+import kr.ac.ssu.ssutoday.domain.reservation.ReservationRiskPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationView
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
+import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoSignal
+import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoSignalRepository
+import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoSignalService
 import kr.ac.ssu.ssutoday.domain.room.RoomService
 import kr.ac.ssu.ssutoday.domain.student.AttestChallengeService
 import kr.ac.ssu.ssutoday.domain.student.DeviceAttestationService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import kr.ac.ssu.ssutoday.domain.student.StudentView
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
@@ -38,11 +47,13 @@ import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.io.InputStream
 import java.sql.Timestamp
+import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class VerifyPhotoUploadAttestationTest {
@@ -57,6 +68,7 @@ class VerifyPhotoUploadAttestationTest {
     private val inspections = mock(VerifyPhotoInspectionPublisher::class.java)
     private val challenges = mock(AttestChallengeService::class.java)
     private val provider = mock(PlayIntegrityVerificationPort::class.java)
+    private val signalRepository = mock(VerifyPhotoSignalRepository::class.java)
     private val bytes = "abc".toByteArray()
     private val scope = AttestationChallengeScope(20260000, AttestationPurpose.VERIFY_PHOTO_UPLOAD, 42)
     private val evidence = AttestationEvidence("android", CHALLENGE, "opaque-token")
@@ -64,11 +76,11 @@ class VerifyPhotoUploadAttestationTest {
         ReservationView(42, 20260000, "1", LocalDate.of(2026, 9, 13), 0, 1, Timestamp(0), null, null, true, "admin", 0)
 
     init {
-        `when`(turnstile.verify("turnstile")).thenReturn(true)
+        `when`(turnstile.verify("turnstile", TurnstileAction.VERIFY_PHOTO_UPLOAD)).thenReturn(TurnstileVerification(Instant.EPOCH))
         `when`(reservations.getForPhotoUpload(20260000, 42)).thenReturn(reservation)
         `when`(students.get(20260000)).thenReturn(StudentView(20260000, "student", "cse", false))
         `when`(tokens.randomToken(20)).thenReturn("photo-token")
-        `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(AttestationVerdict.VERIFIED)
+        `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(PlayIntegrityVerification(AttestationVerdict.VERIFIED))
         doAnswer { invocation ->
             assertEquals(bytes.size.toLong(), invocation.getArgument<Long>(3))
             assertContentEquals(bytes, invocation.getArgument<InputStream>(4).readBytes())
@@ -79,13 +91,38 @@ class VerifyPhotoUploadAttestationTest {
     @Test
     fun `실제 사진 바이트를 검증하고 challenge를 소모한 다음 같은 바이트를 저장한다`() {
         assertEquals("https://storage/photo.jpeg", service(true).upload(command()))
-        val order = inOrder(turnstile, reservations, provider, challenges, storage, photos)
-        order.verify(turnstile).verify("turnstile")
+        val order = inOrder(turnstile, reservations, provider, challenges, storage, photos, signalRepository)
+        order.verify(turnstile).verify("turnstile", TurnstileAction.VERIFY_PHOTO_UPLOAD)
         order.verify(reservations).getForPhotoUpload(20260000, 42)
         order.verify(provider).verify("opaque-token", REQUEST_HASH)
         order.verify(challenges).consume(CHALLENGE, scope)
         order.verify(storage).upload(anyString(), anyString(), anyString(), anyLong(), anyInput())
         order.verify(photos).create(42, "https://storage/photo.jpeg")
+        order.verify(signalRepository).save(any(VerifyPhotoSignal::class.java))
+    }
+
+    @Test
+    fun `업로드마다 검토 신호를 저장하고 해당하는 신호를 모두 남긴다`() {
+        val signals = PlayIntegritySignals(appsDetected = listOf("UNKNOWN_CONTROLLING"), playProtectVerdict = "HIGH_RISK")
+        `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(PlayIntegrityVerification(AttestationVerdict.VERIFIED, signals))
+        val before = Instant.now()
+        service(true).upload(command())
+        val after = Instant.now()
+
+        val saved = ArgumentCaptor.forClass(VerifyPhotoSignal::class.java)
+        verify(signalRepository).save(saved.capture())
+        with(saved.value) {
+            assertEquals(42L, reservationId)
+            assertEquals(20260000, studentId)
+            assertTrue(receivedAt.toInstant() in before..after)
+            assertEquals(Instant.EPOCH, turnstileSolvedAt.toInstant())
+            assertEquals("android", platform)
+            assertEquals("VERIFIED", verdict)
+            assertEquals("https://storage/photo.jpeg", photoUrl)
+            assertEquals("UNKNOWN_CONTROLLING", appsDetected)
+            assertEquals("HIGH_RISK", playProtectVerdict)
+            assertEquals("ACCESS_RISK,PLAY_PROTECT_RISK", flags)
+        }
     }
 
     @Test
@@ -95,18 +132,18 @@ class VerifyPhotoUploadAttestationTest {
             StatusCode.SSU4206,
             assertFailsWith<BusinessException> { service.upload(command(AttestationEvidence())) }.status,
         )
-        `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(AttestationVerdict.DEVICE_UNTRUSTED)
+        `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(PlayIntegrityVerification(AttestationVerdict.DEVICE_UNTRUSTED))
         assertEquals(StatusCode.SSU4206, assertFailsWith<BusinessException> { service.upload(command()) }.status)
-        verifyNoInteractions(storage, photos, discord, inspections, challenges, tokens)
+        verifyNoInteractions(storage, photos, signalRepository, discord, inspections, challenges, tokens)
     }
 
     @Test
     fun `Turnstile과 예약 정책을 통과해야 Google 검증을 호출한다`() {
-        `when`(turnstile.verify("turnstile")).thenReturn(false)
+        `when`(turnstile.verify("turnstile", TurnstileAction.VERIFY_PHOTO_UPLOAD)).thenReturn(null)
         assertEquals(StatusCode.SSU4205, assertFailsWith<BusinessException> { service(true).upload(command()) }.status)
-        verifyNoInteractions(reservations, provider, storage, challenges)
+        verifyNoInteractions(reservations, provider, storage, challenges, signalRepository)
 
-        `when`(turnstile.verify("turnstile")).thenReturn(true)
+        `when`(turnstile.verify("turnstile", TurnstileAction.VERIFY_PHOTO_UPLOAD)).thenReturn(TurnstileVerification(Instant.EPOCH))
         `when`(reservations.getForPhotoUpload(20260000, 42)).thenThrow(BusinessException(StatusCode.SSU4200))
         assertEquals(StatusCode.SSU4200, assertFailsWith<BusinessException> { service(true).upload(command()) }.status)
         verifyNoInteractions(provider, storage, challenges)
@@ -121,7 +158,9 @@ class VerifyPhotoUploadAttestationTest {
         TransactionSynchronizationManager.initSynchronization()
         try {
             service(false).upload(command(AttestationEvidence()))
-            `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(AttestationVerdict.PROVIDER_UNAVAILABLE)
+            `when`(
+                provider.verify("opaque-token", REQUEST_HASH),
+            ).thenReturn(PlayIntegrityVerification(AttestationVerdict.PROVIDER_UNAVAILABLE))
             service(false).upload(command())
             assertTrue(notices.isEmpty())
             verifyNoInteractions(inspections)
@@ -129,6 +168,30 @@ class VerifyPhotoUploadAttestationTest {
             assertTrue(notices[0].contains("MISSING"))
             assertTrue(notices[1].contains("PROVIDER_UNAVAILABLE"))
             assertTrue(notices.all { "관찰 모드" in it && "opaque-token" !in it && CHALLENGE !in it })
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
+    }
+
+    @Test
+    fun `인증샷 알림에 해당하는 검토 신호를 모두 붙이고 없으면 생략한다`() {
+        val notices = mutableListOf<String>()
+        doAnswer { invocation -> notices += invocation.getArgument<String>(0) }
+            .`when`(discord)
+            .send(anyString(), anyLong(), anyString(), anyString(), anyString(), anyString(), anyString())
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            service(true).upload(command())
+            `when`(provider.verify("opaque-token", REQUEST_HASH)).thenReturn(
+                PlayIntegrityVerification(
+                    AttestationVerdict.VERIFIED,
+                    PlayIntegritySignals(appsDetected = listOf("UNKNOWN_CONTROLLING"), playProtectVerdict = "HIGH_RISK"),
+                ),
+            )
+            service(true).upload(command())
+            TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+            assertFalse("검토 신호" in notices[0])
+            assertTrue(notices[1].endsWith("\n검토 신호: ACCESS_RISK, PLAY_PROTECT_RISK"), notices[1])
         } finally {
             TransactionSynchronizationManager.clearSynchronization()
         }
@@ -177,6 +240,8 @@ class VerifyPhotoUploadAttestationTest {
                 mock(DeviceAttestationService::class.java),
                 true,
             ),
+            ReservationRiskPolicy(),
+            VerifyPhotoSignalService(signalRepository),
             "bucket",
             "",
             false,

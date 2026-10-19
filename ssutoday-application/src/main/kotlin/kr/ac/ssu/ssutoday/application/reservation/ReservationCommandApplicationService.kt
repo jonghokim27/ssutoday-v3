@@ -14,10 +14,13 @@ import kr.ac.ssu.ssutoday.core.port.ReservationRequestPublisher
 import kr.ac.ssu.ssutoday.core.port.TurnstileVerificationPort
 import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
+import kr.ac.ssu.ssutoday.core.turnstile.TurnstileAction
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationCompletionPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
+import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestSignalService
+import kr.ac.ssu.ssutoday.domain.reservation.ReservationRiskPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationView
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
@@ -26,7 +29,10 @@ import kr.ac.ssu.ssutoday.domain.student.DeviceService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Service
 class ReservationCommandApplicationService(
@@ -45,11 +51,19 @@ class ReservationCommandApplicationService(
     private val discordReservationActionNotificationPort: DiscordReservationActionNotificationPort,
     private val attestationVerificationApplicationService: AttestationVerificationApplicationService,
     private val discordAttestationNotificationPort: DiscordAttestationNotificationPort,
+    private val reservationRequestSignalService: ReservationRequestSignalService,
+    private val reservationRiskPolicy: ReservationRiskPolicy,
 ) {
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
-        if (!turnstileVerificationPort.verify(command.turnstileToken)) {
-            throw BusinessException(StatusCode.SSU4092)
+        val receivedAt = Instant.now()
+        val turnstile =
+            turnstileVerificationPort.verify(command.turnstileToken, TurnstileAction.RESERVATION_REQUEST)
+                ?: throw BusinessException(StatusCode.SSU4092)
+        val openAt = reservationRequestPolicy.openAt(command.date).atZone(ZoneId.systemDefault()).toInstant()
+        // 오픈 전에 풀어 둔 토큰을 정각에 제출하지 못하게 한다. 관리자는 오픈 시각 제한이 없다.
+        if (!command.admin && turnstile.challengeTs.isBefore(openAt)) {
+            throw BusinessException(StatusCode.SSU4093)
         }
         reservationService.validate(command.startBlock, command.endBlock, command.admin)
         val room = roomService.get(command.roomNo, command.major, command.admin)
@@ -68,6 +82,19 @@ class ReservationCommandApplicationService(
                 startBlock = command.startBlock,
                 endBlock = command.endBlock,
             )
+        val openOffsetMillis = Duration.between(openAt, receivedAt).toMillis()
+        val flags = reservationRiskPolicy.flags(openOffsetMillis, attestation.signals)
+        reservationRequestSignalService.create(
+            requestId = requestId,
+            studentId = command.studentId,
+            receivedAt = receivedAt,
+            openOffsetMillis = openOffsetMillis,
+            turnstileSolvedAt = turnstile.challengeTs,
+            platform = attestation.platform,
+            verdict = attestation.verdict.name,
+            signals = attestation.signals,
+            flags = flags,
+        )
         afterCommit {
             reservationRequestPublisher.publish(requestId)
             discordAttestationNotificationPort.sendReservationResult(
@@ -75,6 +102,7 @@ class ReservationCommandApplicationService(
                 requestId,
                 attestation.verdict,
                 attestation.enforced,
+                flags,
             )
         }
         return requestId

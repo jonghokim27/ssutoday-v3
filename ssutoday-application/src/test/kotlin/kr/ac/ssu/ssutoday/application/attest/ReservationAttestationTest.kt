@@ -6,6 +6,7 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegrityVerification
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.AttestationChallengeStorePort
@@ -61,13 +62,7 @@ class ReservationAttestationTest {
             override fun verify(
                 token: String,
                 requestHash: String,
-            ) = if (requestHash ==
-                expectedHash
-            ) {
-                providerVerdict
-            } else {
-                AttestationVerdict.REQUEST_HASH_MISMATCH
-            }
+            ) = PlayIntegrityVerification(if (requestHash == expectedHash) providerVerdict else AttestationVerdict.REQUEST_HASH_MISMATCH)
         }
 
     @Test

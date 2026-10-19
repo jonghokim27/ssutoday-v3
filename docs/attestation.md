@@ -261,7 +261,66 @@ assertion 서명의 해시 단계가 하나 부족했다. Apple은 `nonce = SHA2
 5. 통제된 테스트 환경에서 파일 교체, 다른 예약, 증명/challenge 재사용, 만료와 iOS counter 재사용을 검사한다. 관찰 모드는 실패를 기록해도 업로드를 허용하므로 `VERIFIED` 여부와 강제 모드의 `SSU4206`을 구분한다.
 6. 양 플랫폼 실기기 검증, 구버전 앱 전환과 관찰 결과를 확인한 뒤 전역 강제 모드를 적용한다.
 
+## 예약 오픈 시각 검증과 검토 신호
+
+강제 모드에서 앱이 아닌 HTTP 클라이언트가 Android `VERIFIED` 판정으로 20:00 정각 예약에 성공한 사례가 있었다. 서버 검증기는 정상이었다. attestation은 정품 앱과 무결성 판정을 통과한 기기가 요청 내용에 서명했다는 것까지만 보증한다. 아래 두 가지는 이 공격을 차단하지 않는다. 미리 풀어 둔 토큰과 오픈 전 접수를 막고, 반복 패턴을 검토할 수 있게 한다.
+
+### Turnstile 응답 검증
+
+서버는 Cloudflare siteverify 응답의 `success`와 함께 세 값을 확인한다.
+
+| 필드 | 조건 | 실패 |
+| --- | --- | --- |
+| `hostname` | `ssutoday.turnstile.hostnames`(`TURNSTILE_HOSTNAMES`, 기본 `v3.ssu.today`)에 포함. 앱도 `https://v3.ssu.today/turnstile.html`에서 발급한다 | 예약 `SSU4092`, 인증샷 `SSU4205` |
+| `action` | 예약 `reservation_request`, 인증샷 `verify_photo_upload` | 예약 `SSU4092`, 인증샷 `SSU4205` |
+| `challenge_ts` | 예약은 해당 날짜의 오픈 시각(전날 20:00) 이후에 푼 토큰만 받는다. 관리자는 제외 | `SSU4093` |
+
+빈 hostname 허용 목록은 모든 요청을 거부하게 되므로 기동 시 실패시킨다. 오픈 전 접수 판정(`TOO_EARLY`)은 처리 시각이 아니라 접수 시각(`reservation_request.created_at`)으로 한다. 오픈 직전에 접수한 요청이 consumer 처리 지연으로 통과하지 않는다.
+
+### 검토 신호
+
+예약 요청마다 `reservation_request_signal`에 수신 시각(밀리초), 오픈 시각 대비 도착 시간, Turnstile을 푼 시각, platform, 판정, Android 선택 응답을 저장한다. 인증샷은 업로드마다 `verify_photo_signal`에 같은 항목과 사진 URL을 저장한다. 인증샷이 삭제되면 같은 예약에 다시 올릴 수 있어 예약 ID가 아닌 별도 ID를 키로 쓰고, 인증샷이 삭제돼도 신호는 남는다. 두 테이블 모두 요청과 같은 트랜잭션에 저장하며 처리 결과에는 관여하지 않는다. 배포 전에 [예약 DDL](../infra/sql/20261019-reservation-request-signal.sql)과 [인증샷 DDL](../infra/sql/20261019-verify-photo-signal.sql)을 적용한다.
+
+플래그는 조건을 만족하는 것을 모두 붙인다. `flags` 컬럼에는 선언 순서대로 공백 없이 쉼표로 이어 저장하고, Discord 예약·인증샷 알림에는 `검토 신호:` 줄로 표시한다. 인증샷에는 `OPEN_RUSH`가 해당하지 않는다. 플래그로 요청을 거부하지 않는다.
+
+| 플래그 | 조건 |
+| --- | --- |
+| `OPEN_RUSH` | 오픈 후 1초 안에 접수 |
+| `ACCESS_RISK` | `appsDetected`에 `KNOWN_CONTROLLING` 또는 `UNKNOWN_CONTROLLING`. 정상 접근성 앱도 해당할 수 있다 |
+| `PLAY_PROTECT_RISK` | `playProtectVerdict`가 `MEDIUM_RISK` 또는 `HIGH_RISK` |
+| `DEVICE_ACTIVITY_HIGH` | `deviceActivityLevel`이 `LEVEL_3` 또는 `LEVEL_4` |
+| `UNLICENSED` | `appLicensingVerdict`가 `UNLICENSED` |
+
+Android 선택 응답은 Play Console의 Play Integrity API 설정에서 켜야 응답에 포함된다. 켜지 않은 항목은 비어 있고 플래그도 붙지 않는다. `MEETS_STRONG_INTEGRITY`는 `strong_integrity`에 기록만 한다. 형식이 맞지 않는 값은 저장하지 않는다.
+
+최근 14일 동안 `OPEN_RUSH`가 반복된 학생:
+
+```sql
+SELECT student_id,
+       COUNT(*) AS open_rush,
+       MIN(open_offset_millis) AS fastest_ms,
+       MAX(received_at) AS last_received
+FROM reservation_request_signal
+WHERE received_at >= NOW() - INTERVAL 14 DAY
+  AND FIND_IN_SET('OPEN_RUSH', flags) > 0
+GROUP BY student_id
+HAVING open_rush >= 3
+ORDER BY open_rush DESC, fastest_ms;
+```
+
+최근 14일 동안 인증샷 업로드에 신호가 붙은 학생과 사진:
+
+```sql
+SELECT student_id, reservation_id, received_at, platform, verdict, flags, photo_url
+FROM verify_photo_signal
+WHERE received_at >= NOW() - INTERVAL 14 DAY
+  AND flags <> ''
+ORDER BY student_id, received_at;
+```
+
 ## 근거 문서
+
+- [Cloudflare Turnstile 서버 검증 응답](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
 
 - [Google Play Integrity 요청 바인딩 및 서버 검증](https://developer.android.com/google/play/integrity/standard)
 - [Google Play Integrity 판정 필드와 라이선스 구분](https://developer.android.com/google/play/integrity/verdicts)

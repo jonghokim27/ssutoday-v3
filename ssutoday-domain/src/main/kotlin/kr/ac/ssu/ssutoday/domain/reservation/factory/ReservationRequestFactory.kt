@@ -12,4 +12,5 @@ fun ReservationRequest.toView() =
         startBlock = startBlock,
         endBlock = endBlock,
         status = status,
+        createdAt = createdAt.toLocalDateTime(),
     )
