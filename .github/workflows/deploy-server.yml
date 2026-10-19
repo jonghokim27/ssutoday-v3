@@ -78,3 +78,5 @@ jobs:
             fi
             cd infra
             docker compose up -d --build
+            # nginx는 기동할 때 api 주소를 한 번만 해석한다. 새로 만든 api 컨테이너의 주소를 다시 읽도록 재시작한다.
+            docker compose restart nginx
