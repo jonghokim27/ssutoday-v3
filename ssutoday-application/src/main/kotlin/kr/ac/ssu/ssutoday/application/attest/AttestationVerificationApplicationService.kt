@@ -9,6 +9,7 @@ import kr.ac.ssu.ssutoday.core.attestation.AttestationChallengeScope
 import kr.ac.ssu.ssutoday.core.attestation.AttestationClientData
 import kr.ac.ssu.ssutoday.core.attestation.AttestationPurpose
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.port.AppAttestVerificationPort
 import kr.ac.ssu.ssutoday.core.port.PlayIntegrityVerificationPort
@@ -62,7 +63,8 @@ class AttestationVerificationApplicationService(
         evidence: AttestationEvidence,
         clientData: (String) -> ByteArray,
     ): AttestationResult {
-        val verdict = evaluate(scope, evidence, clientData)
+        val evaluation = evaluate(scope, evidence, clientData)
+        val verdict = evaluation.verdict
         val platform =
             when (evidence.platform) {
                 "android" -> "android"
@@ -74,45 +76,45 @@ class AttestationVerificationApplicationService(
             "Attestation: purpose=${scope.purpose} studentId=${scope.studentId} reservationId=${scope.reservationId} platform=$platform verdict=$verdict enforce=$enforce"
         }
         if (enforce && verdict != AttestationVerdict.VERIFIED) throw BusinessException(StatusCode.SSU4206)
-        return AttestationResult(verdict, platform, enforce)
+        return AttestationResult(verdict, platform, enforce, evaluation.signals)
     }
 
     private fun evaluate(
         scope: AttestationChallengeScope,
         evidence: AttestationEvidence,
         clientData: (String) -> ByteArray,
-    ): AttestationVerdict {
+    ): Evaluation {
         if (evidence.platform == null &&
             evidence.challenge == null &&
             evidence.attestation == null &&
             evidence.keyId == null
         ) {
-            return AttestationVerdict.MISSING
+            return Evaluation(AttestationVerdict.MISSING)
         }
         if (evidence.platform.isNullOrBlank() ||
             evidence.challenge.isNullOrBlank() ||
             evidence.attestation.isNullOrBlank()
         ) {
-            return AttestationVerdict.INVALID_INPUT
+            return Evaluation(AttestationVerdict.INVALID_INPUT)
         }
-        if (evidence.platform != "android" && evidence.platform != "ios") return AttestationVerdict.UNSUPPORTED_PLATFORM
-        if (!AttestationClientData.isValidChallenge(evidence.challenge)) return AttestationVerdict.INVALID_INPUT
+        if (evidence.platform != "android" && evidence.platform != "ios") return Evaluation(AttestationVerdict.UNSUPPORTED_PLATFORM)
+        if (!AttestationClientData.isValidChallenge(evidence.challenge)) return Evaluation(AttestationVerdict.INVALID_INPUT)
         if (evidence.attestation.length > MAX_TOKEN_LENGTH ||
             evidence.attestation.any(Char::isWhitespace)
         ) {
-            return AttestationVerdict.INVALID_INPUT
+            return Evaluation(AttestationVerdict.INVALID_INPUT)
         }
         val data =
             try {
                 clientData(evidence.challenge)
             } catch (_: IllegalArgumentException) {
-                return AttestationVerdict.INVALID_INPUT
+                return Evaluation(AttestationVerdict.INVALID_INPUT)
             }
-        if (evidence.platform == "ios") return verifyIos(scope, evidence, AttestationClientData.hash(data))
-        if (evidence.keyId != null) return AttestationVerdict.INVALID_INPUT
-        val verdict = playIntegrityVerificationPort.verify(evidence.attestation, AttestationClientData.requestHash(data))
-        if (verdict != AttestationVerdict.VERIFIED) return verdict
-        return consumeChallenge(scope, evidence.challenge)
+        if (evidence.platform == "ios") return Evaluation(verifyIos(scope, evidence, AttestationClientData.hash(data)))
+        if (evidence.keyId != null) return Evaluation(AttestationVerdict.INVALID_INPUT)
+        val result = playIntegrityVerificationPort.verify(evidence.attestation, AttestationClientData.requestHash(data))
+        if (result.verdict != AttestationVerdict.VERIFIED) return Evaluation(result.verdict, result.signals)
+        return Evaluation(consumeChallenge(scope, evidence.challenge), result.signals)
     }
 
     private fun verifyIos(
@@ -161,6 +163,11 @@ class AttestationVerificationApplicationService(
         } catch (_: DataAccessException) {
             AttestationVerdict.CHALLENGE_STORE_UNAVAILABLE
         }
+
+    private data class Evaluation(
+        val verdict: AttestationVerdict,
+        val signals: PlayIntegritySignals? = null,
+    )
 
     private companion object {
         const val MAX_TOKEN_LENGTH = 32 * 1024

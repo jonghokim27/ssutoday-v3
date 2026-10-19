@@ -35,6 +35,9 @@ class ReservationRequestPolicyTest {
         assertNull(
             policy.rejectionStatus(request("2026-06-22", 34, 35), true, false, 6, true, now),
         )
+        assertNull(
+            policy.rejectionStatus(request("2026-06-24", 0, 1), true, false, 0, false, now),
+        )
     }
 
     @Test
@@ -42,6 +45,11 @@ class ReservationRequestPolicyTest {
         assertNull(
             policy.rejectionStatus(request("2026-06-22", 36, 37), false, false, 0, false, now),
         )
+    }
+
+    @Test
+    fun `예약은 전날 20시에 열린다`() {
+        assertEquals(LocalDateTime.of(2026, 6, 22, 20, 0), policy.openAt(LocalDate.of(2026, 6, 23)))
     }
 
     @Test
@@ -56,7 +64,17 @@ class ReservationRequestPolicyTest {
     fun `내일 날짜는 전날 20시부터 예약할 수 있다`() {
         val twentyToday = LocalDateTime.of(2026, 6, 22, 20, 0)
         assertNull(
-            policy.rejectionStatus(request("2026-06-23", 0, 1), false, false, 0, false, twentyToday),
+            policy.rejectionStatus(request("2026-06-23", 0, 1, twentyToday), false, false, 0, false, twentyToday),
+        )
+    }
+
+    @Test
+    fun `오픈 전에 접수한 요청은 오픈 이후에 처리해도 거부한다`() {
+        val received = LocalDateTime.of(2026, 6, 22, 19, 59, 59, 900_000_000)
+        val processed = LocalDateTime.of(2026, 6, 22, 20, 0, 1)
+        assertEquals(
+            ReservationRequestStatus.TOO_EARLY,
+            policy.rejectionStatus(request("2026-06-23", 0, 1, received), false, false, 0, false, processed),
         )
     }
 
@@ -64,6 +82,7 @@ class ReservationRequestPolicyTest {
         date: String,
         startBlock: Int,
         endBlock: Int,
+        createdAt: LocalDateTime = now,
     ) = ReservationRequestView(
         id = 1L,
         studentId = 20260000,
@@ -72,5 +91,6 @@ class ReservationRequestPolicyTest {
         startBlock = startBlock,
         endBlock = endBlock,
         status = 0,
+        createdAt = createdAt,
     )
 }

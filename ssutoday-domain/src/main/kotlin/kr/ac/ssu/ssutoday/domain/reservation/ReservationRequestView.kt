@@ -1,6 +1,7 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ReservationRequestView(
     val id: Long,
@@ -10,4 +11,5 @@ data class ReservationRequestView(
     val startBlock: Int,
     val endBlock: Int,
     val status: Int,
+    val createdAt: LocalDateTime,
 )

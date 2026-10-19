@@ -1,6 +1,7 @@
 package kr.ac.ssu.ssutoday.adapter.attestation
 
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
 import tools.jackson.databind.JsonNode
 import java.security.MessageDigest
 import java.time.Instant
@@ -53,6 +54,35 @@ internal class PlayIntegrityVerdictVerifier(
         return AttestationVerdict.VERIFIED
     }
 
+    /** 판정과 별개로 선택 응답을 꺼낸다. 형식이 맞지 않는 값은 버려서 저장 길이를 넘지 않게 한다. */
+    fun signals(response: JsonNode): PlayIntegritySignals? {
+        val payload = response.path("tokenPayloadExternal")
+        if (!payload.isObject) return null
+        val environment = payload.path("environmentDetails")
+        val device = payload.path("deviceIntegrity")
+        val deviceVerdicts = device.path("deviceRecognitionVerdict")
+        val appsDetected = environment.path("appAccessRiskVerdict").path("appsDetected")
+        return PlayIntegritySignals(
+            appsDetected =
+                if (appsDetected.isArray) {
+                    appsDetected
+                        .filter { it.isString }
+                        .map { it.asString() }
+                        .filter(::isVerdictLabel)
+                        .distinct()
+                        .take(MAX_APPS_DETECTED)
+                } else {
+                    emptyList()
+                },
+            playProtectVerdict = environment.text("playProtectVerdict")?.takeIf(::isVerdictLabel),
+            deviceActivityLevel = device.path("recentDeviceActivity").text("deviceActivityLevel")?.takeIf(::isVerdictLabel),
+            strongIntegrity = deviceVerdicts.isArray && deviceVerdicts.any { it.isString && it.asString() == "MEETS_STRONG_INTEGRITY" },
+            appLicensingVerdict = payload.path("accountDetails").text("appLicensingVerdict")?.takeIf(::isVerdictLabel),
+        )
+    }
+
+    private fun isVerdictLabel(value: String): Boolean = VERDICT_LABEL.matches(value)
+
     private fun hasTrustedCertificate(digests: JsonNode): Boolean {
         if (!digests.isArray || digests.isEmpty) return false
         // 허용한 인증서로만 서명된 앱을 인정한다. 키 교체 기간에는 설정에 양쪽 지문을 넣는다.
@@ -73,5 +103,7 @@ internal class PlayIntegrityVerdictVerifier(
     private companion object {
         const val MAX_TOKEN_AGE_MILLIS = 120_000L
         const val FUTURE_SKEW_MILLIS = 30_000L
+        const val MAX_APPS_DETECTED = 12
+        val VERDICT_LABEL = Regex("[A-Z0-9_]{1,32}")
     }
 }

@@ -62,6 +62,8 @@ ssutoday:
     base-url: ${ADMIN_BASE_URL:}
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY:}
+    # 위젯을 띄우는 페이지의 hostname. 웹과 앱(turnstile.html) 모두 v3.ssu.today에서 발급한다.
+    hostnames: ${TURNSTILE_HOSTNAMES:v3.ssu.today}
   kafka:
     topics:
       push-message: ${PUSH_MESSAGE_TOPIC:pushMessage}

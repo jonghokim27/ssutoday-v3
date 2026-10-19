@@ -1,6 +1,8 @@
 package kr.ac.ssu.ssutoday.adapter.attestation
 
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegrityVerification
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.springframework.http.HttpMethod
@@ -45,21 +47,24 @@ class PlayIntegrityVerificationAdapterTest {
                     {"tokenPayloadExternal": {
                       "requestDetails":{"requestPackageName":"com.ssutoday","requestHash":"expected","timestampMillis":"${Instant.now().toEpochMilli()}"},
                       "appIntegrity":{"packageName":"com.ssutoday","appRecognitionVerdict":"PLAY_RECOGNIZED","certificateSha256Digest":["$digest"]},
-                      "deviceIntegrity":{"deviceRecognitionVerdict":["MEETS_DEVICE_INTEGRITY"]}
+                      "deviceIntegrity":{"deviceRecognitionVerdict":["MEETS_DEVICE_INTEGRITY"]},
+                      "environmentDetails":{"appAccessRiskVerdict":{"appsDetected":["UNKNOWN_CONTROLLING"]}}
                     }}
                     """.trimIndent(),
                     MediaType.APPLICATION_JSON,
                 ),
             )
-        assertEquals(AttestationVerdict.VERIFIED, adapter.verify(token, "expected"))
+        val result = adapter.verify(token, "expected")
+        assertEquals(AttestationVerdict.VERIFIED, result.verdict)
+        assertEquals(PlayIntegritySignals(appsDetected = listOf("UNKNOWN_CONTROLLING")), result.signals)
         server.verify()
     }
 
     @Test
     fun `설정 누락과 OAuth 장애는 성공으로 처리하지 않는다`() {
-        assertEquals(AttestationVerdict.NOT_CONFIGURED, adapter.verify("token", "hash"))
+        assertEquals(PlayIntegrityVerification(AttestationVerdict.NOT_CONFIGURED), adapter.verify("token", "hash"))
         `when`(provider.getAccessToken()).thenAnswer { throw IOException("sensitive-token-provider-error") }
-        assertEquals(AttestationVerdict.PROVIDER_UNAVAILABLE, adapter.verify("token", "hash"))
+        assertEquals(AttestationVerdict.PROVIDER_UNAVAILABLE, adapter.verify("token", "hash").verdict)
         server.verify()
     }
 
@@ -77,12 +82,12 @@ class PlayIntegrityVerificationAdapterTest {
         cases.forEach { (status, verdict) ->
             server.reset()
             server.expect(requestTo(ENDPOINT)).andRespond(withStatus(status).body("sensitive-token-in-error"))
-            assertEquals(verdict, adapter.verify("token", "hash"))
+            assertEquals(verdict, adapter.verify("token", "hash").verdict)
             server.verify()
         }
         server.reset()
         server.expect(requestTo(ENDPOINT)).andRespond(withException(IOException("timeout")))
-        assertEquals(AttestationVerdict.PROVIDER_UNAVAILABLE, adapter.verify("token", "hash"))
+        assertEquals(AttestationVerdict.PROVIDER_UNAVAILABLE, adapter.verify("token", "hash").verdict)
         server.verify()
     }
 
@@ -92,7 +97,7 @@ class PlayIntegrityVerificationAdapterTest {
         listOf("", " ", "not-json", "null", "{}", "[]").forEach { body ->
             server.reset()
             server.expect(requestTo(ENDPOINT)).andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
-            assertEquals(AttestationVerdict.INVALID_RESPONSE, adapter.verify("token", "hash"), body)
+            assertEquals(AttestationVerdict.INVALID_RESPONSE, adapter.verify("token", "hash").verdict, body)
             server.verify()
         }
     }

@@ -1,6 +1,7 @@
 package kr.ac.ssu.ssutoday.adapter.discord
 
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.RiskFlag
 import kr.ac.ssu.ssutoday.core.port.DiscordAttestationNotificationPort
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -23,16 +24,19 @@ class DiscordAttestationNotificationAdapter(
         requestId: Long,
         verdict: AttestationVerdict,
         enforced: Boolean,
+        flags: Set<RiskFlag>,
     ) {
         if (webhookUrl.isBlank()) return
         try {
+            val flagLine = if (flags.isEmpty()) "" else "\n검토 신호: ${flags.sorted().joinToString(", ")}"
             val payload =
                 mapper.writeValueAsString(
                     mapOf(
                         "content" to
                             (
                                 "**[예약 요청 앱 무결성]**\n학생: $studentId / 요청: $requestId\n" +
-                                    "판정: $verdict (${if (enforced) "강제 모드" else "관찰 모드"})"
+                                    "판정: $verdict (${if (enforced) "강제 모드" else "관찰 모드"})" +
+                                    flagLine
                             ),
                         "allowed_mentions" to mapOf("parse" to emptyList<String>()),
                     ),

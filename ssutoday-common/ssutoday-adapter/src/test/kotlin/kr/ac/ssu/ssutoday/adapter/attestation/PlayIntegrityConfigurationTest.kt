@@ -33,7 +33,7 @@ class PlayIntegrityConfigurationTest {
                 assertNull(context.startupFailure)
                 assertEquals(
                     AttestationVerdict.NOT_CONFIGURED,
-                    context.getBean(PlayIntegrityVerificationPort::class.java).verify("token", "hash"),
+                    context.getBean(PlayIntegrityVerificationPort::class.java).verify("token", "hash").verdict,
                 )
                 server.expect(requestTo("https://unchanged.invalid/ping")).andRespond(withSuccess())
                 builder

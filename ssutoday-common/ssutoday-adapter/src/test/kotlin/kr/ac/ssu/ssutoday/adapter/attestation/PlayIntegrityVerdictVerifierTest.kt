@@ -1,6 +1,7 @@
 package kr.ac.ssu.ssutoday.adapter.attestation
 
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
+import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.node.ObjectNode
 import java.time.Instant
@@ -9,6 +10,7 @@ import java.util.HexFormat
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class PlayIntegrityVerdictVerifierTest {
     private val mapper = JsonMapper.builder().build()
@@ -88,6 +90,51 @@ class PlayIntegrityVerdictVerifierTest {
         assertFailsWith<IllegalArgumentException> { PlayIntegrityVerdictVerifier("com.ssutoday", "") }
         assertFailsWith<IllegalArgumentException> { PlayIntegrityVerdictVerifier("com.ssutoday", "garbage") }
         assertFailsWith<IllegalArgumentException> { PlayIntegrityVerdictVerifier("com.ssutoday/other", certificate) }
+    }
+
+    @Test
+    fun `선택 응답을 판정과 별개로 꺼내고 형식이 맞지 않는 값은 버린다`() {
+        val response = response()
+        val payload = response.path("tokenPayloadExternal") as ObjectNode
+        payload.set(
+            "environmentDetails",
+            mapper.readTree(
+                """
+                {"appAccessRiskVerdict":{"appsDetected":["KNOWN_INSTALLED","UNKNOWN_CONTROLLING","UNKNOWN_CONTROLLING","lower-case",7,"${"A".repeat(
+                    33,
+                )}"]},
+                 "playProtectVerdict":"MEDIUM_RISK"}
+                """.trimIndent(),
+            ),
+        )
+        (payload.path("deviceIntegrity") as ObjectNode).set(
+            "recentDeviceActivity",
+            mapper.readTree("""{"deviceActivityLevel":"LEVEL_4"}"""),
+        )
+        (payload.path("deviceIntegrity") as ObjectNode).set(
+            "deviceRecognitionVerdict",
+            mapper.readTree("""["MEETS_BASIC_INTEGRITY","MEETS_DEVICE_INTEGRITY","MEETS_STRONG_INTEGRITY"]"""),
+        )
+
+        assertEquals(AttestationVerdict.VERIFIED, verifier.verify(response, REQUEST_HASH, now))
+        assertEquals(
+            PlayIntegritySignals(
+                appsDetected = listOf("KNOWN_INSTALLED", "UNKNOWN_CONTROLLING"),
+                playProtectVerdict = "MEDIUM_RISK",
+                deviceActivityLevel = "LEVEL_4",
+                strongIntegrity = true,
+                appLicensingVerdict = "LICENSED",
+            ),
+            verifier.signals(response),
+        )
+    }
+
+    @Test
+    fun `Play Console에서 켜지 않은 선택 응답은 비어 있고 형식이 다른 응답에는 신호가 없다`() {
+        assertEquals(PlayIntegritySignals(appLicensingVerdict = "LICENSED"), verifier.signals(response()))
+        listOf("{}", "null", "[]", "{\"tokenPayloadExternal\":[]}").forEach {
+            assertNull(verifier.signals(mapper.readTree(it)), it)
+        }
     }
 
     private fun response(certificateDigest: String = digest): ObjectNode =

@@ -224,6 +224,14 @@ class ApiResponseContractTest {
     }
 
     @Test
+    fun `예약 오픈 전에 푼 Turnstile 토큰 거부는 공통 응답 계약을 따른다`() {
+        val failure = advice.business(BusinessException(StatusCode.SSU4093))
+        assertEquals(HttpStatus.BAD_REQUEST, failure.statusCode)
+        assertEquals("SSU4093", failure.body?.statusCode)
+        assertEquals("전날 20:00부터 예약할 수 있습니다", failure.body?.message)
+    }
+
+    @Test
     fun `Kotlin is 프로퍼티는 기존 JSON 필드명을 유지한다`() {
         val loginJson =
             objectMapper.writeValueAsString(
