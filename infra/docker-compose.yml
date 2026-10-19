@@ -1,6 +1,7 @@
 services:
   nginx:
     image: nginx:1.27-alpine
+    restart: unless-stopped
     ports: ["80:80"]
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -10,10 +11,12 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports: ["6379:6379"]
 
   kafka:
     image: apache/kafka:4.1.1
+    restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -29,6 +32,7 @@ services:
     build:
       context: ..
       args: { MODULE: ssutoday-api }
+    restart: unless-stopped
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
@@ -47,6 +51,7 @@ services:
     build:
       context: ..
       args: { MODULE: ssutoday-batch }
+    restart: unless-stopped
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
@@ -60,6 +65,7 @@ services:
     build:
       context: ..
       args: { MODULE: ssutoday-consumer }
+    restart: unless-stopped
     env_file: ../.env
     environment:
       SPRING_PROFILES_ACTIVE: live
