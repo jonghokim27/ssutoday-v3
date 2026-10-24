@@ -114,7 +114,7 @@ class PenaltyCommandApplicationService(
                 "대상" to StudentInfoFormatter.format(studentService.get(reservation.studentId)),
                 "페널티 종류" to reason.type.label,
                 "부여 사유" to reason.label,
-                "유효 페널티" to PenaltyTextFormatter.standing(standing),
+                "적용 중인 페널티" to PenaltyTextFormatter.standing(standing),
                 "만료 일시" to ReservationDateTimeFormatter.formatDateTime(penalty.expiresAt),
                 ("취소된 예약" to "${cancelled.size}건").takeIf { reason.type == PenaltyType.FRAUD },
                 "푸시 알림" to "발송 요청 완료",
@@ -156,7 +156,7 @@ class PenaltyCommandApplicationService(
                 "부여 일시" to ReservationDateTimeFormatter.formatDateTime(penalty.grantedAt),
                 "취소 사유" to reason,
                 "처리자" to adminName,
-                "유효 페널티" to PenaltyTextFormatter.standing(standing),
+                "적용 중인 페널티" to PenaltyTextFormatter.standing(standing),
             )
         afterCommit {
             sendPush(penalty.studentId, title, body)
@@ -167,7 +167,7 @@ class PenaltyCommandApplicationService(
             listOf(
                 "대상" to StudentInfoFormatter.format(student),
                 "페널티 종류" to penalty.type.label,
-                "유효 페널티" to PenaltyTextFormatter.standing(standing),
+                "적용 중인 페널티" to PenaltyTextFormatter.standing(standing),
                 "푸시 알림" to "발송 요청 완료",
             ),
         )
@@ -204,7 +204,7 @@ class PenaltyCommandApplicationService(
                 "페널티 종류" to penalty.type.label,
                 "부여 사유" to penalty.reason.label,
                 "처리자" to penalty.grantedBy,
-                "유효 페널티" to PenaltyTextFormatter.standing(standing),
+                "적용 중인 페널티" to PenaltyTextFormatter.standing(standing),
                 "만료 일시" to ReservationDateTimeFormatter.formatDateTime(penalty.expiresAt),
                 ("취소된 예약" to "${cancelledCount}건").takeIf { penalty.type == PenaltyType.FRAUD },
             )

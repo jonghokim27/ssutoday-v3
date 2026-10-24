@@ -92,7 +92,7 @@ class PenaltyCommandApplicationServiceTest {
         val result = service().grantByAdmin(GrantPenaltyCommand("used", PenaltyReason.PHOTO_OUTSIDE, " 김관리 ", false))
 
         assertEquals(PenaltyActionOutcome.DONE, result.outcome)
-        assertTrue("유효 페널티" to "1회 (1일 최대 예약 시간 3시간)" in result.details)
+        assertTrue("적용 중인 페널티" to "1회 (1일 최대 예약 시간 3시간)" in result.details)
         with(penalties.single()) {
             assertEquals("PHOTO", type)
             assertEquals("PHOTO_OUTSIDE", reason)
@@ -228,7 +228,7 @@ class PenaltyCommandApplicationServiceTest {
         val result = service.revokeByAdmin(RevokePenaltyCommand(token, "이의제기 인용", "김관리"))
 
         assertEquals(PenaltyActionOutcome.DONE, result.outcome)
-        assertTrue("유효 페널티" to "0회 (1일 최대 예약 시간 3시간)" in result.details)
+        assertTrue("적용 중인 페널티" to "0회 (1일 최대 예약 시간 3시간)" in result.details)
         assertEquals("이의제기 인용", penalties.single().revokeReason)
         commit()
         val push = pushes().single()

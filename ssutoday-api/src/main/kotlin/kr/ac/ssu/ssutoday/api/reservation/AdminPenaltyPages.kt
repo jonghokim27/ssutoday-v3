@@ -193,11 +193,11 @@ internal object AdminPenaltyPages {
         return """<div class="field" data-type="${type.name}"><span>$label</span><div class="chips">$chips</div></div>"""
     }
 
-    /** 예: 유효 2회 · 2시간, 예약 정지 (2027년 02월 08일(월) 15:12까지) */
+    /** 예: 적용 중 2회 · 2시간, 예약 정지 (2027년 02월 08일(월) 15:12까지) */
     private fun short(standing: PenaltyStanding): String {
         val suspendedUntil = standing.suspendedUntil
         if (suspendedUntil != null) return "예약 정지 (${ReservationDateTimeFormatter.formatDateTime(suspendedUntil)}까지)"
-        return "유효 ${standing.photoCount}회 · ${PenaltyTextFormatter.hours(requireNotNull(standing.maxDailyBlocks))}"
+        return "적용 중 ${standing.photoCount}회 · ${PenaltyTextFormatter.hours(requireNotNull(standing.maxDailyBlocks))}"
     }
 
     private fun rejectionMessage(rejection: PenaltyGrantRejection): String =
