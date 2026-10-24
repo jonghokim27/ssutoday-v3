@@ -54,6 +54,9 @@ class PenaltyService(
 
     fun findByAdminToken(adminToken: String): PenaltyView? = repository.findByAdminToken(adminToken)?.toView()
 
+    /** 같은 페널티에 대한 관리자 작업을 차례로 처리하도록 트랜잭션이 끝날 때까지 페널티 행을 잠근다. */
+    fun findByAdminTokenForUpdate(adminToken: String): PenaltyView? = repository.findByAdminTokenForUpdate(adminToken)?.toView()
+
     fun revoke(
         penaltyId: Long,
         revokedBy: String,

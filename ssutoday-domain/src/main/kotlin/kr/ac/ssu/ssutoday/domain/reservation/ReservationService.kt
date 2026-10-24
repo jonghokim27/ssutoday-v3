@@ -59,6 +59,9 @@ class ReservationService(
 
     fun findByAdminToken(adminToken: String): ReservationView? = repository.findByAdminToken(adminToken)?.toView()
 
+    /** 같은 예약에 대한 관리자 작업을 차례로 처리하도록 트랜잭션이 끝날 때까지 예약 행을 잠근다. */
+    fun findByAdminTokenForUpdate(adminToken: String): ReservationView? = repository.findByAdminTokenForUpdate(adminToken)?.toView()
+
     fun getActive(
         studentId: Int,
         reservationId: Long,

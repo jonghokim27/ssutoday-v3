@@ -72,13 +72,13 @@ class PenaltyCommandApplicationServiceTest {
         `when`(penaltyRepository.existsByReservationIdAndTypeAndRevokedAtIsNull(anyLong(), anyString())).thenAnswer { invocation ->
             penalties.any { it.reservationId == invocation.arguments[0] && it.type == invocation.arguments[1] && it.revokedAt == null }
         }
-        `when`(penaltyRepository.findByAdminToken(anyString())).thenAnswer { invocation ->
+        `when`(penaltyRepository.findByAdminTokenForUpdate(anyString())).thenAnswer { invocation ->
             penalties.firstOrNull { it.adminToken == invocation.arguments[0] }
         }
         `when`(penaltyRepository.findById(anyLong())).thenAnswer { invocation ->
             Optional.ofNullable(penalties.firstOrNull { it.id == invocation.arguments[0] })
         }
-        `when`(reservations.findByAdminToken("used")).thenReturn(usedYesterday)
+        `when`(reservations.findByAdminTokenForUpdate("used")).thenReturn(usedYesterday)
     }
 
     @BeforeTest
@@ -118,7 +118,7 @@ class PenaltyCommandApplicationServiceTest {
     fun `부정 예약은 해당 예약과 이용 전 예약을 취소하고 정지 기한을 알린다`() {
         val tomorrow = reservation(2, "fraud", today.plusDays(1))
         val upcoming = reservation(3, "other", today.plusDays(2))
-        `when`(reservations.findByAdminToken("fraud")).thenReturn(tomorrow)
+        `when`(reservations.findByAdminTokenForUpdate("fraud")).thenReturn(tomorrow)
         `when`(reservations.findUpcoming(eq(20260000), anyOf(LocalDate::class.java), anyInt()))
             .thenReturn(listOf(tomorrow, upcoming))
 
@@ -151,7 +151,7 @@ class PenaltyCommandApplicationServiceTest {
     @Test
     fun `부여할 수 없는 요청은 저장하지 않는다`() {
         val expired = reservation(4, "expired", today.minusDays(9))
-        `when`(reservations.findByAdminToken("expired")).thenReturn(expired)
+        `when`(reservations.findByAdminTokenForUpdate("expired")).thenReturn(expired)
         val service = service()
 
         assertEquals(

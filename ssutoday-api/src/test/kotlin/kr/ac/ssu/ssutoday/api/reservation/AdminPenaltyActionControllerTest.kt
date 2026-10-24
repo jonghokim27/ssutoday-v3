@@ -63,6 +63,7 @@ class AdminPenaltyActionControllerTest {
         assertTrue("이용 전 다른 예약 1건도 함께 취소" in html)
         PenaltyReason.entries.filter { it.adminSelectable }.forEach { assertTrue("""value="${it.name}"""" in html, it.name) }
         assertFalse("""value="PHOTO_MISSING"""" in html)
+        assertTrue("submit.disabled = true" in html)
     }
 
     @Test

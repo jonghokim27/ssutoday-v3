@@ -18,7 +18,7 @@
 
 예약 정지 중에는 `/reserve/request`가 `SSU4094`로 저장 전에 거부한다. 요청을 받은 뒤 정지된 경우에는 consumer가 예약 요청 상태 `8`(`SUSPENDED`)로 거부한다. 이미 잡혀 있는 예약은 줄어든 시간 때문에 취소하지 않는다.
 
-같은 예약에는 종류별로 한 번만 부여한다. 취소한 페널티는 지우지 않고 `revoked_at`을 남긴다. 기준은 `PenaltyPolicy`에 있으며 앱의 단계 표시는 `frontend/src/features/reservation/data/penalty.ts`가 같은 값을 쓴다.
+같은 예약에는 종류별로 한 번만 부여한다. 관리자가 버튼을 연달아 눌러도 예약 행 잠금과 DB 유니크 키(`reservation_id`, `active_type`)로 한 건만 저장된다. 취소한 페널티는 지우지 않고 `revoked_at`을 남긴다. 기준은 `PenaltyPolicy`에 있으며 앱의 단계 표시는 `frontend/src/features/reservation/data/penalty.ts`가 같은 값을 쓴다.
 
 ## 시행일
 

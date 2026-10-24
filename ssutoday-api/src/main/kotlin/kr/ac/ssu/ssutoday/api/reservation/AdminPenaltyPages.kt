@@ -19,6 +19,10 @@ internal object AdminPenaltyPages {
     const val GRANT = "penaltyGrant"
     const val REVOKE = "penaltyRevoke"
 
+    // 버튼을 연달아 눌러 같은 요청을 두 번 보내지 않게 한다. 서버도 예약·페널티 행을 잠가 중복을 막는다.
+    private const val PREVENT_RESUBMIT =
+        "document.querySelector('form').addEventListener('submit', function () { submit.disabled = true; });"
+
     fun grantForm(
         token: String,
         form: PenaltyGrantForm,
@@ -88,6 +92,7 @@ internal object AdminPenaltyPages {
                 }
                 types.forEach(function (input) { input.addEventListener('change', sync); });
                 sync();
+                $PREVENT_RESUBMIT
               })();
             </script>
             """.trimIndent()
@@ -118,8 +123,9 @@ internal object AdminPenaltyPages {
                     <span>처리자</span>
                     <input id="adminName" name="adminName" maxlength="30" placeholder="예: 홍길동" required>
                   </label>
-                  <button class="primary" type="submit">사유 확인 후 페널티 취소</button>
+                  <button class="primary" id="submit" type="submit">사유 확인 후 페널티 취소</button>
                 </form>
+                <script>(function () { var submit = document.getElementById('submit'); $PREVENT_RESUBMIT })();</script>
                 """.trimIndent()
             }
         val body =

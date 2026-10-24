@@ -63,8 +63,9 @@ class PenaltyCommandApplicationService(
 
     @Transactional
     fun grantByAdmin(command: GrantPenaltyCommand): PenaltyActionResult {
+        // 버튼을 연달아 눌러도 두 번째 요청은 첫 요청이 끝난 뒤 이미 부여됨으로 처리된다.
         val reservation =
-            reservationService.findByAdminToken(command.adminToken)
+            reservationService.findByAdminTokenForUpdate(command.adminToken)
                 ?: return PenaltyActionResult(PenaltyActionOutcome.NOT_FOUND)
         val reason =
             command.reason?.takeIf { it.adminSelectable }
@@ -122,7 +123,7 @@ class PenaltyCommandApplicationService(
     @Transactional
     fun revokeByAdmin(command: RevokePenaltyCommand): PenaltyActionResult {
         val penalty =
-            penaltyService.findByAdminToken(command.adminToken)
+            penaltyService.findByAdminTokenForUpdate(command.adminToken)
                 ?: return PenaltyActionResult(PenaltyActionOutcome.NOT_FOUND)
         val now = LocalDateTime.now()
         if (penalty.revokedAt != null) return PenaltyActionResult(PenaltyActionOutcome.ALREADY_REVOKED)
