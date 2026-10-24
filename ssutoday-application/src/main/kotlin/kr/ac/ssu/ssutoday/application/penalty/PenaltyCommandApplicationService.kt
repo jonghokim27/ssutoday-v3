@@ -221,7 +221,8 @@ class PenaltyCommandApplicationService(
                     token = token,
                     title = title,
                     body = body,
-                    category = PUSH_CATEGORY,
+                    category = "reservation",
+                    path = PushMessages.PENALTY_PATH,
                 ),
             )
         }
@@ -234,11 +235,9 @@ class PenaltyCommandApplicationService(
             PenaltyGrantRejection.DEADLINE_PASSED -> PenaltyActionOutcome.DEADLINE_PASSED
         }
 
-    companion object {
-        /** 앱이 이 카테고리의 알림을 누르면 페널티 현황 화면으로 이동한다. */
-        const val PUSH_CATEGORY = "penalty"
-        private const val SYSTEM_NAME = "시스템"
-        private const val GRANT_NOTICE = "**[페널티 부여 알림]**"
-        private const val REVOKE_NOTICE = "**[페널티 취소 알림]**"
+    private companion object {
+        const val SYSTEM_NAME = "시스템"
+        const val GRANT_NOTICE = "**[페널티 부여 알림]**"
+        const val REVOKE_NOTICE = "**[페널티 취소 알림]**"
     }
 }

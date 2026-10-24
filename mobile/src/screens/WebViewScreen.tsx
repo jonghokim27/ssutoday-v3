@@ -46,11 +46,12 @@ const OS_INFO = `${Platform.OS} ${Platform.Version}`;
 const DEVICE_NAME = Constants.deviceName ?? 'unknown';
 const USER_AGENT = `SSUTODAY/${APP_VERSION}/${OS_INFO}/${DEVICE_NAME}`;
 const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr', 'challenges.cloudflare.com']);
-// 푸시 알림을 눌렀을 때 웹뷰에서 열 화면
-const SPA_PATHS: Partial<Record<DeepLinkPayload['type'], string>> = {
-  reservation: '/reservations/history',
-  penalty: '/reservations/penalties',
-};
+// 푸시 알림을 눌렀을 때 웹뷰에서 열 화면. 서버가 path를 보내면 그 경로를, 이전 형식의 예약 알림은 예약 내역을 연다.
+function spaPathOf(payload: DeepLinkPayload): string | null {
+  if (payload.type === 'path') return payload.path;
+  if (payload.type === 'reservation') return '/reservations/history';
+  return null;
+}
 
 function generateId(): string {
   return `native-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -156,7 +157,7 @@ export default function WebViewScreen() {
 
   useEffect(() => {
     return deepLink.subscribe((payload) => {
-      const path = SPA_PATHS[payload.type];
+      const path = spaPathOf(payload);
       if (!path) return;
       if (webviewReady.current) {
         injectSpaNavigation(path);

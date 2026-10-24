@@ -500,6 +500,8 @@ mobile
 
 푸시 알림은 Firebase Messaging token을 서버에 등록하고, 포그라운드 메시지는 `expo-notifications` 로컬 알림으로 표시한다.
 
+알림을 눌렀을 때 열 화면은 서버가 `PushMessage.path`(예: `/reservations/penalties`)로 지정한다. 앱은 `/`로 시작하는 웹 경로면 WebView를 그 화면으로 이동시키므로, 새 알림 화면은 앱을 고치지 않고 서버에서 `path`만 보내면 된다. `path`가 없으면 기존처럼 `type`을 본다. `notice`는 `url`을 앱 내 브라우저로 열고 `reservation`은 예약 내역을 연다. `path`를 모르는 이전 버전 앱도 `type`으로 이동할 수 있도록 `type`은 가장 가까운 기존 값으로 보낸다.
+
 ### WebView 대상
 
 메인 WebView는 배포된 프론트엔드 URL을 로드한다. SmartID/uSaint, Turnstile, 공지 링크 등 외부 도메인 허용 정책은 `WebViewScreen`과 브리지 처리 흐름을 함께 확인해야 한다.

@@ -55,6 +55,10 @@ object PushMessages {
 
     const val AUTO_CANCEL_PENALTY_BODY = "인증샷을 촬영하지 않아 예약이 취소되고 페널티 1회가 부여되었어요"
 
+    // ── 페널티 알림 공통 ──────────────────────────────────────────────────────
+    // 알림을 누르면 열 화면. path를 모르는 이전 버전 앱은 예약 알림처럼 예약 내역을 연다.
+    const val PENALTY_PATH = "/reservations/penalties"
+
     // ── 인증샷 2회 미인정 취소 ────────────────────────────────────────────────
     const val INSPECTION_CANCEL_PENALTY_BODY = "인증샷이 2회 인정되지 않아 예약이 취소되고 페널티 1회가 부여되었어요"
 

@@ -40,6 +40,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ReservationPenaltyCancelTest {
     private val reservations = mock(ReservationService::class.java)
@@ -91,7 +92,8 @@ class ReservationPenaltyCancelTest {
         val push = push()
         assertEquals(PushMessages.autoCancelTitle("스터디룸 1"), push.title)
         assertEquals(PushMessages.AUTO_CANCEL_PENALTY_BODY, push.body)
-        assertEquals("penalty", push.category)
+        assertEquals("reservation", push.category)
+        assertEquals(PushMessages.PENALTY_PATH, push.path)
     }
 
     @Test
@@ -103,6 +105,7 @@ class ReservationPenaltyCancelTest {
         val push = push()
         assertEquals(PushMessages.AUTO_CANCEL_BODY, push.body)
         assertEquals("reservation", push.category)
+        assertNull(push.path)
     }
 
     @Test
@@ -116,7 +119,8 @@ class ReservationPenaltyCancelTest {
         val push = push()
         assertEquals(PushMessages.adminCancelTitle("스터디룸 1"), push.title)
         assertEquals(PushMessages.INSPECTION_CANCEL_PENALTY_BODY, push.body)
-        assertEquals("penalty", push.category)
+        assertEquals("reservation", push.category)
+        assertEquals(PushMessages.PENALTY_PATH, push.path)
     }
 
     @Test
@@ -127,6 +131,7 @@ class ReservationPenaltyCancelTest {
         val push = push()
         assertEquals(PushMessages.adminCancelBody("이용 규칙 위반"), push.body)
         assertEquals("reservation", push.category)
+        assertNull(push.path)
     }
 
     private fun commit() = TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }

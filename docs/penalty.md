@@ -26,7 +26,7 @@
 
 ## 배포
 
-서버 배포 전에 [DDL](../infra/sql/20261025-penalty.sql)을 적용한다. 앱의 페널티 알림 화면 이동은 모바일 앱 업데이트 후 동작한다. 이전 버전 앱은 알림을 눌러도 앱만 열린다.
+서버 배포 전에 [DDL](../infra/sql/20261025-penalty.sql)을 적용한다. 알림을 눌러 페널티 현황 화면으로 이동하는 것은 `path`를 지원하는 모바일 앱부터 동작한다. 이전 버전 앱은 예약 내역으로 이동한다.
 
 ## 관리자 처리
 
@@ -46,7 +46,7 @@ WHERE student_id = :student_id ORDER BY date DESC, start_block DESC LIMIT 10;
 
 ## 학생 알림
 
-모든 페널티 알림은 `penalty` 카테고리로 보내며 누르면 앱의 페널티 현황 화면으로 이동한다.
+모든 페널티 알림은 `reservation` 종류에 `path=/reservations/penalties`를 실어 보낸다. `path`를 아는 앱은 누르면 페널티 현황 화면으로, 이전 버전 앱은 예약 내역으로 이동한다.
 
 | 상황 | 제목 | 본문 |
 | --- | --- | --- |

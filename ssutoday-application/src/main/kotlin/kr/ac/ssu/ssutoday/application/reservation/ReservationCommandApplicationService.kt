@@ -383,7 +383,7 @@ class ReservationCommandApplicationService(
                         studentId = studentId,
                         title = PushMessages.autoCancelTitle(roomName),
                         body = if (penalized) PushMessages.AUTO_CANCEL_PENALTY_BODY else PushMessages.AUTO_CANCEL_BODY,
-                        category = if (penalized) PenaltyCommandApplicationService.PUSH_CATEGORY else RESERVATION_PUSH_CATEGORY,
+                        path = if (penalized) PushMessages.PENALTY_PATH else null,
                     )
                     sendReservationDiscordNotice(
                         content = "**[예약 취소 알림]**",
@@ -457,7 +457,7 @@ class ReservationCommandApplicationService(
                 studentId = studentId,
                 title = PushMessages.adminCancelTitle(roomName),
                 body = if (penalized) PushMessages.INSPECTION_CANCEL_PENALTY_BODY else PushMessages.adminCancelBody(cancelReason),
-                category = if (penalized) PenaltyCommandApplicationService.PUSH_CATEGORY else RESERVATION_PUSH_CATEGORY,
+                path = if (penalized) PushMessages.PENALTY_PATH else null,
             )
             sendReservationDiscordNotice(
                 content = "**[예약 취소 알림]**",
@@ -498,7 +498,7 @@ class ReservationCommandApplicationService(
         studentId: Int,
         title: String,
         body: String,
-        category: String = RESERVATION_PUSH_CATEGORY,
+        path: String? = null,
     ) {
         deviceService.findReservationPushTokens(studentId).forEach { token ->
             pushMessagePublisher.publish(
@@ -507,7 +507,8 @@ class ReservationCommandApplicationService(
                     token = token,
                     title = title,
                     body = body,
-                    category = category,
+                    category = "reservation",
+                    path = path,
                 ),
             )
         }
@@ -517,7 +518,6 @@ class ReservationCommandApplicationService(
         const val ADMIN_CANCEL = "reserveCancel"
         const val PHOTO_DELETE = "photoDelete"
         const val PHOTO_EXCEPT = "photoExecpt"
-        const val RESERVATION_PUSH_CATEGORY = "reservation"
 
         /** 인증샷이 이 횟수만큼 삭제된 뒤 다시 거부되면 삭제가 아니라 예약을 취소한다. */
         const val MAX_PHOTO_DELETES = 1
