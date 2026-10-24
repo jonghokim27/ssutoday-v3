@@ -63,7 +63,7 @@ export function ReservationPenalty() {
           ) : (
             <div className={styles.empty}>
               <div className={styles.emptyIcon} aria-hidden="true"><Icon name="shield" /></div>
-              <strong>유효 페널티 내역이 존재하지 않아요</strong>
+              <strong>적용 중인 페널티가 존재하지 않아요</strong>
               <p>페널티가 부여되면 이곳에 표시돼요</p>
             </div>
           )}
@@ -103,7 +103,7 @@ function PenaltySummary({ status }: { status: PenaltyStatus }) {
     <section className={[styles.summary, tone].join(' ')}>
       <div className={styles.summaryTop}>
         <div>
-          <span className={styles.summaryLabel}>유효 페널티</span>
+          <span className={styles.summaryLabel}>적용 중인 페널티</span>
           <strong className={styles.count}>{status.photoCount}<small>회</small></strong>
         </div>
         <div className={styles.limit}>
