@@ -43,23 +43,16 @@ class PenaltyPolicy(
         reservationDate: LocalDate,
     ): Boolean = type == PenaltyType.FRAUD || !reservationDate.isBefore(photoStartDate)
 
-    /** 관리자가 인증샷 페널티를 부여할 수 있는 마지막 시각. 이용 종료 후 7일까지다. */
-    fun photoGrantDeadline(reservationEndAt: LocalDateTime): LocalDateTime = reservationEndAt.plusDays(PHOTO_GRANT_DAYS)
-
+    /** 관리자 부여는 이용 종료 후 기한 없이 할 수 있다. */
     fun grantRejection(
         major: String,
         type: PenaltyType,
         reservationDate: LocalDate,
-        reservationEndAt: LocalDateTime,
         alreadyGranted: Boolean,
-        now: LocalDateTime,
     ): PenaltyGrantRejection? {
         if (!targets(major)) return PenaltyGrantRejection.NOT_TARGET
         if (alreadyGranted) return PenaltyGrantRejection.ALREADY_GRANTED
         if (!applies(type, reservationDate)) return PenaltyGrantRejection.NOT_IN_EFFECT
-        if (type == PenaltyType.PHOTO && now.isAfter(photoGrantDeadline(reservationEndAt))) {
-            return PenaltyGrantRejection.DEADLINE_PASSED
-        }
         return null
     }
 
@@ -117,7 +110,6 @@ class PenaltyPolicy(
     private companion object {
         const val PHOTO_VALID_DAYS = 30L
         const val FRAUD_VALID_DAYS = 90L
-        const val PHOTO_GRANT_DAYS = 7L
         const val SUSPEND_COUNT = 5
     }
 }

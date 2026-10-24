@@ -86,28 +86,21 @@ class PenaltyPolicyTest {
     }
 
     @Test
-    fun `인증샷 페널티는 시행일 이후 이용하고 종료 후 7일 이내인 예약에만 부여한다`() {
-        val endAt = LocalDateTime.of(2026, 11, 3, 12, 0)
-        val date = endAt.toLocalDate()
-        assertNull(policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7)))
-        assertEquals(
-            PenaltyGrantRejection.DEADLINE_PASSED,
-            policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7).plusSeconds(1)),
-        )
+    fun `인증샷 페널티는 시행일 이후 이용한 예약이면 이용 종료 후 기한 없이 부여한다`() {
+        assertNull(policy.grantRejection("cse", PenaltyType.PHOTO, LocalDate.of(2026, 11, 3), false))
         assertEquals(
             PenaltyGrantRejection.NOT_IN_EFFECT,
-            policy.grantRejection("cse", PenaltyType.PHOTO, LocalDate.of(2026, 10, 31), endAt, false, endAt),
+            policy.grantRejection("cse", PenaltyType.PHOTO, LocalDate.of(2026, 10, 31), false),
         )
         assertEquals(
             PenaltyGrantRejection.ALREADY_GRANTED,
-            policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, true, endAt),
+            policy.grantRejection("cse", PenaltyType.PHOTO, LocalDate.of(2026, 11, 3), true),
         )
     }
 
     @Test
-    fun `부정 예약은 시행일과 기한 없이 부여한다`() {
-        val endAt = LocalDateTime.of(2026, 10, 20, 12, 0)
-        assertNull(policy.grantRejection("cse", PenaltyType.FRAUD, endAt.toLocalDate(), endAt, false, endAt.plusDays(30)))
+    fun `부정 예약은 시행일 없이 부여한다`() {
+        assertNull(policy.grantRejection("cse", PenaltyType.FRAUD, LocalDate.of(2026, 10, 20), false))
         assertTrue(policy.applies(PenaltyType.FRAUD, LocalDate.of(2026, 10, 1)))
         assertFalse(policy.applies(PenaltyType.PHOTO, LocalDate.of(2026, 10, 31)))
         assertTrue(policy.applies(PenaltyType.PHOTO, LocalDate.of(2026, 11, 1)))
@@ -115,11 +108,10 @@ class PenaltyPolicyTest {
 
     @Test
     fun `대상 학과가 아닌 학생에게는 어떤 페널티도 부여하지 않는다`() {
-        val endAt = LocalDateTime.of(2026, 11, 3, 12, 0)
         assertTrue(policy.targets("cse"))
         assertFalse(policy.targets("media"))
         PenaltyType.entries.forEach {
-            assertEquals(PenaltyGrantRejection.NOT_TARGET, policy.grantRejection("media", it, endAt.toLocalDate(), endAt, false, endAt))
+            assertEquals(PenaltyGrantRejection.NOT_TARGET, policy.grantRejection("media", it, LocalDate.of(2026, 11, 3), false))
         }
 
         val several = PenaltyPolicy("2026-11-01", " cse, media ")

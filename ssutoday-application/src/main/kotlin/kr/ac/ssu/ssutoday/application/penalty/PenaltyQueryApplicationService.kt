@@ -8,7 +8,9 @@ import kr.ac.ssu.ssutoday.application.penalty.dto.PenaltyRevokeForm
 import kr.ac.ssu.ssutoday.application.penalty.dto.PenaltyStatusResult
 import kr.ac.ssu.ssutoday.application.reservation.ReservationDateTimeFormatter
 import kr.ac.ssu.ssutoday.application.reservation.StudentInfoFormatter
+import kr.ac.ssu.ssutoday.core.exception.BusinessException
 import kr.ac.ssu.ssutoday.core.penalty.PenaltyType
+import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.domain.penalty.PenaltyPolicy
 import kr.ac.ssu.ssutoday.domain.penalty.PenaltyService
 import kr.ac.ssu.ssutoday.domain.penalty.PenaltyView
@@ -74,6 +76,11 @@ class PenaltyQueryApplicationService(
         )
     }
 
+    /** 앱 관리자 도구에서 부여 화면을 열 수 있도록 예약의 관리자 토큰을 돌려준다. 관리자 확인은 호출한 쪽이 한다. */
+    @Transactional(readOnly = true)
+    fun getGrantToken(reservationId: Long): String =
+        reservationService.find(reservationId)?.adminToken ?: throw BusinessException(StatusCode.SSU4260)
+
     /** 페널티 관리자 토큰으로 취소 화면에 필요한 정보를 모은다. 페널티가 없으면 null이다. */
     @Transactional(readOnly = true)
     fun getRevokeForm(adminToken: String): PenaltyRevokeForm? {
@@ -114,12 +121,9 @@ class PenaltyQueryApplicationService(
                 major = major,
                 type = type,
                 reservationDate = reservation.date,
-                reservationEndAt = reservation.endAt,
                 alreadyGranted = penaltyService.existsActive(reservation.id, type),
-                now = now,
             ),
         after = penaltyPolicy.standingAfterGrant(penalties, type, now),
-        deadline = if (type == PenaltyType.PHOTO) penaltyPolicy.photoGrantDeadline(reservation.endAt) else null,
     )
 
     private fun toItem(penalty: PenaltyView): PenaltyItem {

@@ -42,11 +42,6 @@ internal object AdminPenaltyPages {
                 </label>
                 """.trimIndent()
             }
-        val deadline =
-            photo.deadline?.let {
-                val text = escapeHtml(ReservationDateTimeFormatter.formatDateTime(it))
-                """<p class="note" data-type="PHOTO">부여 가능 기한: ${text}까지 (이용 종료 후 7일)</p>"""
-            } ?: ""
         val body =
             """
             <div class="badge">관리자 작업</div>
@@ -71,7 +66,6 @@ internal object AdminPenaltyPages {
                 <span>처리자</span>
                 <input id="adminName" name="adminName" maxlength="30" placeholder="예: 홍길동" required>
               </label>
-              $deadline
               <button class="primary danger" id="submit" type="submit">페널티 부여</button>
             </form>
             <script>
@@ -205,7 +199,6 @@ internal object AdminPenaltyPages {
             PenaltyGrantRejection.NOT_TARGET -> "페널티 대상 학과의 학생이 아닙니다"
             PenaltyGrantRejection.ALREADY_GRANTED -> "이 예약에 이미 부여된 페널티가 있습니다"
             PenaltyGrantRejection.NOT_IN_EFFECT -> "인증샷 페널티 시행일 전에 이용한 예약입니다"
-            PenaltyGrantRejection.DEADLINE_PASSED -> "이용 종료 후 7일이 지나 부여할 수 없습니다"
         }
 
     private fun grantMessage(outcome: PenaltyActionOutcome): String =
@@ -216,7 +209,6 @@ internal object AdminPenaltyPages {
             PenaltyActionOutcome.NOT_TARGET -> "페널티 대상 학과의 학생이 아닙니다"
             PenaltyActionOutcome.ALREADY_GRANTED -> "이 예약에 이미 같은 종류의 페널티가 부여되어 있습니다"
             PenaltyActionOutcome.NOT_IN_EFFECT -> "인증샷 페널티 시행일 전에 이용한 예약입니다"
-            PenaltyActionOutcome.DEADLINE_PASSED -> "이용 종료 후 7일이 지난 예약에는 인증샷 미인정 페널티를 부여할 수 없습니다"
             else -> "알 수 없는 오류가 발생했습니다"
         }
 

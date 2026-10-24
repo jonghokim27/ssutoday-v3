@@ -8,7 +8,6 @@ enum class PenaltyActionOutcome {
     NOT_TARGET,
     ALREADY_GRANTED,
     NOT_IN_EFFECT,
-    DEADLINE_PASSED,
     ALREADY_REVOKED,
     EXPIRED,
 }

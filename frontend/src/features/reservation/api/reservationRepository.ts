@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/apiClient';
 import { type ApiResult } from '../../../shared/api/types';
-import { nativeBridge, isNativeApp, getNativePlatform, hasCapability, handleAttestationDeviceError, HandledError } from '../../../shared/native/nativeBridge';
+import { nativeBridge, isNativeApp, getNativePlatform, hasCapability, handleAttestationDeviceError, HandledError, requireNativeApp } from '../../../shared/native/nativeBridge';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { waitForHandshake } from '../../../shared/native/bridgeTransport';
 import { uploadVerifyPhotoWithAttestation, type PhotoChallenge } from './uploadVerifyPhoto';
@@ -35,6 +35,8 @@ export type ReserveInRoom = {
   studentInfo: StudentInfo;
   isMine?: boolean;
   verifyPhotoUrl?: string;
+  // 관리자에게만 내려온다. 페널티 대상 학과 학생의 예약인지
+  penaltyTarget?: boolean | null;
   [key: string]: unknown;
 };
 
@@ -119,6 +121,7 @@ export type ReservationRepository = {
   doneReserve(idx: number): Promise<ApiResult<null>>;
   uploadVerifyPhoto(idx: number): Promise<ApiResult<null>>;
   getPenaltyStatus(): Promise<ApiResult<PenaltyStatus>>;
+  adminPenaltyPath(idx: number): Promise<ApiResult<{ path: string }>>;
   adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }): Promise<ApiResult<ReserveStatus>>;
 };
 
@@ -189,6 +192,20 @@ export class ApiReservationRepository implements ReservationRepository {
 
   async getPenaltyStatus() {
     return apiClient.post<Record<string, never>, PenaltyStatus>('reserve/penalty', {}, { authenticated: true });
+  }
+
+  async adminPenaltyPath(idx: number) {
+    if (!isNativeApp()) {
+      requireNativeApp();
+      throw new HandledError();
+    }
+    const signed = await nativeBridge.signWithBiometrics(`penaltyGrant:${idx}`);
+    if (!signed) {
+      // 사용자가 생체 인증을 취소함 — 추가 토스트 불필요
+      throw new HandledError();
+    }
+
+    return apiClient.post<{ idx: number }, { path: string }>('reserve/adminPenalty', { idx }, { authenticated: true });
   }
 
   async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {

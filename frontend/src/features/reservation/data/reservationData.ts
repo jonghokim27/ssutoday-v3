@@ -8,6 +8,7 @@ export type TimeBooking = {
   people: number;
   isMine?: boolean;
   verifyPhotoUrl?: string | null;
+  penaltyTarget?: boolean;
 };
 
 export type StudyRoom = {

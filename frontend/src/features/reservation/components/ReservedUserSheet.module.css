@@ -144,3 +144,9 @@
     transform: translateY(100%);
   }
 }
+
+.sheet .actions .penalty {
+  grid-column: 1 / -1;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}

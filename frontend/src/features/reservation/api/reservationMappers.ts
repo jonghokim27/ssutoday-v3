@@ -24,6 +24,7 @@ export function roomSummaryToStudyRoom(room: RoomSummary | RoomDetail): StudyRoo
       people: 0,
       isMine: reserve.isMine,
       verifyPhotoUrl: reserve.verifyPhotoUrl ?? null,
+      penaltyTarget: reserve.penaltyTarget ?? false,
     })),
   };
 }
