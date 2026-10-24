@@ -1,12 +1,14 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
 import kr.ac.ssu.ssutoday.application.attest.AttestationVerificationApplicationService
+import kr.ac.ssu.ssutoday.application.penalty.PenaltyCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.dto.AdminReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.application.reservation.dto.RejectVerifyPhotoResult
 import kr.ac.ssu.ssutoday.core.dto.PushMessage
 import kr.ac.ssu.ssutoday.core.dto.PushMessages
 import kr.ac.ssu.ssutoday.core.exception.BusinessException
+import kr.ac.ssu.ssutoday.core.penalty.PenaltyReason
 import kr.ac.ssu.ssutoday.core.port.DiscordAttestationNotificationPort
 import kr.ac.ssu.ssutoday.core.port.DiscordReservationActionNotificationPort
 import kr.ac.ssu.ssutoday.core.port.PushMessagePublisher
@@ -16,6 +18,7 @@ import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.transaction.afterCommit
 import kr.ac.ssu.ssutoday.core.turnstile.TurnstileAction
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
+import kr.ac.ssu.ssutoday.domain.penalty.PenaltyService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationCompletionPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
@@ -53,6 +56,8 @@ class ReservationCommandApplicationService(
     private val discordAttestationNotificationPort: DiscordAttestationNotificationPort,
     private val reservationRequestSignalService: ReservationRequestSignalService,
     private val reservationRiskPolicy: ReservationRiskPolicy,
+    private val penaltyService: PenaltyService,
+    private val penaltyCommandApplicationService: PenaltyCommandApplicationService,
 ) {
     @Transactional
     fun createReservationRequest(command: CreateReservationCommand): Long {
@@ -64,6 +69,9 @@ class ReservationCommandApplicationService(
         // 오픈 전에 풀어 둔 토큰을 정각에 제출하지 못하게 한다. 관리자는 오픈 시각 제한이 없다.
         if (!command.admin && turnstile.challengeTs.isBefore(openAt)) {
             throw BusinessException(StatusCode.SSU4093)
+        }
+        if (!command.admin && penaltyService.standing(command.studentId, LocalDateTime.now()).suspended) {
+            throw BusinessException(StatusCode.SSU4094)
         }
         reservationService.validate(command.startBlock, command.endBlock, command.admin)
         val room = roomService.get(command.roomNo, command.major, command.admin)
@@ -119,6 +127,7 @@ class ReservationCommandApplicationService(
     fun processReservationRequest(requestId: Long) {
         val request = reservationRequestService.get(requestId)
         val student = studentService.get(request.studentId)
+        val now = LocalDateTime.now()
         val rejectionStatus =
             reservationRequestPolicy.rejectionStatus(
                 request = request,
@@ -138,7 +147,8 @@ class ReservationCommandApplicationService(
                         request.startBlock,
                         request.endBlock,
                     ),
-                now = LocalDateTime.now(),
+                maxDailyBlocks = penaltyService.standing(request.studentId, now).maxDailyBlocks,
+                now = now,
             )
         if (rejectionStatus != null) {
             reservationRequestService.updateStatus(requestId, rejectionStatus)
@@ -281,6 +291,7 @@ class ReservationCommandApplicationService(
         action: String,
         reason: String? = null,
         adminName: String? = null,
+        penaltyReason: PenaltyReason? = null,
     ): Int {
         val reservation = reservationService.findByAdminToken(adminToken) ?: return 0
         if (!reservation.active) return 1
@@ -295,22 +306,7 @@ class ReservationCommandApplicationService(
             ADMIN_CANCEL -> {
                 val cancelReason = reason?.takeIf(String::isNotBlank) ?: return 99
                 val processedBy = adminName?.takeIf(String::isNotBlank) ?: return 99
-                reservationService.cancelByAdmin(reservation.id, "관리자 취소 (사유: $cancelReason / 처리자: $processedBy)")
-                val studentId = reservation.studentId
-                val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
-                afterCommit {
-                    sendReservationPush(
-                        studentId = studentId,
-                        title = PushMessages.adminCancelTitle(roomName),
-                        body = PushMessages.adminCancelBody(cancelReason),
-                    )
-                    sendReservationDiscordNotice(
-                        content = "**[예약 취소 알림]**",
-                        reservation = reservation,
-                        actionFieldName = "취소 구분",
-                        actionFieldValue = "관리자 취소 (사유: $cancelReason / 처리자: $processedBy)",
-                    )
-                }
+                cancelByAdminToken(reservation, cancelReason, processedBy, penaltyReason)
                 3
             }
             PHOTO_DELETE -> {
@@ -345,7 +341,7 @@ class ReservationCommandApplicationService(
      * 재촬영을 유도하고 두 번째 거부부터는 예약을 취소한다.
      *
      * executeAdminActionByToken을 그대로 재사용하므로 삭제·createdAt 리셋·푸시·Discord 알림이
-     * 관리자가 직접 처리했을 때와 동일하게 동작한다.
+     * 관리자가 직접 처리했을 때와 동일하게 동작한다. 취소할 때는 인증샷 미인정 페널티를 함께 부여한다.
      */
     @Transactional
     fun rejectVerifyPhotoByInspection(reservationId: Long): RejectVerifyPhotoResult {
@@ -362,6 +358,7 @@ class ReservationCommandApplicationService(
                 action = action,
                 reason = INSPECTION_REJECT_REASON,
                 adminName = INSPECTION_ADMIN_NAME,
+                penaltyReason = PenaltyReason.PHOTO_REJECTED,
             )
 
         return RejectVerifyPhotoResult(deleteCount + 1, action, status)
@@ -378,13 +375,15 @@ class ReservationCommandApplicationService(
             val graceMinutes = if (reservation.photoDeleteCount > 0) RETRY_GRACE_MINUTES else FIRST_GRACE_MINUTES
             if (now.isAfter(useStartAt.plusMinutes(graceMinutes))) {
                 reservationService.cancelByAdmin(reservation.id, "인증샷 미촬영 취소")
+                val penalized = penaltyCommandApplicationService.grantAutomatically(reservation, PenaltyReason.PHOTO_MISSING)
                 val studentId = reservation.studentId
                 val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
                 afterCommit {
                     sendReservationPush(
                         studentId = studentId,
                         title = PushMessages.autoCancelTitle(roomName),
-                        body = PushMessages.AUTO_CANCEL_BODY,
+                        body = if (penalized) PushMessages.AUTO_CANCEL_PENALTY_BODY else PushMessages.AUTO_CANCEL_BODY,
+                        path = if (penalized) PushMessages.PENALTY_PATH else null,
                     )
                     sendReservationDiscordNotice(
                         content = "**[예약 취소 알림]**",
@@ -441,6 +440,34 @@ class ReservationCommandApplicationService(
         }
     }
 
+    /** 관리자 토큰 작업의 예약 취소. penaltyReason이 있으면 인증샷 페널티를 부여하고 취소 알림에 함께 안내한다. */
+    private fun cancelByAdminToken(
+        reservation: ReservationView,
+        cancelReason: String,
+        processedBy: String,
+        penaltyReason: PenaltyReason?,
+    ) {
+        val cancelText = "관리자 취소 (사유: $cancelReason / 처리자: $processedBy)"
+        reservationService.cancelByAdmin(reservation.id, cancelText)
+        val penalized = penaltyReason != null && penaltyCommandApplicationService.grantAutomatically(reservation, penaltyReason)
+        val studentId = reservation.studentId
+        val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
+        afterCommit {
+            sendReservationPush(
+                studentId = studentId,
+                title = PushMessages.adminCancelTitle(roomName),
+                body = if (penalized) PushMessages.INSPECTION_CANCEL_PENALTY_BODY else PushMessages.adminCancelBody(cancelReason),
+                path = if (penalized) PushMessages.PENALTY_PATH else null,
+            )
+            sendReservationDiscordNotice(
+                content = "**[예약 취소 알림]**",
+                reservation = reservation,
+                actionFieldName = "취소 구분",
+                actionFieldValue = cancelText,
+            )
+        }
+    }
+
     private fun sendReservationDiscordNotice(
         content: String,
         reservation: ReservationView,
@@ -453,7 +480,7 @@ class ReservationCommandApplicationService(
         discordReservationActionNotificationPort.send(
             content = content,
             reservationId = reservation.id,
-            studentInfo = buildStudentInfo(student.name, student.id, student.major),
+            studentInfo = StudentInfoFormatter.format(student),
             roomName = roomName,
             reservationDateTime =
                 ReservationDateTimeFormatter.format(
@@ -471,6 +498,7 @@ class ReservationCommandApplicationService(
         studentId: Int,
         title: String,
         body: String,
+        path: String? = null,
     ) {
         deviceService.findReservationPushTokens(studentId).forEach { token ->
             pushMessagePublisher.publish(
@@ -480,26 +508,11 @@ class ReservationCommandApplicationService(
                     title = title,
                     body = body,
                     category = "reservation",
+                    path = path,
                 ),
             )
         }
     }
-
-    private fun buildStudentInfo(
-        name: String,
-        studentId: Int,
-        major: String,
-    ): String = "$name ($studentId/${majorShortName(major)})"
-
-    private fun majorShortName(major: String): String =
-        when (major) {
-            "cse" -> "컴"
-            "sw" -> "솦"
-            "media" -> "글"
-            "mediamba" -> "미경"
-            "sec" -> "정"
-            else -> ""
-        }
 
     private companion object {
         const val ADMIN_CANCEL = "reserveCancel"

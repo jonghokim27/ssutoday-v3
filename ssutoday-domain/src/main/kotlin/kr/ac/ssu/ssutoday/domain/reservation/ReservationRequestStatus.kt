@@ -11,4 +11,5 @@ enum class ReservationRequestStatus(
     ROOM_CONFLICT(5),
     DAILY_LIMIT_EXCEEDED(6),
     STUDENT_CONFLICT(7),
+    SUSPENDED(8),
 }

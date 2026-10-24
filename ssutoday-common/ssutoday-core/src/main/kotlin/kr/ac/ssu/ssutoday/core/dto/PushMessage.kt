@@ -13,4 +13,6 @@ data class PushMessage
         @JsonProperty("body") val body: String,
         @JsonProperty("category") val category: String,
         @JsonProperty("url") val url: String? = null,
+        // 앱이 알림을 눌렀을 때 웹뷰에서 열 화면 경로. 예: /reservations/penalties
+        @JsonProperty("path") val path: String? = null,
     )

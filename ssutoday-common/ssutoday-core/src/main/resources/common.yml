@@ -60,6 +60,11 @@ ssutoday:
       production: ${APP_ATTEST_PRODUCTION:true}
   admin:
     base-url: ${ADMIN_BASE_URL:}
+  penalty:
+    # 인증샷 페널티 시행일. 이날 이후 이용한 예약에만 부여한다. 부정 예약은 바로 적용한다.
+    photo-start-date: ${PENALTY_PHOTO_START_DATE:2026-11-01}
+    # 페널티 대상 학과(학생 major 값, 쉼표 구분). 대상이 아닌 학생에게는 어떤 페널티도 부여하지 않는다.
+    target-majors: ${PENALTY_TARGET_MAJORS:cse}
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY:}
     # 위젯을 띄우는 페이지의 hostname. 웹과 앱(turnstile.html) 모두 v3.ssu.today에서 발급한다.

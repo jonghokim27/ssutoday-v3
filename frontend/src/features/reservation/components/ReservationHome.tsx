@@ -6,7 +6,8 @@ import { IconButton } from '../../../shared/ui/IconButton';
 import { Icon } from '../../../shared/ui/Icon';
 import { LoadingState } from '../../../shared/ui/LoadingState';
 import { appStorage } from '../../../shared/storage/appStorage';
-import { reservationRepository } from '../api/reservationRepository';
+import { triggerHaptic } from '../../../shared/native/nativeBridge';
+import { reservationRepository, type PenaltyStatus } from '../api/reservationRepository';
 import { roomSummaryToStudyRoom } from '../api/reservationMappers';
 import { todayString } from '../data/dates';
 import { type StudyRoom } from '../data/reservationData';
@@ -133,9 +134,12 @@ export function ReservationHome() {
     >
       <BrandHeader
         action={
-          <Link onClick={() => sessionStorage.setItem('reservation_scroll_valid', '1')} to={safePath('/reservations/history')}>
-            <IconButton aria-label="예약 내역"><Icon name="refresh" /></IconButton>
-          </Link>
+          <div className={styles.headerActions}>
+            <PenaltyEntryButton />
+            <Link onClick={() => sessionStorage.setItem('reservation_scroll_valid', '1')} to={safePath('/reservations/history')}>
+              <IconButton aria-label="예약 내역"><Icon name="refresh" /></IconButton>
+            </Link>
+          </div>
         }
         sticky
         title="스터디룸 예약"
@@ -178,5 +182,43 @@ export function ReservationHome() {
         />
       ) : null}
     </div>
+  );
+}
+
+function PenaltyEntryButton() {
+  const safePath = useSafeAreaPath();
+  const [status, setStatus] = useState<PenaltyStatus | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    void reservationRepository.getPenaltyStatus().then((result) => {
+      if (mounted && result.ok) setStatus(result.data);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 페널티 대상 학과가 아니면 버튼을 보여주지 않는다. 대상 여부를 알기 전에도 숨겨 깜빡이지 않게 한다.
+  if (!status?.applicable) return null;
+
+  const suspended = Boolean(status.suspendedUntil);
+  const count = status.photoCount;
+  const tone = suspended ? styles.penaltyRed : count > 0 ? styles.penaltyOrange : '';
+  const label = suspended ? '예약 정지' : `페널티 ${count}회`;
+
+  return (
+    <Link
+      aria-label="페널티 현황"
+      className={[styles.penalty, tone].filter(Boolean).join(' ')}
+      onClick={() => {
+        triggerHaptic('medium');
+        sessionStorage.setItem('reservation_scroll_valid', '1');
+      }}
+      to={safePath('/reservations/penalties')}
+    >
+      <Icon name={suspended ? 'ban' : 'shield'} width="18" height="18" />
+      {label}
+    </Link>
   );
 }

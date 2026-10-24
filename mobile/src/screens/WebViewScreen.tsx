@@ -17,7 +17,7 @@ import messaging from '@react-native-firebase/messaging';
 import { BridgeHandlerError, clearHandlers, dispatch, getHandshakeInfo, registerHandler } from '../bridge/registry';
 import { canDispatchBridge, isAppAttestKey, isAppAttestStudent, isAttestParams, isCaptureScope, isReservationAttestParams, isTrustedBridgeUrl, secureBridgeScript } from '../bridge/bridgeSecurity';
 import AttestationModule from '../../modules/ssutoday-attestation';
-import { deepLink } from '../utils/deepLink';
+import { deepLink, type DeepLinkPayload } from '../utils/deepLink';
 import { parseBridgeEnvelope, type BridgeResponseEnvelope } from '../bridge/protocol';
 import OfflineScreen from './OfflineScreen';
 import UpdateRequiredScreen from './UpdateRequiredScreen';
@@ -46,6 +46,12 @@ const OS_INFO = `${Platform.OS} ${Platform.Version}`;
 const DEVICE_NAME = Constants.deviceName ?? 'unknown';
 const USER_AGENT = `SSUTODAY/${APP_VERSION}/${OS_INFO}/${DEVICE_NAME}`;
 const ALLOWED_HOSTS = new Set(['v3.ssu.today', 'smartid.ssu.ac.kr', 'challenges.cloudflare.com']);
+// 푸시 알림을 눌렀을 때 웹뷰에서 열 화면. 서버가 path를 보내면 그 경로를, 이전 형식의 예약 알림은 예약 내역을 연다.
+function spaPathOf(payload: DeepLinkPayload): string | null {
+  if (payload.type === 'path') return payload.path;
+  if (payload.type === 'reservation') return '/reservations/history';
+  return null;
+}
 
 function generateId(): string {
   return `native-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -80,7 +86,7 @@ export default function WebViewScreen() {
   const [turnstileRequest, setTurnstileRequest] = useState<{ siteKey: string; action: string } | null>(null);
   const turnstileCallbackRef = useRef<{ resolve: (token: string) => void; reject: () => void } | null>(null);
   const webviewReady = useRef(false);
-  const pendingReservationNav = useRef(false);
+  const pendingSpaPath = useRef<string | null>(null);
   const smartIdHeaderHeightRef = useRef(0);
   const documentUrl = useRef(TARGET_URL);
   const documentEpoch = useRef(0);
@@ -131,7 +137,7 @@ export default function WebViewScreen() {
     void checkVersion();
   }, [checkVersion]);
 
-  const injectReservationNavigation = useCallback(() => {
+  const injectSpaNavigation = useCallback((path: string) => {
     webviewRef.current?.injectJavaScript(`
       (function() {
         var attempt = 0;
@@ -139,7 +145,7 @@ export default function WebViewScreen() {
           attempt++;
           if (typeof window.__spaNavigate === 'function') {
             clearInterval(iv);
-            window.__spaNavigate('/reservations/history');
+            window.__spaNavigate(${JSON.stringify(path)});
           } else if (attempt >= 100) {
             clearInterval(iv);
           }
@@ -151,15 +157,15 @@ export default function WebViewScreen() {
 
   useEffect(() => {
     return deepLink.subscribe((payload) => {
-      if (payload.type === 'reservation') {
-        if (webviewReady.current) {
-          injectReservationNavigation();
-        } else {
-          pendingReservationNav.current = true;
-        }
+      const path = spaPathOf(payload);
+      if (!path) return;
+      if (webviewReady.current) {
+        injectSpaNavigation(path);
+      } else {
+        pendingSpaPath.current = path;
       }
     });
-  }, [injectReservationNavigation]);
+  }, [injectSpaNavigation]);
 
   useEffect(() => {
     registerHandler('haptic.impact', async (params) => {
@@ -402,11 +408,12 @@ export default function WebViewScreen() {
       }
       true;`);
     webviewReady.current = true;
-    if (pendingReservationNav.current) {
-      pendingReservationNav.current = false;
-      injectReservationNavigation();
+    const pendingPath = pendingSpaPath.current;
+    if (pendingPath) {
+      pendingSpaPath.current = null;
+      injectSpaNavigation(pendingPath);
     }
-  }, [injectReservationNavigation]);
+  }, [injectSpaNavigation]);
 
   const handleLoad = useCallback((e: { nativeEvent: WebViewNavigation }) => {
     documentUrl.current = e.nativeEvent.url;

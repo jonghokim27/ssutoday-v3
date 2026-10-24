@@ -164,6 +164,7 @@ class ApiResponseContractTest {
                 "/reserve/verifyPhoto/upload",
                 "/reserve/adminTools",
                 "/reserve/done",
+                "/reserve/penalty",
                 "/room/get",
                 "/room/list",
                 "/sso/generateToken",

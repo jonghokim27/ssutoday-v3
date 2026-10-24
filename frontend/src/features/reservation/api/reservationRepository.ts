@@ -72,7 +72,42 @@ export type ReserveHistory = {
   verifyPhotosByIdx: Array<{ url: string; createdAt: string }>;
 };
 
-export type ReserveStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type ReserveStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+export type PenaltyType = 'PHOTO' | 'FRAUD';
+
+export type PenaltyReason =
+  | 'PHOTO_MISSING'
+  | 'PHOTO_REJECTED'
+  | 'PHOTO_OUTSIDE'
+  | 'FRAUD_AUTOMATION'
+  | 'FRAUD_ACCOUNT'
+  | 'FRAUD_PHOTO';
+
+export type Penalty = {
+  id: number;
+  type: PenaltyType;
+  reason: PenaltyReason;
+  grantedAt: string;
+  expiresAt: string;
+  roomName: string;
+  date: string;
+  startBlock: number;
+  endBlock: number;
+  reservationCancelled: boolean;
+};
+
+export type PenaltyStatus = {
+  // 페널티 대상 학과의 학생인지
+  applicable: boolean;
+  photoCount: number;
+  // 예약 정지 중이면 null
+  maxDailyMinutes: number | null;
+  suspendedUntil: string | null;
+  fraud: boolean;
+  nextRelief: { at: string; maxDailyMinutes: number } | null;
+  penalties: Penalty[];
+};
 
 export type ReservationRepository = {
   listRooms(date: string): Promise<ApiResult<{ rooms: RoomSummary[] }>>;
@@ -83,6 +118,7 @@ export type ReservationRepository = {
   cancelReserve(idx: number): Promise<ApiResult<null>>;
   doneReserve(idx: number): Promise<ApiResult<null>>;
   uploadVerifyPhoto(idx: number): Promise<ApiResult<null>>;
+  getPenaltyStatus(): Promise<ApiResult<PenaltyStatus>>;
   adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }): Promise<ApiResult<ReserveStatus>>;
 };
 
@@ -149,6 +185,10 @@ export class ApiReservationRepository implements ReservationRepository {
       upload: form => apiClient.postFormData<null>('reserve/verifyPhoto/upload', form, { authenticated: true }),
       now: () => performance.now(),
     }).catch(handleAttestationDeviceError);
+  }
+
+  async getPenaltyStatus() {
+    return apiClient.post<Record<string, never>, PenaltyStatus>('reserve/penalty', {}, { authenticated: true });
   }
 
   async adminTool(params: { type: 'reserveCancel' | 'photoDelete' | 'photoExecpt'; idx: number; text: string | null }) {

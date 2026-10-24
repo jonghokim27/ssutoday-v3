@@ -11,6 +11,7 @@ import { ReservationDetailPage } from '../pages/reservations/ReservationDetailPa
 import { ReservationFailedPage } from '../pages/reservations/ReservationFailedPage';
 import { ReservationHistoryPage } from '../pages/reservations/ReservationHistoryPage';
 import { ReservationHomePage } from '../pages/reservations/ReservationHomePage';
+import { ReservationPenaltyPage } from '../pages/reservations/ReservationPenaltyPage';
 import { ReservationSuccessPage } from '../pages/reservations/ReservationSuccessPage';
 import { ProtectedRoute, PublicOnlyRoute } from './routeGuards';
 
@@ -31,6 +32,7 @@ export function AppRouter() {
           <Route path="reservations/success" element={<ReservationSuccessPage />} />
           <Route path="reservations/failed" element={<ReservationFailedPage />} />
           <Route path="reservations/history" element={<ReservationHistoryPage />} />
+          <Route path="reservations/penalties" element={<ReservationPenaltyPage />} />
           <Route path="my" element={<MyPage />} />
           <Route path="coming-soon" element={<ComingSoonPage />} />
         </Route>

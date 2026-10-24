@@ -29,6 +29,7 @@ class FirebasePushSender(
                         .build(),
                 ).putData("type", message.category)
                 .apply { message.url?.let { putData("url", it) } }
+                .apply { message.path?.let { putData("path", it) } }
                 .setAndroidConfig(
                     AndroidConfig
                         .builder()

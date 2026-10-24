@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.application.reservation
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -21,6 +22,12 @@ object ReservationDateTimeFormatter {
 
         return "$dateText($day) $startTime ~ $endTime"
     }
+
+    /** 예: 2026년 11월 03일(화) */
+    fun formatDate(date: LocalDate): String = "${date.format(DATE_FORMATTER)}(${koreanDayOfWeek(date.dayOfWeek)})"
+
+    /** 예: 2026년 11월 03일(화) 15:12 */
+    fun formatDateTime(dateTime: LocalDateTime): String = "${formatDate(dateTime.toLocalDate())} ${dateTime.format(TIME_FORMATTER)}"
 
     private fun blockToTime(block: Int): String =
         LocalTime.MIDNIGHT

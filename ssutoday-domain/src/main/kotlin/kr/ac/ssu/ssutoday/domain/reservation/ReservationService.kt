@@ -59,6 +59,9 @@ class ReservationService(
 
     fun findByAdminToken(adminToken: String): ReservationView? = repository.findByAdminToken(adminToken)?.toView()
 
+    /** 같은 예약에 대한 관리자 작업을 차례로 처리하도록 트랜잭션이 끝날 때까지 예약 행을 잠근다. */
+    fun findByAdminTokenForUpdate(adminToken: String): ReservationView? = repository.findByAdminTokenForUpdate(adminToken)?.toView()
+
     fun getActive(
         studentId: Int,
         reservationId: Long,
@@ -195,6 +198,13 @@ class ReservationService(
         today: LocalDate,
         block: Int,
     ): List<ReservationView> = repository.findMissingPhotoReservations(today, block).map(Reservation::toView)
+
+    /** 아직 이용을 시작하지 않은 활성 예약. block은 현재 시각이 속한 블록이다. */
+    fun findUpcoming(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+    ): List<ReservationView> = repository.findUpcoming(studentId, date, block).map(Reservation::toView)
 
     fun findStartingSoon(
         date: LocalDate,

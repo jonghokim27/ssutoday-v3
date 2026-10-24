@@ -53,7 +53,49 @@ object PushMessages {
 
     const val AUTO_CANCEL_BODY = "인증샷을 촬영하지 않아 예약이 취소되었어요"
 
+    const val AUTO_CANCEL_PENALTY_BODY = "인증샷을 촬영하지 않아 예약이 취소되고 페널티 1회가 부여되었어요"
+
+    // ── 페널티 알림 공통 ──────────────────────────────────────────────────────
+    // 알림을 누르면 열 화면. path를 모르는 이전 버전 앱은 예약 알림처럼 예약 내역을 연다.
+    const val PENALTY_PATH = "/reservations/penalties"
+
+    // ── 인증샷 2회 미인정 취소 ────────────────────────────────────────────────
+    const val INSPECTION_CANCEL_PENALTY_BODY = "인증샷이 2회 인정되지 않아 예약이 취소되고 페널티 1회가 부여되었어요"
+
+    // ── 관리자 페널티 부여 ────────────────────────────────────────────────────
+    const val PENALTY_GRANT_TITLE = "⚠️ 페널티 1회가 부여되었어요"
+
+    fun penaltyGrantBody(
+        reservationDate: LocalDate,
+        roomName: String,
+    ) = "${monthDay(reservationDate)} $roomName 이용 건의 인증샷이 스터디룸 외부에서 촬영된 것으로 확인되었어요"
+
+    // ── 부정 예약 정지 ────────────────────────────────────────────────────────
+    const val SUSPENSION_TITLE = "⛔ 스터디룸 예약이 정지되었어요"
+
+    fun suspensionBody(
+        reservationCancelled: Boolean,
+        suspendedUntil: LocalDate,
+        reason: String,
+    ): String {
+        val head = if (reservationCancelled) "부정 예약이 확인되어 해당 예약이 취소되었어요." else "부정 예약이 확인되었어요."
+        return "$head ${suspendedUntil.year}년 ${monthDay(suspendedUntil)}까지 신규 예약이 제한돼요. (사유: $reason)"
+    }
+
+    // ── 페널티 취소 ───────────────────────────────────────────────────────────
+    const val PENALTY_REVOKE_TITLE = "✅ 페널티 1회가 취소되었어요"
+
+    fun penaltyRevokeBody(grantedAt: LocalDate) = "${monthDay(grantedAt)}에 부여된 페널티가 취소되었어요"
+
+    fun fraudRevokeBody(grantedAt: LocalDate) = "${monthDay(grantedAt)}에 부여된 부정 예약 페널티가 취소되었어요"
+
+    const val SUSPENSION_LIFT_TITLE = "🔓 예약 정지가 해제되었어요"
+
+    fun suspensionLiftBody(grantedAt: LocalDate) = "${monthDay(grantedAt)}에 부여된 부정 예약 페널티가 취소되어 지금부터 예약할 수 있어요"
+
     // ──────────────────────────────────────────────────────────────────────────
+
+    private fun monthDay(date: LocalDate) = "${date.monthValue}월 ${date.dayOfMonth}일(${koreanDayOfWeek(date.dayOfWeek)})"
 
     private val HM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 

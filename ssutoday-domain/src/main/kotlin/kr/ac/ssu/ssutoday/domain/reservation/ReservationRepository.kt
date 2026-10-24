@@ -1,8 +1,10 @@
 package kr.ac.ssu.ssutoday.domain.reservation
 
+import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import java.time.LocalDate
 
@@ -117,7 +119,28 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
         block: Int,
     ): List<Reservation>
 
+    // 아직 이용을 시작하지 않은 활성 예약 (부정 예약 정지 시 일괄 취소용)
+    @Query(
+        """
+        select r from Reservation r
+        where r.studentId = :studentId
+          and r.deletedAt is null
+          and (r.date > :date or (r.date = :date and r.startBlock > :block))
+        order by r.date, r.startBlock
+        """,
+    )
+    fun findUpcoming(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+    ): List<Reservation>
+
     fun findByAdminToken(adminToken: String): Reservation?
+
+    // 같은 예약에 대한 관리자 작업이 동시에 들어와도 차례로 처리하도록 행을 잠근다.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Reservation r where r.adminToken = :adminToken")
+    fun findByAdminTokenForUpdate(adminToken: String): Reservation?
 
     fun findByIdAndStudentIdAndDeletedAtIsNull(
         id: Long,

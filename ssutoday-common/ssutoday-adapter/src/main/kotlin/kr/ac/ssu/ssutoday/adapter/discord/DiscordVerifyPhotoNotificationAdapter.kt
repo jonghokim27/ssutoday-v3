@@ -35,6 +35,7 @@ class DiscordVerifyPhotoNotificationAdapter(
 
         val photoDeleteUrl = buildAdminActionUrl(adminToken, PHOTO_DELETE)
         val cancelUrl = buildAdminActionUrl(adminToken, RESERVE_CANCEL)
+        val penaltyUrl = buildAdminActionUrl(adminToken, PENALTY_GRANT)
         val payload =
             buildPayload(
                 content = content,
@@ -45,6 +46,7 @@ class DiscordVerifyPhotoNotificationAdapter(
                 photoUrl = photoUrl,
                 photoDeleteUrl = photoDeleteUrl,
                 cancelUrl = cancelUrl,
+                penaltyUrl = penaltyUrl,
             )
 
         try {
@@ -71,6 +73,7 @@ class DiscordVerifyPhotoNotificationAdapter(
         photoUrl: String,
         photoDeleteUrl: String?,
         cancelUrl: String?,
+        penaltyUrl: String?,
     ): String {
         val safeContent = escapeJson(content)
         val safePhotoUrl = escapeJson(photoUrl)
@@ -78,7 +81,7 @@ class DiscordVerifyPhotoNotificationAdapter(
         val safeStudentInfo = escapeJson(studentInfo)
         val safeRoomName = escapeJson(roomName)
         val safeReservationDateTime = escapeJson(reservationDateTime)
-        val components = buildComponents(photoDeleteUrl, cancelUrl)
+        val components = buildComponents(photoDeleteUrl, cancelUrl, penaltyUrl)
 
         return """
             {
@@ -125,6 +128,7 @@ class DiscordVerifyPhotoNotificationAdapter(
     private fun buildComponents(
         photoDeleteUrl: String?,
         cancelUrl: String?,
+        penaltyUrl: String?,
     ): String {
         val buttons =
             listOfNotNull(
@@ -133,6 +137,9 @@ class DiscordVerifyPhotoNotificationAdapter(
                 },
                 cancelUrl?.let {
                     """{ "type": 2, "style": 5, "label": "예약 취소", "url": "${escapeJson(it)}" }"""
+                },
+                penaltyUrl?.let {
+                    """{ "type": 2, "style": 5, "label": "페널티 부여", "url": "${escapeJson(it)}" }"""
                 },
             )
         if (buttons.isEmpty()) return ""
@@ -155,5 +162,6 @@ class DiscordVerifyPhotoNotificationAdapter(
     private companion object {
         const val PHOTO_DELETE = "photoDelete"
         const val RESERVE_CANCEL = "reserveCancel"
+        const val PENALTY_GRANT = "penaltyGrant"
     }
 }

@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 import messaging from '@react-native-firebase/messaging';
-import { deepLink } from '../src/utils/deepLink';
+import { deepLink, isWebPath } from '../src/utils/deepLink';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -58,6 +58,12 @@ export default function RootLayout() {
 
   const handleDeepLink = useCallback(
     (data: Record<string, string | undefined> | undefined) => {
+      // 서버가 화면 경로를 지정하면 그대로 연다. 새 알림 화면을 추가해도 앱을 고치지 않아도 된다.
+      const path = data?.path;
+      if (isWebPath(path)) {
+        deepLink.emit({ type: 'path', path });
+        return;
+      }
       if (!data?.type) return;
       if (data.type === 'notice' && data.url) {
         router.push({ pathname: '/browser', params: { url: data.url } });
