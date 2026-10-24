@@ -5,6 +5,7 @@ enum class PenaltyActionOutcome {
     DONE,
     NOT_FOUND,
     INVALID_INPUT,
+    NOT_TARGET,
     ALREADY_GRANTED,
     NOT_IN_EFFECT,
     DEADLINE_PASSED,

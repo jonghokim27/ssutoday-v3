@@ -202,6 +202,7 @@ internal object AdminPenaltyPages {
 
     private fun rejectionMessage(rejection: PenaltyGrantRejection): String =
         when (rejection) {
+            PenaltyGrantRejection.NOT_TARGET -> "페널티 대상 학과의 학생이 아닙니다"
             PenaltyGrantRejection.ALREADY_GRANTED -> "이 예약에 이미 부여된 페널티가 있습니다"
             PenaltyGrantRejection.NOT_IN_EFFECT -> "인증샷 페널티 시행일 전에 이용한 예약입니다"
             PenaltyGrantRejection.DEADLINE_PASSED -> "이용 종료 후 7일이 지나 부여할 수 없습니다"
@@ -212,6 +213,7 @@ internal object AdminPenaltyPages {
             PenaltyActionOutcome.DONE -> "페널티가 부여되었습니다"
             PenaltyActionOutcome.NOT_FOUND -> "예약을 찾을 수 없습니다"
             PenaltyActionOutcome.INVALID_INPUT -> "페널티 종류와 사유, 처리자를 입력해주세요"
+            PenaltyActionOutcome.NOT_TARGET -> "페널티 대상 학과의 학생이 아닙니다"
             PenaltyActionOutcome.ALREADY_GRANTED -> "이 예약에 이미 같은 종류의 페널티가 부여되어 있습니다"
             PenaltyActionOutcome.NOT_IN_EFFECT -> "인증샷 페널티 시행일 전에 이용한 예약입니다"
             PenaltyActionOutcome.DEADLINE_PASSED -> "이용 종료 후 7일이 지난 예약에는 인증샷 미인정 페널티를 부여할 수 없습니다"

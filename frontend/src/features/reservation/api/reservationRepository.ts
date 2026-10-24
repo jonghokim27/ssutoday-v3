@@ -98,6 +98,8 @@ export type Penalty = {
 };
 
 export type PenaltyStatus = {
+  // 페널티 대상 학과의 학생인지
+  applicable: boolean;
   photoCount: number;
   // 예약 정지 중이면 null
   maxDailyMinutes: number | null;

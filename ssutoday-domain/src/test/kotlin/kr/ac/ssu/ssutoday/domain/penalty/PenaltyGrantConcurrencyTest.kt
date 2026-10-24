@@ -74,7 +74,7 @@ class PenaltyGrantConcurrencyTest {
         reservations = repositories.getRepository(ReservationRepository::class.java)
         penalties = repositories.getRepository(PenaltyRepository::class.java)
         reservationService = ReservationService(reservations, ReservationPolicy())
-        penaltyService = PenaltyService(penalties, PenaltyPolicy("2026-11-01"))
+        penaltyService = PenaltyService(penalties, PenaltyPolicy("2026-11-01", "cse"))
     }
 
     @AfterAll

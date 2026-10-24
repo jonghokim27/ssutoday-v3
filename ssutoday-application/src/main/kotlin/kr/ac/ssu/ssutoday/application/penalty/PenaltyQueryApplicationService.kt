@@ -36,6 +36,7 @@ class PenaltyQueryApplicationService(
         val penalties = penaltyService.findValid(studentId, now)
         val standing = penaltyPolicy.standing(penalties, now)
         return PenaltyStatusResult(
+            applicable = penaltyPolicy.targets(studentService.get(studentId).major),
             photoCount = standing.photoCount,
             maxDailyBlocks = standing.maxDailyBlocks,
             suspendedUntil = standing.suspendedUntil,
@@ -63,8 +64,8 @@ class PenaltyQueryApplicationService(
                 ),
             photoUrl = verifyPhotoService.find(reservation.id)?.url,
             current = penaltyPolicy.standing(penalties, now),
-            photo = option(reservation, penalties, PenaltyType.PHOTO, now),
-            fraud = option(reservation, penalties, PenaltyType.FRAUD, now),
+            photo = option(student.major, reservation, penalties, PenaltyType.PHOTO, now),
+            fraud = option(student.major, reservation, penalties, PenaltyType.FRAUD, now),
             upcomingReservations =
                 reservationService
                     .findUpcoming(reservation.studentId, now.toLocalDate(), block)
@@ -102,6 +103,7 @@ class PenaltyQueryApplicationService(
     }
 
     private fun option(
+        major: String,
         reservation: ReservationView,
         penalties: List<PenaltyView>,
         type: PenaltyType,
@@ -109,6 +111,7 @@ class PenaltyQueryApplicationService(
     ) = PenaltyGrantOption(
         rejection =
             penaltyPolicy.grantRejection(
+                major = major,
                 type = type,
                 reservationDate = reservation.date,
                 reservationEndAt = reservation.endAt,

@@ -10,8 +10,23 @@ import java.time.LocalDateTime
 class PenaltyPolicy(
     @Value("\${ssutoday.penalty.photo-start-date}")
     photoStartDate: String,
+    @Value("\${ssutoday.penalty.target-majors}")
+    targetMajors: String,
 ) {
     private val photoStartDate: LocalDate = LocalDate.parse(photoStartDate)
+    private val targetMajors: Set<String> =
+        targetMajors
+            .split(',')
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .toSet()
+
+    init {
+        require(this.targetMajors.isNotEmpty()) { "ssutoday.penalty.target-majors must not be empty" }
+    }
+
+    /** 페널티 대상 학과의 학생인지. 대상이 아니면 어떤 페널티도 부여하지 않는다. */
+    fun targets(major: String): Boolean = major in targetMajors
 
     fun expiresAt(
         type: PenaltyType,
@@ -32,12 +47,14 @@ class PenaltyPolicy(
     fun photoGrantDeadline(reservationEndAt: LocalDateTime): LocalDateTime = reservationEndAt.plusDays(PHOTO_GRANT_DAYS)
 
     fun grantRejection(
+        major: String,
         type: PenaltyType,
         reservationDate: LocalDate,
         reservationEndAt: LocalDateTime,
         alreadyGranted: Boolean,
         now: LocalDateTime,
     ): PenaltyGrantRejection? {
+        if (!targets(major)) return PenaltyGrantRejection.NOT_TARGET
         if (alreadyGranted) return PenaltyGrantRejection.ALREADY_GRANTED
         if (!applies(type, reservationDate)) return PenaltyGrantRejection.NOT_IN_EFFECT
         if (type == PenaltyType.PHOTO && now.isAfter(photoGrantDeadline(reservationEndAt))) {

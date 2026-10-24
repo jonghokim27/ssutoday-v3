@@ -57,7 +57,7 @@ class PenaltyRepositoryTest {
         repository =
             JpaRepositoryFactory(SharedEntityManagerCreator.createSharedEntityManager(emf))
                 .getRepository(PenaltyRepository::class.java)
-        service = PenaltyService(repository, PenaltyPolicy("2026-11-01"))
+        service = PenaltyService(repository, PenaltyPolicy("2026-11-01", "cse"))
     }
 
     @AfterAll

@@ -242,7 +242,7 @@ class ReservationRequestAttestationTest {
             discord,
             ReservationRequestSignalService(signalRepository),
             ReservationRiskPolicy(),
-            PenaltyService(penaltyRepository, PenaltyPolicy("2026-11-01")),
+            PenaltyService(penaltyRepository, PenaltyPolicy("2026-11-01", "cse")),
             mock(PenaltyCommandApplicationService::class.java),
         )
 }

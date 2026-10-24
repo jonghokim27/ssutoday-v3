@@ -199,10 +199,13 @@ function PenaltyEntryButton() {
     };
   }, []);
 
-  const suspended = Boolean(status?.suspendedUntil);
-  const count = status?.photoCount ?? 0;
+  // 페널티 대상 학과가 아니면 버튼을 보여주지 않는다. 대상 여부를 알기 전에도 숨겨 깜빡이지 않게 한다.
+  if (!status?.applicable) return null;
+
+  const suspended = Boolean(status.suspendedUntil);
+  const count = status.photoCount;
   const tone = suspended ? styles.penaltyRed : count > 0 ? styles.penaltyOrange : '';
-  const label = suspended ? '예약 정지' : status ? `페널티 ${count}회` : '페널티';
+  const label = suspended ? '예약 정지' : `페널티 ${count}회`;
 
   return (
     <Link

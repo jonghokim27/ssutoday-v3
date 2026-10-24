@@ -40,7 +40,7 @@ class PenaltyCommandApplicationService(
 ) {
     /**
      * 시스템이 인증샷 미촬영·미인정으로 예약을 취소할 때 부여한다.
-     * 시행일 전에 이용한 예약이거나 이미 부여했으면 건너뛰고 false를 반환한다.
+     * 대상 학과가 아니거나 시행일 전에 이용한 예약이거나 이미 부여했으면 건너뛰고 false를 반환한다.
      * 학생 푸시는 예약 취소 알림에 합쳐 보내므로 호출한 쪽이 담당한다.
      */
     @Transactional
@@ -50,6 +50,7 @@ class PenaltyCommandApplicationService(
     ): Boolean {
         require(reason.type == PenaltyType.PHOTO && !reason.adminSelectable) { "자동 부여 사유가 아닙니다: $reason" }
         val now = LocalDateTime.now()
+        if (!penaltyPolicy.targets(studentService.get(reservation.studentId).major)) return false
         if (!penaltyPolicy.applies(reason.type, reservation.date)) return false
         if (penaltyService.existsActive(reservation.id, reason.type)) return false
 
@@ -76,6 +77,7 @@ class PenaltyCommandApplicationService(
         val now = LocalDateTime.now()
         val rejection =
             penaltyPolicy.grantRejection(
+                major = studentService.get(reservation.studentId).major,
                 type = reason.type,
                 reservationDate = reservation.date,
                 reservationEndAt = reservation.endAt,
@@ -230,6 +232,7 @@ class PenaltyCommandApplicationService(
 
     private fun PenaltyGrantRejection.toOutcome(): PenaltyActionOutcome =
         when (this) {
+            PenaltyGrantRejection.NOT_TARGET -> PenaltyActionOutcome.NOT_TARGET
             PenaltyGrantRejection.ALREADY_GRANTED -> PenaltyActionOutcome.ALREADY_GRANTED
             PenaltyGrantRejection.NOT_IN_EFFECT -> PenaltyActionOutcome.NOT_IN_EFFECT
             PenaltyGrantRejection.DEADLINE_PASSED -> PenaltyActionOutcome.DEADLINE_PASSED

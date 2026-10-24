@@ -203,6 +203,20 @@ class PenaltyCommandApplicationServiceTest {
     }
 
     @Test
+    fun `대상 학과가 아닌 학생에게는 자동 부여와 관리자 부여를 모두 하지 않는다`() {
+        val other = reservation(5, "media", today.minusDays(1), studentId = 20269999)
+        `when`(reservations.findByAdminTokenForUpdate("media")).thenReturn(other)
+        val service = service()
+
+        assertFalse(service.grantAutomatically(other, PenaltyReason.PHOTO_MISSING))
+        listOf(PenaltyReason.PHOTO_OUTSIDE, PenaltyReason.FRAUD_AUTOMATION).forEach {
+            assertEquals(PenaltyActionOutcome.NOT_TARGET, service.grantByAdmin(GrantPenaltyCommand("media", it, "김관리", true)).outcome)
+        }
+        assertTrue(penalties.isEmpty())
+        verify(reservations, never()).cancelByAdmin(anyLong(), anyString())
+    }
+
+    @Test
     fun `부정 예약 페널티를 취소해 정지가 풀리면 정지 해제 알림을 보낸다`() {
         val service = service()
         service.grantByAdmin(GrantPenaltyCommand("used", PenaltyReason.FRAUD_ACCOUNT, "김관리", false))
@@ -249,11 +263,12 @@ class PenaltyCommandApplicationServiceTest {
     private fun service(startDate: LocalDate = LocalDate.of(2026, 1, 1)): PenaltyCommandApplicationService {
         val students = mock(StudentService::class.java)
         `when`(students.get(20260000)).thenReturn(StudentView(20260000, "홍길동", "cse", false))
+        `when`(students.get(20269999)).thenReturn(StudentView(20269999, "김미디어", "media", false))
         val rooms = mock(RoomService::class.java)
         `when`(rooms.getByNo("1")).thenReturn(RoomView("1", "스터디룸 1", "cse", 4, "", "", "", "", true))
         val devices = mock(DeviceService::class.java)
         `when`(devices.findReservationPushTokens(20260000)).thenReturn(listOf("device-token"))
-        val policy = PenaltyPolicy(startDate.toString())
+        val policy = PenaltyPolicy(startDate.toString(), "cse")
         return PenaltyCommandApplicationService(
             PenaltyService(penaltyRepository, policy),
             policy,
@@ -282,9 +297,10 @@ class PenaltyCommandApplicationServiceTest {
         id: Long,
         token: String,
         date: LocalDate,
+        studentId: Int = 20260000,
     ) = ReservationView(
         id = id,
-        studentId = 20260000,
+        studentId = studentId,
         roomNo = "1",
         date = date,
         startBlock = 20,

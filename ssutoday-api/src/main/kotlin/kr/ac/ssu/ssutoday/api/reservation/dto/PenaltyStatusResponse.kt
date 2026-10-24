@@ -5,6 +5,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 data class PenaltyStatusResponse(
+    /** 페널티 대상 학과의 학생인지. */
+    val applicable: Boolean,
     /** 유효한 인증샷 페널티 횟수. */
     val photoCount: Int,
     /** 하루 최대 예약 시간(분). 예약 정지 중이면 null이다. */
@@ -23,6 +25,7 @@ data class PenaltyStatusResponse(
 
         fun from(result: PenaltyStatusResult) =
             PenaltyStatusResponse(
+                applicable = result.applicable,
                 photoCount = result.photoCount,
                 maxDailyMinutes = result.maxDailyBlocks?.let { it * 30 },
                 suspendedUntil = result.suspendedUntil?.let(::format),

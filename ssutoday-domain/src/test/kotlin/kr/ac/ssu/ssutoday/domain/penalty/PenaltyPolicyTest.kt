@@ -6,12 +6,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PenaltyPolicyTest {
-    private val policy = PenaltyPolicy("2026-11-01")
+    private val policy = PenaltyPolicy("2026-11-01", "cse")
     private val now = LocalDateTime.of(2026, 11, 17, 12, 0)
 
     @Test
@@ -88,28 +89,43 @@ class PenaltyPolicyTest {
     fun `인증샷 페널티는 시행일 이후 이용하고 종료 후 7일 이내인 예약에만 부여한다`() {
         val endAt = LocalDateTime.of(2026, 11, 3, 12, 0)
         val date = endAt.toLocalDate()
-        assertNull(policy.grantRejection(PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7)))
+        assertNull(policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7)))
         assertEquals(
             PenaltyGrantRejection.DEADLINE_PASSED,
-            policy.grantRejection(PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7).plusSeconds(1)),
+            policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, false, endAt.plusDays(7).plusSeconds(1)),
         )
         assertEquals(
             PenaltyGrantRejection.NOT_IN_EFFECT,
-            policy.grantRejection(PenaltyType.PHOTO, LocalDate.of(2026, 10, 31), endAt, false, endAt),
+            policy.grantRejection("cse", PenaltyType.PHOTO, LocalDate.of(2026, 10, 31), endAt, false, endAt),
         )
         assertEquals(
             PenaltyGrantRejection.ALREADY_GRANTED,
-            policy.grantRejection(PenaltyType.PHOTO, date, endAt, true, endAt),
+            policy.grantRejection("cse", PenaltyType.PHOTO, date, endAt, true, endAt),
         )
     }
 
     @Test
     fun `부정 예약은 시행일과 기한 없이 부여한다`() {
         val endAt = LocalDateTime.of(2026, 10, 20, 12, 0)
-        assertNull(policy.grantRejection(PenaltyType.FRAUD, endAt.toLocalDate(), endAt, false, endAt.plusDays(30)))
+        assertNull(policy.grantRejection("cse", PenaltyType.FRAUD, endAt.toLocalDate(), endAt, false, endAt.plusDays(30)))
         assertTrue(policy.applies(PenaltyType.FRAUD, LocalDate.of(2026, 10, 1)))
         assertFalse(policy.applies(PenaltyType.PHOTO, LocalDate.of(2026, 10, 31)))
         assertTrue(policy.applies(PenaltyType.PHOTO, LocalDate.of(2026, 11, 1)))
+    }
+
+    @Test
+    fun `대상 학과가 아닌 학생에게는 어떤 페널티도 부여하지 않는다`() {
+        val endAt = LocalDateTime.of(2026, 11, 3, 12, 0)
+        assertTrue(policy.targets("cse"))
+        assertFalse(policy.targets("media"))
+        PenaltyType.entries.forEach {
+            assertEquals(PenaltyGrantRejection.NOT_TARGET, policy.grantRejection("media", it, endAt.toLocalDate(), endAt, false, endAt))
+        }
+
+        val several = PenaltyPolicy("2026-11-01", " cse, media ")
+        assertTrue(several.targets("media"))
+        assertFalse(several.targets("mediamba"))
+        assertFailsWith<IllegalArgumentException> { PenaltyPolicy("2026-11-01", " , ") }
     }
 
     private fun photo(
