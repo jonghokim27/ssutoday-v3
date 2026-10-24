@@ -3,6 +3,7 @@ package kr.ac.ssu.ssutoday.api.reservation
 import jakarta.validation.Valid
 import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
+import kr.ac.ssu.ssutoday.api.reservation.dto.AdminPenaltyResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.AdminReservationRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.CreateReservationRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.PenaltyStatusResponse
@@ -133,6 +134,19 @@ class ReservationController(
                 ),
             )
         return status
+    }
+
+    // 앱 관리자 도구의 페널티 부여 버튼. 생체 인증은 앱에서 거친다.
+    @PostMapping("/adminPenalty")
+    @ResponseStatus(StatusCode.SSU2260)
+    fun getAdminPenaltyPage(
+        @LoginStudent student: StudentView,
+        @Valid @RequestBody request: ReservationIdRequest,
+    ): AdminPenaltyResponse {
+        if (!student.isAdmin) throw BusinessException(StatusCode.SSU4003)
+
+        val token = penaltyQueryApplicationService.getGrantToken(request.idx)
+        return AdminPenaltyResponse(AdminActionHtml.actionUrl(token, AdminPenaltyPages.GRANT))
     }
 
     @PostMapping("/penalty")

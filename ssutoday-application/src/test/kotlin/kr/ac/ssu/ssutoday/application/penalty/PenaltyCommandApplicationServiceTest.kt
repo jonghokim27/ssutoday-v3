@@ -151,8 +151,6 @@ class PenaltyCommandApplicationServiceTest {
 
     @Test
     fun `부여할 수 없는 요청은 저장하지 않는다`() {
-        val expired = reservation(4, "expired", today.minusDays(9))
-        `when`(reservations.findByAdminTokenForUpdate("expired")).thenReturn(expired)
         val service = service()
 
         assertEquals(
@@ -169,10 +167,6 @@ class PenaltyCommandApplicationServiceTest {
             service.grantByAdmin(GrantPenaltyCommand("used", PenaltyReason.PHOTO_OUTSIDE, " ", false)).outcome,
         )
         assertEquals(
-            PenaltyActionOutcome.DEADLINE_PASSED,
-            service.grantByAdmin(GrantPenaltyCommand("expired", PenaltyReason.PHOTO_OUTSIDE, "김관리", false)).outcome,
-        )
-        assertEquals(
             PenaltyActionOutcome.NOT_IN_EFFECT,
             service(
                 startDate = today.plusDays(1),
@@ -186,6 +180,17 @@ class PenaltyCommandApplicationServiceTest {
             service.grantByAdmin(GrantPenaltyCommand("used", PenaltyReason.PHOTO_OUTSIDE, "김관리", false)).outcome,
         )
         assertEquals(1, penalties.size)
+    }
+
+    @Test
+    fun `이용이 오래전에 끝난 예약에도 인증샷 미인정을 부여한다`() {
+        val old = reservation(4, "old", today.minusDays(60))
+        `when`(reservations.findByAdminTokenForUpdate("old")).thenReturn(old)
+
+        val result = service().grantByAdmin(GrantPenaltyCommand("old", PenaltyReason.PHOTO_OUTSIDE, "김관리", false))
+
+        assertEquals(PenaltyActionOutcome.DONE, result.outcome)
+        assertEquals(4L, penalties.single().reservationId)
     }
 
     @Test

@@ -10,6 +10,7 @@ import { LoadingState } from '../../../shared/ui/LoadingState';
 import { PromptDialog } from '../../../shared/ui/PromptDialog';
 import { Toast } from '../../../shared/ui/Toast';
 import { openLink, requireNativeApp, triggerHaptic, HandledError } from '../../../shared/native/nativeBridge';
+import { API_BASE_URL } from '../../../shared/config/env';
 import { getTurnstileToken } from '../../../shared/turnstile/turnstile';
 import { appStorage } from '../../../shared/storage/appStorage';
 import { formatDateLabel, todayString } from '../data/dates';
@@ -234,6 +235,31 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
     void executeAdminTool(type, booking, null);
   }
 
+  async function openPenaltyGrant(booking: TimeBooking) {
+    if (!booking.idx) {
+      flash('예약 정보를 찾을 수 없어요');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await reservationRepository.adminPenaltyPath(booking.idx);
+      if (!result.ok) {
+        flash(result.message);
+        return;
+      }
+      setReservedBooking(null);
+      // 디스코드 버튼과 같은 관리자 작업 페이지를 앱 안 브라우저로 연다.
+      await openLink(new URL(result.data.path, API_BASE_URL).toString(), 'internal');
+    } catch (error) {
+      if (!(error instanceof HandledError)) {
+        flash('오류가 발생했습니다. 다시 시도해주세요');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function executeAdminTool(type: 'reserveCancel' | 'photoDelete' | 'photoExecpt', booking: TimeBooking, text: string | null) {
     if (!booking.idx) {
       return;
@@ -322,6 +348,7 @@ export function ReservationDetail({ roomId }: ReservationDetailProps) {
           booking={reservedBooking}
           isAdmin={isAdmin}
           onAdminTool={(type) => void runAdminTool(type, reservedBooking)}
+          onPenalty={() => void openPenaltyGrant(reservedBooking)}
           onClose={() => setReservedBooking(null)}
           onReport={() => void reportBooking(reservedBooking)}
           onViewPhoto={() => void viewVerifyPhoto(reservedBooking)}

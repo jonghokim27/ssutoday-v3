@@ -5,6 +5,7 @@ import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationPageResult
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationPhoto
 import kr.ac.ssu.ssutoday.application.reservation.dto.ReservationRoom
 import kr.ac.ssu.ssutoday.application.reservation.dto.RoomReservation
+import kr.ac.ssu.ssutoday.domain.penalty.PenaltyPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationService
 import kr.ac.ssu.ssutoday.domain.reservation.VerifyPhotoService
@@ -24,6 +25,7 @@ class ReservationQueryApplicationService(
     private val roomService: RoomService,
     private val verifyPhotoService: VerifyPhotoService,
     private val studentService: StudentService,
+    private val penaltyPolicy: PenaltyPolicy,
 ) {
     @Transactional(readOnly = true)
     fun listReservations(
@@ -125,6 +127,7 @@ class ReservationQueryApplicationService(
                 endBlock = reservation.endBlock,
                 isMine = currentStudentId == reservation.studentId,
                 verifyPhotoUrl = if (admin) verifyPhoto?.url else null,
+                penaltyTarget = penaltyPolicy.targets(student.major).takeIf { admin },
             )
         }
 

@@ -80,9 +80,7 @@ class PenaltyCommandApplicationService(
                 major = studentService.get(reservation.studentId).major,
                 type = reason.type,
                 reservationDate = reservation.date,
-                reservationEndAt = reservation.endAt,
                 alreadyGranted = penaltyService.existsActive(reservation.id, reason.type),
-                now = now,
             )
         if (rejection != null) return PenaltyActionResult(rejection.toOutcome())
 
@@ -235,7 +233,6 @@ class PenaltyCommandApplicationService(
             PenaltyGrantRejection.NOT_TARGET -> PenaltyActionOutcome.NOT_TARGET
             PenaltyGrantRejection.ALREADY_GRANTED -> PenaltyActionOutcome.ALREADY_GRANTED
             PenaltyGrantRejection.NOT_IN_EFFECT -> PenaltyActionOutcome.NOT_IN_EFFECT
-            PenaltyGrantRejection.DEADLINE_PASSED -> PenaltyActionOutcome.DEADLINE_PASSED
         }
 
     private companion object {

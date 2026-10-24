@@ -10,7 +10,4 @@ enum class PenaltyGrantRejection {
 
     /** 인증샷 페널티 시행일 전에 이용한 예약이다. */
     NOT_IN_EFFECT,
-
-    /** 이용 종료 후 7일이 지나 인증샷 페널티를 부여할 수 없다. */
-    DEADLINE_PASSED,
 }

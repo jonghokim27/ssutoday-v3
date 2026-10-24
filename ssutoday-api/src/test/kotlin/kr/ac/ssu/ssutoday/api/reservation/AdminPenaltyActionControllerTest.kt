@@ -42,13 +42,8 @@ class AdminPenaltyActionControllerTest {
                 details = listOf("예약자" to "<b>홍길동</b> (20260000/컴)"),
                 photoUrl = null,
                 current = clean,
-                photo =
-                    PenaltyGrantOption(
-                        PenaltyGrantRejection.DEADLINE_PASSED,
-                        clean.copy(photoCount = 1),
-                        LocalDateTime.of(2026, 11, 10, 12, 0),
-                    ),
-                fraud = PenaltyGrantOption(null, PenaltyStanding(0, null, until, true, null), null),
+                photo = PenaltyGrantOption(PenaltyGrantRejection.ALREADY_GRANTED, clean.copy(photoCount = 1)),
+                fraud = PenaltyGrantOption(null, PenaltyStanding(0, null, until, true, null)),
                 upcomingReservations = listOf("2026년 11월 12일(목) 14:00 ~ 16:00 스터디룸 1"),
             ),
         )
@@ -58,7 +53,7 @@ class AdminPenaltyActionControllerTest {
         assertTrue("&lt;b&gt;홍길동&lt;/b&gt;" in html)
         assertFalse("<b>홍길동</b>" in html)
         assertTrue("""value="PHOTO" disabled""" in html)
-        assertTrue("이용 종료 후 7일이 지나 부여할 수 없습니다" in html)
+        assertTrue("이 예약에 이미 부여된 페널티가 있습니다" in html)
         assertTrue("처리 후: 예약 정지 (2027년 02월 08일(월) 15:12까지)" in html)
         assertTrue("이용 전 다른 예약 1건도 함께 취소" in html)
         PenaltyReason.entries.filter { it.adminSelectable }.forEach { assertTrue("""value="${it.name}"""" in html, it.name) }

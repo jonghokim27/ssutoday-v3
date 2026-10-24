@@ -1,4 +1,5 @@
 import { Button } from '../../../shared/ui/Button';
+import { Icon } from '../../../shared/ui/Icon';
 import { type TimeBooking } from '../data/reservationData';
 import styles from './ReservedUserSheet.module.css';
 
@@ -9,9 +10,10 @@ type ReservedUserSheetProps = {
   onReport?: () => void;
   onAdminTool?: (type: 'reserveCancel' | 'photoDelete' | 'photoExecpt') => void;
   onViewPhoto?: () => void;
+  onPenalty?: () => void;
 };
 
-export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport, onAdminTool, onViewPhoto }: ReservedUserSheetProps) {
+export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport, onAdminTool, onViewPhoto, onPenalty }: ReservedUserSheetProps) {
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.sheet} onClick={(event) => event.stopPropagation()}>
@@ -35,6 +37,11 @@ export function ReservedUserSheet({ booking, isAdmin = false, onClose, onReport,
               <Button disabled={!booking.verifyPhotoUrl} onClick={() => onViewPhoto?.()} type="button" variant="secondary">인증샷 보기</Button>
               <Button onClick={() => onAdminTool?.('photoDelete')} type="button" variant="secondary">인증샷 삭제</Button>
               <Button onClick={() => onAdminTool?.('photoExecpt')} type="button" variant="secondary">인증샷 예외</Button>
+              {booking.penaltyTarget ? (
+                <Button className={styles.penalty} onClick={() => onPenalty?.()} type="button" variant="secondary">
+                  <Icon name="shield" width="17" height="17" />페널티 부여
+                </Button>
+              ) : null}
             </>
           ) : (
             <></>
