@@ -4,13 +4,14 @@ import { blockToTime } from '../api/reservationBlocks';
 const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// 서버 PenaltyReason.label과 같은 문구다.
 export const penaltyReasonText: Record<PenaltyReason, string> = {
-  PHOTO_MISSING: '인증샷 촬영 기한이 경과하여 예약이 자동 취소됐어요',
-  PHOTO_REJECTED: '인증샷이 2회 인정되지 않아 예약이 취소됐어요',
-  PHOTO_OUTSIDE: '스터디룸 외부에서 촬영된 인증샷이 확인됐어요',
-  FRAUD_AUTOMATION: '매크로 등 자동화 프로그램을 이용한 예약이 확인됐어요',
-  FRAUD_ACCOUNT: '타인 계정을 이용하거나 계정을 대여한 예약이 확인됐어요',
-  FRAUD_PHOTO: '인증샷을 재사용하거나 조작한 예약이 확인됐어요',
+  PHOTO_MISSING: '인증샷 미촬영 자동 취소',
+  PHOTO_REJECTED: '인증샷 2회 미인정 취소',
+  PHOTO_OUTSIDE: '스터디룸 외부에서 촬영된 인증샷',
+  FRAUD_AUTOMATION: '매크로 등 자동화 프로그램 이용',
+  FRAUD_ACCOUNT: '타인 계정 이용 또는 계정 대여',
+  FRAUD_PHOTO: '인증샷 재사용 또는 조작',
 };
 
 // 서버 PenaltyPolicy.maxDailyBlocks와 같은 단계다.
