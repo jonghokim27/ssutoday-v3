@@ -63,6 +63,8 @@ export default function RootLayout() {
         router.push({ pathname: '/browser', params: { url: data.url } });
       } else if (data.type === 'reservation') {
         deepLink.emit({ type: 'reservation' });
+      } else if (data.type === 'penalty') {
+        deepLink.emit({ type: 'penalty' });
       }
     },
     [router],

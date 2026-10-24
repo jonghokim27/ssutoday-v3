@@ -1,0 +1,79 @@
+import { type Penalty, type PenaltyReason, type PenaltyStatus } from '../api/reservationRepository';
+import { blockToTime } from '../api/reservationBlocks';
+
+const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const penaltyReasonText: Record<PenaltyReason, string> = {
+  PHOTO_MISSING: '인증샷 촬영 기한이 경과하여 예약이 자동 취소됐어요',
+  PHOTO_REJECTED: '인증샷이 2회 인정되지 않아 예약이 취소됐어요',
+  PHOTO_OUTSIDE: '스터디룸 외부에서 촬영된 인증샷이 확인됐어요',
+  FRAUD_AUTOMATION: '매크로 등 자동화 프로그램을 이용한 예약이 확인됐어요',
+  FRAUD_ACCOUNT: '타인 계정을 이용하거나 계정을 대여한 예약이 확인됐어요',
+  FRAUD_PHOTO: '인증샷을 재사용하거나 조작한 예약이 확인됐어요',
+};
+
+// 서버 PenaltyPolicy.maxDailyBlocks와 같은 단계다.
+export const penaltySteps = [
+  { label: '1회', limit: '3시간' },
+  { label: '2회', limit: '2시간' },
+  { label: '3~4회', limit: '1시간' },
+  { label: '5회 이상', limit: '예약 정지' },
+];
+
+/** 유효 인증샷 페널티 횟수가 속한 단계. 0회면 -1이다. */
+export function penaltyStepIndex(photoCount: number) {
+  if (photoCount <= 0) return -1;
+  if (photoCount === 1) return 0;
+  if (photoCount === 2) return 1;
+  if (photoCount <= 4) return 2;
+  return 3;
+}
+
+export function hoursLabel(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  return minutes % 60 === 0 ? `${hours}시간` : `${hours}시간 30분`;
+}
+
+/** 서버가 보내는 yyyy-MM-ddTHH:mm:ss를 기기 시간대와 무관하게 그대로 읽는다. */
+export function parseLocalDateTime(value: string) {
+  const [date, time = '00:00:00'] = value.split('T');
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute, second] = time.split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute, second || 0);
+}
+
+/** 예: 11월 10일 (화) */
+export function monthDayLabel(date: Date) {
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekdayLabels[date.getDay()]})`;
+}
+
+/** 예: 2027년 2월 8일 (월) */
+export function fullDateLabel(date: Date) {
+  return `${date.getFullYear()}년 ${monthDayLabel(date)}`;
+}
+
+/** 예: 11월 10일 (화) 14:00~16:00 */
+export function penaltyUsageLabel(penalty: Penalty) {
+  const [year, month, day] = penalty.date.split('-').map(Number);
+  return `${monthDayLabel(new Date(year, month - 1, day))} ${blockToTime(penalty.startBlock)}~${blockToTime(penalty.endBlock + 1)}`;
+}
+
+/** 만료일까지 남은 날짜. 오늘 만료면 0이다. */
+export function daysUntil(target: Date, now = new Date()) {
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const end = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  return Math.max(0, Math.round((end - start) / DAY_MS));
+}
+
+/** 예: 12월 5일 (토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
+export function reliefMessage(status: PenaltyStatus) {
+  const relief = status.nextRelief;
+  if (!relief) return null;
+
+  const at = parseLocalDateTime(relief.at);
+  const expiring = status.penalties.filter(
+    (penalty) => penalty.type === 'PHOTO' && parseLocalDateTime(penalty.expiresAt).getTime() <= at.getTime(),
+  ).length;
+  return `${monthDayLabel(at)} ${Math.max(expiring, 1)}회 만료 시 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
+}

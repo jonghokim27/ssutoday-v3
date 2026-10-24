@@ -2,6 +2,7 @@ package kr.ac.ssu.ssutoday.domain.reservation
 
 import java.sql.Timestamp
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ReservationView(
     val id: Long,
@@ -16,4 +17,6 @@ data class ReservationView(
     val active: Boolean,
     val adminToken: String,
     val photoDeleteCount: Int,
-)
+) {
+    val endAt: LocalDateTime get() = date.atStartOfDay().plusMinutes((endBlock + 1) * 30L)
+}

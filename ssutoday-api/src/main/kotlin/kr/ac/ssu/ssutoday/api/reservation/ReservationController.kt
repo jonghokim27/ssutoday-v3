@@ -5,6 +5,7 @@ import kr.ac.ssu.ssutoday.api.common.ResponseStatus
 import kr.ac.ssu.ssutoday.api.config.LoginStudent
 import kr.ac.ssu.ssutoday.api.reservation.dto.AdminReservationRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.CreateReservationRequest
+import kr.ac.ssu.ssutoday.api.reservation.dto.PenaltyStatusResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationIdRequest
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationIdResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListRequest
@@ -12,6 +13,7 @@ import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationListResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.ReservationStatusResponse
 import kr.ac.ssu.ssutoday.api.reservation.dto.VerifyPhotoRequest
 import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
+import kr.ac.ssu.ssutoday.application.penalty.PenaltyQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.VerifyPhotoApplicationService
@@ -34,6 +36,7 @@ class ReservationController(
     private val reservationCommandApplicationService: ReservationCommandApplicationService,
     private val reservationQueryApplicationService: ReservationQueryApplicationService,
     private val verifyPhotoApplicationService: VerifyPhotoApplicationService,
+    private val penaltyQueryApplicationService: PenaltyQueryApplicationService,
 ) {
     @PostMapping("/request")
     @ResponseStatus(StatusCode.SSU2090)
@@ -131,6 +134,12 @@ class ReservationController(
             )
         return status
     }
+
+    @PostMapping("/penalty")
+    @ResponseStatus(StatusCode.SSU2250)
+    fun getPenaltyStatus(
+        @LoginStudent student: StudentView,
+    ): PenaltyStatusResponse = PenaltyStatusResponse.from(penaltyQueryApplicationService.getStatus(student.id))
 
     @PostMapping("/done")
     @ResponseStatus(StatusCode.SSU2230)

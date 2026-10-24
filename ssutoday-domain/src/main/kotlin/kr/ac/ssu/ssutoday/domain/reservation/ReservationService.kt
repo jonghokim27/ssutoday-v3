@@ -196,6 +196,13 @@ class ReservationService(
         block: Int,
     ): List<ReservationView> = repository.findMissingPhotoReservations(today, block).map(Reservation::toView)
 
+    /** 아직 이용을 시작하지 않은 활성 예약. block은 현재 시각이 속한 블록이다. */
+    fun findUpcoming(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+    ): List<ReservationView> = repository.findUpcoming(studentId, date, block).map(Reservation::toView)
+
     fun findStartingSoon(
         date: LocalDate,
         startBlock: Int,

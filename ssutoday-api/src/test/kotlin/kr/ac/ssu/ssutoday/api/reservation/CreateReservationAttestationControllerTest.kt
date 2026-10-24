@@ -4,6 +4,7 @@ import kr.ac.ssu.ssutoday.api.common.GlobalControllerAdvice
 import kr.ac.ssu.ssutoday.api.config.JacksonConfig
 import kr.ac.ssu.ssutoday.api.config.LoginStudentArgumentResolver
 import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
+import kr.ac.ssu.ssutoday.application.penalty.PenaltyQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.ReservationQueryApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.VerifyPhotoApplicationService
@@ -37,6 +38,7 @@ class CreateReservationAttestationControllerTest {
                     service,
                     mock(ReservationQueryApplicationService::class.java),
                     mock(VerifyPhotoApplicationService::class.java),
+                    mock(PenaltyQueryApplicationService::class.java),
                 ),
             ).setCustomArgumentResolvers(LoginStudentArgumentResolver())
             .setControllerAdvice(

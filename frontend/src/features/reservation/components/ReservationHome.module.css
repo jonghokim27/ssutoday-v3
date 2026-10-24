@@ -93,3 +93,33 @@
   font-size: var(--font-size-label);
   font-weight: var(--font-weight-regular);
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.penalty {
+  height: 42px;
+  padding: 0 13px 0 11px;
+  border-radius: var(--radius-icon);
+  background: var(--color-surface-control-strong);
+  color: var(--color-text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-extra-bold);
+  white-space: nowrap;
+}
+
+.penaltyOrange {
+  color: #ff6b3d;
+  background: #fff0ea;
+}
+
+.penaltyRed {
+  color: #d6271e;
+  background: #ffdcda;
+}

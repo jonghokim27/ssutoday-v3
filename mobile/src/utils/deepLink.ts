@@ -1,6 +1,7 @@
 export type DeepLinkPayload =
   | { type: 'notice'; url: string }
-  | { type: 'reservation' };
+  | { type: 'reservation' }
+  | { type: 'penalty' };
 
 type Listener = (payload: DeepLinkPayload) => void;
 

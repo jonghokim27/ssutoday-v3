@@ -93,7 +93,7 @@ class VerifyPhotoApplicationService(
         )
         val student = studentService.get(reservation.studentId)
         val roomName = roomService.getByNo(reservation.roomNo)?.name ?: reservation.roomNo
-        val studentInfo = buildStudentInfo(student.name, student.id, student.major)
+        val studentInfo = StudentInfoFormatter.format(student)
         val reservationDateTime =
             ReservationDateTimeFormatter.format(
                 reservation.date,
@@ -165,7 +165,7 @@ class VerifyPhotoApplicationService(
         discordReservationActionNotificationPort.send(
             content = "**[인증샷 자동 검사]**",
             reservationId = reservation.id,
-            studentInfo = buildStudentInfo(student.name, student.id, student.major),
+            studentInfo = StudentInfoFormatter.format(student),
             roomName = roomName,
             reservationDateTime =
                 ReservationDateTimeFormatter.format(
@@ -187,20 +187,6 @@ class VerifyPhotoApplicationService(
 
         return "${publicBaseUrl.trimEnd('/')}/${key.trimStart('/')}"
     }
-
-    private fun buildStudentInfo(
-        name: String,
-        studentId: Int,
-        major: String,
-    ): String = "$name ($studentId/${majorShortName(major)})"
-
-    private fun majorShortName(major: String): String =
-        when (major) {
-            "cse" -> "컴"
-            "media" -> "글"
-            "mediamba" -> "미경"
-            else -> ""
-        }
 
     private companion object {
         const val VERIFY_PHOTO_FILE_TOKEN_LENGTH = 20

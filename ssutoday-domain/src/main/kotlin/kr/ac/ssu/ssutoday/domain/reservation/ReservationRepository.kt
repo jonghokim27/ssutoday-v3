@@ -117,6 +117,22 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
         block: Int,
     ): List<Reservation>
 
+    // 아직 이용을 시작하지 않은 활성 예약 (부정 예약 정지 시 일괄 취소용)
+    @Query(
+        """
+        select r from Reservation r
+        where r.studentId = :studentId
+          and r.deletedAt is null
+          and (r.date > :date or (r.date = :date and r.startBlock > :block))
+        order by r.date, r.startBlock
+        """,
+    )
+    fun findUpcoming(
+        studentId: Int,
+        date: LocalDate,
+        block: Int,
+    ): List<Reservation>
+
     fun findByAdminToken(adminToken: String): Reservation?
 
     fun findByIdAndStudentIdAndDeletedAtIsNull(

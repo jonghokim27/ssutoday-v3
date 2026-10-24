@@ -220,8 +220,11 @@ Kafka consumer 실행 모듈이다.
 | `DISCORD_ERROR_WEBHOOK_URL` | WARN 이상 로그 Discord 알림 webhook |
 | `DISCORD_VERIFYPHOTO_WEBHOOK_URL` | 인증샷/예약 액션 Discord 알림 webhook |
 | `ADMIN_BASE_URL` | Discord 관리자 액션 링크 base URL |
+| `PENALTY_PHOTO_START_DATE` | 인증샷 페널티 시행일. 기본 `2026-11-01`이며 이날 이후 이용한 예약에만 부여 |
 
 인증샷 무결성의 구현 범위, Android/iOS 판정 기준과 관찰/강제 모드 계약은 [docs/attestation.md](docs/attestation.md)를 참고한다. iOS 키 저장 테이블은 배포 전에 [DDL](infra/sql/20260913-device-attestation.sql)을 적용해야 한다.
+
+스터디룸 페널티 정책, 관리자 부여·취소 방법과 알림 문구는 [docs/penalty.md](docs/penalty.md)를 참고한다. 페널티 테이블은 배포 전에 [DDL](infra/sql/20261025-penalty.sql)을 적용해야 한다.
 
 ### 서버 실행
 

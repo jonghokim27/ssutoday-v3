@@ -5,7 +5,9 @@ export type IconName =
   | 'arrowDown'
   | 'arrowLeft'
   | 'arrowRight'
+  | 'ban'
   | 'calendar'
+  | 'camera'
   | 'check'
   | 'chevronDown'
   | 'chevronLeft'
@@ -16,6 +18,7 @@ export type IconName =
   | 'logout'
   | 'refresh'
   | 'search'
+  | 'shield'
   | 'star'
   | 'user'
   | 'x';
@@ -45,12 +48,24 @@ const paths: Record<IconName, ReactElement> = {
       <path d="m13 6 6 6-6 6" />
     </>
   ),
+  ban: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m5.6 5.6 12.8 12.8" />
+    </>
+  ),
   calendar: (
     <>
       <rect x="3" y="4" width="18" height="18" rx="3" />
       <path d="M3 9h18" />
       <path d="M8 2v4" />
       <path d="M16 2v4" />
+    </>
+  ),
+  camera: (
+    <>
+      <path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+      <circle cx="12" cy="13.5" r="3.5" />
     </>
   ),
   check: (
@@ -98,6 +113,13 @@ const paths: Record<IconName, ReactElement> = {
     <>
       <circle cx="11" cy="11" r="7" />
       <path d="m21 21-4.3-4.3" />
+    </>
+  ),
+  shield: (
+    <>
+      <path d="M12 3 5 6v5.5c0 4.4 3 8 7 9.5 4-1.5 7-5.1 7-9.5V6z" />
+      <path d="M12 8.5v4" />
+      <path d="M12 16h.01" />
     </>
   ),
   star: <path d="m12 3 2.7 5.5 6 .9-4.3 4.2 1 6L12 17l-5.4 2.6 1-6L3.3 9.4l6-.9z" />,

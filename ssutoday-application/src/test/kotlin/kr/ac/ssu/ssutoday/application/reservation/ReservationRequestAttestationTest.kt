@@ -1,7 +1,9 @@
 package kr.ac.ssu.ssutoday.application.reservation
 
+import kr.ac.ssu.ssutoday.application.anyOf
 import kr.ac.ssu.ssutoday.application.attest.AttestationVerificationApplicationService
 import kr.ac.ssu.ssutoday.application.attest.dto.AttestationEvidence
+import kr.ac.ssu.ssutoday.application.penalty.PenaltyCommandApplicationService
 import kr.ac.ssu.ssutoday.application.reservation.dto.CreateReservationCommand
 import kr.ac.ssu.ssutoday.core.attestation.AttestationVerdict
 import kr.ac.ssu.ssutoday.core.attestation.PlayIntegritySignals
@@ -19,6 +21,10 @@ import kr.ac.ssu.ssutoday.core.status.StatusCode
 import kr.ac.ssu.ssutoday.core.turnstile.TurnstileAction
 import kr.ac.ssu.ssutoday.core.turnstile.TurnstileVerification
 import kr.ac.ssu.ssutoday.domain.config.ConfigService
+import kr.ac.ssu.ssutoday.domain.penalty.Penalty
+import kr.ac.ssu.ssutoday.domain.penalty.PenaltyPolicy
+import kr.ac.ssu.ssutoday.domain.penalty.PenaltyRepository
+import kr.ac.ssu.ssutoday.domain.penalty.PenaltyService
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationCompletionPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestPolicy
 import kr.ac.ssu.ssutoday.domain.reservation.ReservationRequestService
@@ -36,13 +42,16 @@ import kr.ac.ssu.ssutoday.domain.student.DeviceService
 import kr.ac.ssu.ssutoday.domain.student.StudentService
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,6 +68,7 @@ class ReservationRequestAttestationTest {
     private val discord = mock(DiscordAttestationNotificationPort::class.java)
     private val provider = mock(PlayIntegrityVerificationPort::class.java)
     private val signalRepository = mock(ReservationRequestSignalRepository::class.java)
+    private val penaltyRepository = mock(PenaltyRepository::class.java)
     private val command = CreateReservationCommand("turnstile", 20260000, "cse", false, "1", LocalDate.of(2026, 9, 14), 20, 23)
     private val evidence = AttestationEvidence("android", "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8", "opaque-token")
     private val openAt =
@@ -164,6 +174,33 @@ class ReservationRequestAttestationTest {
     }
 
     @Test
+    fun `예약 정지 중인 학생의 요청은 저장 전에 거부하고 관리자는 통과한다`() {
+        val now = LocalDateTime.now()
+        `when`(
+            penaltyRepository.findAllByStudentIdAndRevokedAtIsNullAndExpiresAtAfterOrderByGrantedAtDesc(
+                eq(20260000),
+                anyOf(Timestamp::class.java),
+            ),
+        ).thenReturn(
+            listOf(
+                Penalty(
+                    studentId = 20260000,
+                    reservationId = 1,
+                    type = "FRAUD",
+                    reason = "FRAUD_AUTOMATION",
+                    grantedBy = "관리자",
+                    grantedAt = Timestamp.valueOf(now),
+                    expiresAt = Timestamp.valueOf(now.plusDays(90)),
+                ),
+            ),
+        )
+
+        assertEquals(StatusCode.SSU4094, assertFailsWith<BusinessException> { service(false).createReservationRequest(command) }.status)
+        verifyNoInteractions(requests, provider, signalRepository, publisher, discord, rooms)
+        assertEquals(42L, service(false).createReservationRequest(command.copy(admin = true)))
+    }
+
+    @Test
     fun `롤백하면 접수 알림과 메시지를 발행하지 않는다`() {
         TransactionSynchronizationManager.initSynchronization()
         try {
@@ -205,5 +242,7 @@ class ReservationRequestAttestationTest {
             discord,
             ReservationRequestSignalService(signalRepository),
             ReservationRiskPolicy(),
+            PenaltyService(penaltyRepository, PenaltyPolicy("2026-11-01")),
+            mock(PenaltyCommandApplicationService::class.java),
         )
 }
