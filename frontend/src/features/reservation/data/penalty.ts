@@ -55,14 +55,10 @@ export function daysUntil(target: Date, now = new Date()) {
   return Math.max(0, Math.round((end - start) / DAY_MS));
 }
 
-/** 예: 2026년 12월 05일(토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
+/** 예: 2026년 12월 05일(토)부터 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
 export function reliefMessage(status: PenaltyStatus) {
   const relief = status.nextRelief;
   if (!relief) return null;
 
-  const at = parseLocalDateTime(relief.at);
-  const expiring = status.penalties.filter(
-    (penalty) => penalty.type === 'PHOTO' && parseLocalDateTime(penalty.expiresAt).getTime() <= at.getTime(),
-  ).length;
-  return `${dateLabel(at)} ${Math.max(expiring, 1)}회 만료 시 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
+  return `${dateLabel(parseLocalDateTime(relief.at))}부터 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
 }

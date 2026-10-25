@@ -149,26 +149,16 @@
   font-weight: var(--font-weight-extra-bold);
 }
 
+/* 만료 안내는 360px 화면에서도 한 줄에 들어가도록 아이콘 없이 조금 작게 쓴다. */
 .hint {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
   margin: var(--space-8) 0 0;
   padding: 11px 13px;
   border-radius: var(--radius-md);
   background: var(--color-surface-panel);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-body-sm);
+  font-size: 12.5px;
   font-weight: var(--font-weight-medium);
   line-height: 1.4;
-}
-
-.hint svg {
-  flex: none;
-  color: var(--color-text-muted);
-}
-
-.hint span {
   text-wrap: balance;
 }
 

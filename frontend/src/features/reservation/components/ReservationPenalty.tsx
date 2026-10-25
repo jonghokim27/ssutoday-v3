@@ -112,7 +112,7 @@ function PenaltySummary({ status }: { status: PenaltyStatus }) {
       </div>
       <PenaltySteps photoCount={status.photoCount} />
       {relief ? (
-        <p className={styles.hint}><Icon name="clock" width="16" height="16" /><span>{relief}</span></p>
+        <p className={styles.hint}>{relief}</p>
       ) : null}
     </section>
   );
