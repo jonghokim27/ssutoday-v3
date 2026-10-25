@@ -168,6 +168,10 @@
   color: var(--color-text-muted);
 }
 
+.hint span {
+  text-wrap: balance;
+}
+
 .stopped {
   border-color: #ffd6dc;
   background: linear-gradient(180deg, #fff5f6, var(--color-surface-base));
