@@ -8,7 +8,7 @@ import kr.ac.ssu.ssutoday.domain.student.StudentView
 
 /** 관리자 화면과 Discord 알림에 쓰는 페널티 표기. */
 object PenaltyTextFormatter {
-    /** 예: 2회 (1일 최대 예약 시간 2시간), 예약 정지 (2027년 02월 08일(월) 15:12까지) */
+    /** 예: 2회 (1일 최대 예약 시간 2시간), 예약 정지 (2027년 2월 8일(월) 15:12까지) */
     fun standing(standing: PenaltyStanding): String {
         val suspendedUntil = standing.suspendedUntil
         if (suspendedUntil != null) return "예약 정지 (${ReservationDateTimeFormatter.formatDateTime(suspendedUntil)}까지)"

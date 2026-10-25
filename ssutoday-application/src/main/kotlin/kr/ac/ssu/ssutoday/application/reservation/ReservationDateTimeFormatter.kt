@@ -7,7 +7,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 object ReservationDateTimeFormatter {
-    private val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
+    private val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
     private val TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     fun format(
@@ -23,10 +23,10 @@ object ReservationDateTimeFormatter {
         return "$dateText($day) $startTime ~ $endTime"
     }
 
-    /** 예: 2026년 11월 03일(화) */
+    /** 예: 2026년 11월 3일(화) */
     fun formatDate(date: LocalDate): String = "${date.format(DATE_FORMATTER)}(${koreanDayOfWeek(date.dayOfWeek)})"
 
-    /** 예: 2026년 11월 03일(화) 15:12 */
+    /** 예: 2026년 11월 3일(화) 15:12 */
     fun formatDateTime(dateTime: LocalDateTime): String = "${formatDate(dateTime.toLocalDate())} ${dateTime.format(TIME_FORMATTER)}"
 
     private fun blockToTime(block: Int): String =
