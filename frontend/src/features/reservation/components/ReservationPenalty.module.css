@@ -342,9 +342,8 @@
   font-weight: var(--font-weight-bold);
 }
 
-.details dd span {
-  color: #9aa0ad;
-  font-weight: var(--font-weight-medium);
+.nowrap {
+  white-space: nowrap;
 }
 
 .empty {

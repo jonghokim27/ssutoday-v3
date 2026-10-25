@@ -157,10 +157,13 @@ function PenaltyCard({ penalty }: { penalty: Penalty }) {
       <p className={styles.reason}>{penaltyReasonText[penalty.reason]}</p>
       <dl className={styles.details}>
         <div><dt>시설명</dt><dd>{penalty.roomName}</dd></div>
-        <div><dt>이용 일자</dt><dd>{formatDateLabel(penalty.date)}</dd></div>
         <div>
-          <dt>이용 시간</dt>
-          <dd>{reserveHistoryTime(penalty.startBlock, penalty.endBlock)}{penalty.reservationCancelled ? <span> (취소 처리)</span> : null}</dd>
+          <dt>이용 일시</dt>
+          {/* 좁은 화면에서는 날짜와 시간 사이에서만 줄을 바꾼다. */}
+          <dd>
+            <span className={styles.nowrap}>{formatDateLabel(penalty.date)}</span>{' '}
+            <span className={styles.nowrap}>{reserveHistoryTime(penalty.startBlock, penalty.endBlock)}</span>
+          </dd>
         </div>
         <div>
           <dt>{fraud ? '정지 기한' : '만료 일자'}</dt>
