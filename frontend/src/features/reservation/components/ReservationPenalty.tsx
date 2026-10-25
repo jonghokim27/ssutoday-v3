@@ -4,17 +4,16 @@ import { useSafeAreaPath } from '../../../shared/routing/safeAreaParams';
 import { Icon } from '../../../shared/ui/Icon';
 import { IconButton } from '../../../shared/ui/IconButton';
 import { LoadingState } from '../../../shared/ui/LoadingState';
-import { reservationRepository, type Penalty, type PenaltyStatus } from '../api/reservationRepository';
+import { reservationRepository, reserveHistoryTime, type Penalty, type PenaltyStatus } from '../api/reservationRepository';
+import { formatDateLabel } from '../data/dates';
 import {
+  dateLabel,
   daysUntil,
-  fullDateLabel,
   hoursLabel,
-  monthDayLabel,
   parseLocalDateTime,
   penaltyReasonText,
   penaltyStepIndex,
   penaltySteps,
-  penaltyUsageLabel,
   reliefMessage,
 } from '../data/penalty';
 import styles from './ReservationPenalty.module.css';
@@ -90,7 +89,7 @@ function PenaltySummary({ status }: { status: PenaltyStatus }) {
         <span className={styles.summaryLabel}>예약 상태</span>
         <strong className={styles.stoppedTitle}><Icon name="ban" />예약이 정지됐어요</strong>
         <p className={styles.stoppedDesc}>
-          <b>{fullDateLabel(parseLocalDateTime(status.suspendedUntil))}</b>까지 신규 예약이 제한돼요
+          <b>{dateLabel(parseLocalDateTime(status.suspendedUntil))}</b>까지 신규 예약이 제한돼요
         </p>
         {status.fraud ? null : <PenaltySteps photoCount={status.photoCount} tone={styles.toneRed} />}
       </section>
@@ -141,7 +140,7 @@ function PenaltyCard({ penalty }: { penalty: Penalty }) {
   const fraud = penalty.type === 'FRAUD';
   const grantedAt = parseLocalDateTime(penalty.grantedAt);
   const expiresAt = parseLocalDateTime(penalty.expiresAt);
-  const granted = `${monthDayLabel(grantedAt)} 부여${penalty.reason === 'PHOTO_OUTSIDE' ? ' · 관리자 확인' : ''}`;
+  const granted = `${dateLabel(grantedAt)} 부여${penalty.reason === 'PHOTO_OUTSIDE' ? ' · 관리자 확인' : ''}`;
 
   return (
     <article className={styles.card}>
@@ -158,13 +157,14 @@ function PenaltyCard({ penalty }: { penalty: Penalty }) {
       <p className={styles.reason}>{penaltyReasonText[penalty.reason]}</p>
       <dl className={styles.details}>
         <div><dt>시설명</dt><dd>{penalty.roomName}</dd></div>
+        <div><dt>이용 일자</dt><dd>{formatDateLabel(penalty.date)}</dd></div>
         <div>
-          <dt>이용 일시</dt>
-          <dd>{penaltyUsageLabel(penalty)}{penalty.reservationCancelled ? <span> (취소 처리)</span> : null}</dd>
+          <dt>이용 시간</dt>
+          <dd>{reserveHistoryTime(penalty.startBlock, penalty.endBlock)}{penalty.reservationCancelled ? <span> (취소 처리)</span> : null}</dd>
         </div>
         <div>
           <dt>{fraud ? '정지 기한' : '만료 일자'}</dt>
-          <dd>{fraud ? fullDateLabel(expiresAt) : monthDayLabel(expiresAt)}</dd>
+          <dd>{dateLabel(expiresAt)}</dd>
         </div>
       </dl>
     </article>

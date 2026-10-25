@@ -1,7 +1,6 @@
-import { type Penalty, type PenaltyReason, type PenaltyStatus } from '../api/reservationRepository';
-import { blockToTime } from '../api/reservationBlocks';
+import { type PenaltyReason, type PenaltyStatus } from '../api/reservationRepository';
+import { formatDate, formatDateLabel } from './dates';
 
-const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // 서버 PenaltyReason.label과 같은 문구다.
@@ -44,20 +43,9 @@ export function parseLocalDateTime(value: string) {
   return new Date(year, month - 1, day, hour, minute, second || 0);
 }
 
-/** 예: 11월 10일 (화) */
-export function monthDayLabel(date: Date) {
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekdayLabels[date.getDay()]})`;
-}
-
-/** 예: 2027년 2월 8일 (월) */
-export function fullDateLabel(date: Date) {
-  return `${date.getFullYear()}년 ${monthDayLabel(date)}`;
-}
-
-/** 예: 11월 10일 (화) 14:00~16:00 */
-export function penaltyUsageLabel(penalty: Penalty) {
-  const [year, month, day] = penalty.date.split('-').map(Number);
-  return `${monthDayLabel(new Date(year, month - 1, day))} ${blockToTime(penalty.startBlock)}~${blockToTime(penalty.endBlock + 1)}`;
+/** 다른 예약 화면과 같은 날짜 표기다. 예: 2026년 11월 10일(화) */
+export function dateLabel(date: Date) {
+  return formatDateLabel(formatDate(date));
 }
 
 /** 만료일까지 남은 날짜. 오늘 만료면 0이다. */
@@ -67,7 +55,7 @@ export function daysUntil(target: Date, now = new Date()) {
   return Math.max(0, Math.round((end - start) / DAY_MS));
 }
 
-/** 예: 12월 5일 (토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
+/** 예: 2026년 12월 5일(토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
 export function reliefMessage(status: PenaltyStatus) {
   const relief = status.nextRelief;
   if (!relief) return null;
@@ -76,5 +64,5 @@ export function reliefMessage(status: PenaltyStatus) {
   const expiring = status.penalties.filter(
     (penalty) => penalty.type === 'PHOTO' && parseLocalDateTime(penalty.expiresAt).getTime() <= at.getTime(),
   ).length;
-  return `${monthDayLabel(at)} ${Math.max(expiring, 1)}회 만료 시 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
+  return `${dateLabel(at)} ${Math.max(expiring, 1)}회 만료 시 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
 }
