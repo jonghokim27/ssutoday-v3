@@ -121,7 +121,7 @@ function formatReserveDate(date: string) {
     return date;
   }
 
-  return `${value.getFullYear()}년 ${value.getMonth() + 1}월 ${value.getDate()}일(${dayOfWeekHan(value.getDay())})`;
+  return `${value.getFullYear()}년 ${String(value.getMonth() + 1).padStart(2, '0')}월 ${String(value.getDate()).padStart(2, '0')}일(${dayOfWeekHan(value.getDay())})`;
 }
 
 function formatDateTime(date: string) {

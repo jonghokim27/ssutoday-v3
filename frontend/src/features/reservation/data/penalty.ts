@@ -43,7 +43,7 @@ export function parseLocalDateTime(value: string) {
   return new Date(year, month - 1, day, hour, minute, second || 0);
 }
 
-/** 다른 예약 화면과 같은 날짜 표기다. 예: 2026년 11월 10일(화) */
+/** 다른 예약 화면과 같은 날짜 표기다. 예: 2026년 11월 03일(화) */
 export function dateLabel(date: Date) {
   return formatDateLabel(formatDate(date));
 }
@@ -55,7 +55,7 @@ export function daysUntil(target: Date, now = new Date()) {
   return Math.max(0, Math.round((end - start) / DAY_MS));
 }
 
-/** 예: 2026년 12월 5일(토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
+/** 예: 2026년 12월 05일(토) 1회 만료 시 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
 export function reliefMessage(status: PenaltyStatus) {
   const relief = status.nextRelief;
   if (!relief) return null;

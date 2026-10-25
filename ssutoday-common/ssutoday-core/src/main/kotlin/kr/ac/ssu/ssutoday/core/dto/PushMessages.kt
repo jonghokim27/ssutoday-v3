@@ -14,10 +14,9 @@ object PushMessages {
         startBlock: Int,
         endBlock: Int,
     ): String {
-        val dow = koreanDayOfWeek(date.dayOfWeek)
         val startTime = LocalTime.MIDNIGHT.plusMinutes(startBlock * 30L).format(HM)
         val endTime = LocalTime.MIDNIGHT.plusMinutes((endBlock + 1) * 30L).format(HM)
-        return "${date.year}년 ${date.monthValue}월 ${date.dayOfMonth}일($dow) $startTime ~ $endTime"
+        return "${date.year}년 ${monthDay(date)} $startTime ~ $endTime"
     }
 
     // ── 인증샷 촬영 요청 ──────────────────────────────────────────────────────
@@ -95,7 +94,8 @@ object PushMessages {
 
     // ──────────────────────────────────────────────────────────────────────────
 
-    private fun monthDay(date: LocalDate) = "${date.monthValue}월 ${date.dayOfMonth}일(${koreanDayOfWeek(date.dayOfWeek)})"
+    // 앱 화면과 같이 월·일을 두 자리로 맞춘다. 예: 11월 03일(화)
+    private fun monthDay(date: LocalDate) = "%02d월 %02d일(%s)".format(date.monthValue, date.dayOfMonth, koreanDayOfWeek(date.dayOfWeek))
 
     private val HM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 

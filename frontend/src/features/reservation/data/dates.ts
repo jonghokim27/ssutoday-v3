@@ -42,7 +42,7 @@ export function isToday(date: string | undefined) {
 
 export function formatDateLabel(dateString: string) {
   const date = parseDate(dateString);
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일(${weekdayLabels[date.getDay()]})`;
+  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일(${weekdayLabels[date.getDay()]})`;
 }
 
 export function getDateStrip(selectedDate: string, length = 5): DateStripItem[] {

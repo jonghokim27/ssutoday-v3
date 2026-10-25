@@ -54,7 +54,7 @@ class AdminPenaltyActionControllerTest {
         assertFalse("<b>홍길동</b>" in html)
         assertTrue("""value="PHOTO" disabled""" in html)
         assertTrue("이 예약에 이미 부여된 페널티가 있습니다" in html)
-        assertTrue("처리 후: 예약 정지 (2027년 2월 8일(월) 15:12까지)" in html)
+        assertTrue("처리 후: 예약 정지 (2027년 02월 08일(월) 15:12까지)" in html)
         assertTrue("이용 전 다른 예약 1건도 함께 취소" in html)
         PenaltyReason.entries.filter { it.adminSelectable }.forEach { assertTrue("""value="${it.name}"""" in html, it.name) }
         assertFalse("""value="PHOTO_MISSING"""" in html)
