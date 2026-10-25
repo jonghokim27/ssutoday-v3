@@ -1,6 +1,7 @@
 import { type PenaltyReason, type PenaltyStatus } from '../api/reservationRepository';
 import { formatDate, formatDateLabel } from './dates';
 
+const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // 서버 PenaltyReason.label과 같은 문구다.
@@ -48,6 +49,11 @@ export function dateLabel(date: Date) {
   return formatDateLabel(formatDate(date));
 }
 
+/** 연도를 뺀 표기. 한 줄에 넣어야 하는 만료 안내에만 쓴다. 예: 12월 05일(토) */
+function monthDayLabel(date: Date) {
+  return `${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일(${weekdayLabels[date.getDay()]})`;
+}
+
 /** 만료일까지 남은 날짜. 오늘 만료면 0이다. */
 export function daysUntil(target: Date, now = new Date()) {
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -55,10 +61,10 @@ export function daysUntil(target: Date, now = new Date()) {
   return Math.max(0, Math.round((end - start) / DAY_MS));
 }
 
-/** 예: 2026년 12월 05일(토)부터 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
+/** 예: 12월 05일(토)부터 3시간으로 상향돼요. 늘어날 일이 없으면 null이다. */
 export function reliefMessage(status: PenaltyStatus) {
   const relief = status.nextRelief;
   if (!relief) return null;
 
-  return `${dateLabel(parseLocalDateTime(relief.at))}부터 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
+  return `${monthDayLabel(parseLocalDateTime(relief.at))}부터 ${hoursLabel(relief.maxDailyMinutes)}으로 상향돼요`;
 }
